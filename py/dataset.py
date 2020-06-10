@@ -6,7 +6,8 @@ import pathFolder
 
 # import descriptor computation scripts => precise folder where descriptor are included
 import sys
-sys.path.insert(0, "C:/Users/Aborrel/research/NIEHS/development/descriptor/")
+#sys.path.insert(0, "C:/Users/Aborrel/research/NIEHS/development/descriptor/")
+sys.path.insert(0, "/home/aborrel/development/molecular-descriptors/")
 import Chemical
 
 
@@ -70,7 +71,7 @@ class dataset:
         # compute descriptor
         for CASRN in self.d_dataset.keys():
             SMILES = self.d_dataset[CASRN]["SMILES"]
-            cChem = Chemical.Chemical(SMILES, pr_desc, p_salts=path.abspath("./Salts.txt"))
+            cChem = Chemical.Chemical(SMILES, pr_desc)#, p_salts=path.abspath("./Salts.txt"))
             cChem.prepChem() # prep
             # case error cleaning
             if cChem.err == 1:
@@ -101,7 +102,7 @@ class dataset:
                 continue
             else:
                 SMILES = self.d_dataset[CASRN]["SMILES"]
-                cChem = Chemical.Chemical(SMILES, pr_desc, p_salts=path.abspath("./Salts.txt"), OS="Windows")
+                cChem = Chemical.Chemical(SMILES, pr_desc)#, p_salts=path.abspath("./Salts.txt"), OS="Windows")
                 cChem.prepChem() # prep
                 p_png_inch = cChem.computePNG()
                 if cChem.err == 0:

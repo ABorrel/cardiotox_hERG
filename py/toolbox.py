@@ -3,7 +3,7 @@
 
 def loadMatrix(pmatrixIn, sep = "\t"):
 
-    filin = open(pmatrixIn, "r")
+    filin = open(pmatrixIn, "r", encoding="utf8", errors='ignore')
     llinesMat = filin.readlines()
     filin.close()
 
