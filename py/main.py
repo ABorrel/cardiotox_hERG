@@ -1,6 +1,6 @@
 import pathFolder
 import dataset
-
+import analysis
 
 
 # Define folder
@@ -27,8 +27,30 @@ c_dataset.prep_dataset()
 
 # compute desc
 pr_desc = pathFolder.createFolder(PR_RESULTS + "DESC/")
-c_dataset.computeDesc(pr_desc)
-
+p_desc = c_dataset.computeDesc(pr_desc)
+c_dataset.computePNG(pr_desc)
+ss
 
 # 2. analysis
 #####
+COR_VAL = 0.90
+MAX_QUANTILE = 90
+
+cAnalysis = analysis.analysis(p_AC50, p_desc, PR_RESULTS, COR_VAL, MAX_QUANTILE)
+cAnalysis.prepDesc()
+
+# 2.1. histogram AC50 and summary
+#cAnalysis.sumAC50()
+
+# 2.2 PCA
+#cAnalysis.PCA_plot()
+
+# 2.3 SOM
+cAnalysis.generate_SOM()
+cAnalysis.analyse_SOM()
+
+# 2.4 Hclust
+
+
+# 3. QSAR modeling
+#######

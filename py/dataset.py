@@ -1,5 +1,8 @@
-from os import path
+from os import path, rename
+from random import shuffle
+
 import toolbox
+import pathFolder
 
 # import descriptor computation scripts => precise folder where descriptor are included
 import sys
@@ -83,3 +86,23 @@ class dataset:
         filout.close()
 
         return p_filout
+
+
+    def computePNG(self, pr_desc):
+
+        pr_png = pathFolder.createFolder(pr_desc + "PNG/")
+
+        # compute descriptor
+        l_CASRN = list(self.d_dataset.keys())
+        shuffle(l_CASRN)
+        for CASRN in l_CASRN:
+            p_png = pr_png + CASRN + ".png"
+            if path.exists(p_png):
+                continue
+            else:
+                SMILES = self.d_dataset[CASRN]["SMILES"]
+                cChem = Chemical.Chemical(SMILES, pr_desc, p_salts=path.abspath("./Salts.txt"), OS="Windows")
+                cChem.prepChem() # prep
+                p_png_inch = cChem.computePNG()
+                if cChem.err == 0:
+                    rename(p_png_inch, p_png)
