@@ -1,6 +1,3 @@
-
-
-
 def loadMatrix(pmatrixIn, sep = "\t"):
 
     filin = open(pmatrixIn, "r", encoding="utf8", errors='ignore')

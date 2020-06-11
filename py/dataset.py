@@ -6,8 +6,8 @@ import pathFolder
 
 # import descriptor computation scripts => precise folder where descriptor are included
 import sys
-#sys.path.insert(0, "C:/Users/Aborrel/research/NIEHS/development/descriptor/")
-sys.path.insert(0, "/home/aborrel/development/molecular-descriptors/")
+sys.path.insert(0, "C:/Users/Aborrel/research/NIEHS/development/descriptor/")
+#sys.path.insert(0, "/home/aborrel/development/molecular-descriptors/")
 import Chemical
 
 

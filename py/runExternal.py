@@ -61,7 +61,13 @@ def PCA(p_desc_cleaned, p_AC50, pr_out):
 
 def SOM(p_desc_cleaned, p_AC50_cleaned, pr_out):
 
-    cmd = "SOM_chem.R %s %s %s"%(p_desc_cleaned, p_AC50_cleaned, pr_out)
+    cmd = "./SOM_chem.R %s %s %s"%(p_desc_cleaned, p_AC50_cleaned, pr_out)
     runRCMD(cmd)
 
-    return 
+
+def HClust(p_desc_cleaned, p_AC50_cleaned, pr_out):
+
+    cmd = "./HClust_chem.R %s %s %s"%(p_desc_cleaned, p_AC50_cleaned, pr_out)
+    runRCMD(cmd)
+
+    

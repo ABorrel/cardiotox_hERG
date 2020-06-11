@@ -1,5 +1,6 @@
 from os import path
 from statistics import mean, stdev
+from shutil import copyfile
 
 import pathFolder
 import runExternal
@@ -62,4 +63,26 @@ class analysis:
         runExternal.SOM(self.p_desc_cleaned, self.p_AC50_cleaned, pr_out)
 
 
-        return 
+    def analyse_SOM(self, pr_png):
+
+        p_cluster = pathFolder.createFolder(self.pr_out + "SOM/") + "SOM_Clusters_act"
+        if not path.exists(p_cluster):
+            return "Error"
+
+        pr_out = pathFolder.createFolder(self.pr_out + "SOM/Active_by_cluster/")
+
+        dcluster = toolbox.loadMatrix(p_cluster, sep = ",")
+        for CASRN in dcluster.keys():
+            cluster = dcluster[CASRN]["Cluster"]
+            pr_cluster = pathFolder.createFolder(self.pr_out + "SOM/Active_by_cluster/" + cluster + "/")
+            pathFolder.createFolder(pr_cluster)
+
+            try:copyfile(pr_png + CASRN + ".png", pr_cluster + CASRN + ".png")
+            except: pass
+
+
+    def HClust_plot(self):
+
+        pr_out = pathFolder.createFolder(self.pr_out + "HClust/")
+        runExternal.HClust(self.p_desc_cleaned, self.p_AC50_cleaned, pr_out)
+

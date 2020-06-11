@@ -28,8 +28,8 @@ c_dataset.prep_dataset()
 # compute desc
 pr_desc = pathFolder.createFolder(PR_RESULTS + "DESC/")
 p_desc = c_dataset.computeDesc(pr_desc)
-c_dataset.computePNG(pr_desc)
-ss
+#c_dataset.computePNG(pr_desc)
+
 
 # 2. analysis
 #####
@@ -46,11 +46,11 @@ cAnalysis.prepDesc()
 #cAnalysis.PCA_plot()
 
 # 2.3 SOM
-cAnalysis.generate_SOM()
-cAnalysis.analyse_SOM()
+#cAnalysis.generate_SOM()
+#cAnalysis.analyse_SOM(pr_desc + "PNG/") # have to run !!!!
 
 # 2.4 Hclust
-
+cAnalysis.HClust_plot()
 
 # 3. QSAR modeling
 #######
