@@ -133,10 +133,10 @@ pr_out = args[3]
 size = as.integer(args[4])
 
 
-p_desc = "../../results/Cleaned_Data/desc1D2D_cleaned.csv"
-p_AC50 = "../../results/Cleaned_Data/AC50_cleaned.csv"
-pr_out = "../../results/SOM/"
-size = 15
+#p_desc = "../../results/Cleaned_Data/desc1D2D_cleaned.csv"
+#p_AC50 = "../../results/Cleaned_Data/AC50_cleaned.csv"
+#pr_out = "../../results/SOM/"
+#size = 15
 
 
 # open files

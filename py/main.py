@@ -1,6 +1,7 @@
 import pathFolder
 import dataset
 import analysis
+import QSAR_modeling
 
 
 # Define folder
@@ -50,7 +51,15 @@ cAnalysis.prepDesc()
 #cAnalysis.analyse_SOM(pr_desc + "PNG/") # have to run !!!!
 
 # 2.4 Hclust
-cAnalysis.HClust_plot()
+#cAnalysis.HClust_plot()
 
 # 3. QSAR modeling
 #######
+pr_QSAR = pathFolder.createFolder(PR_RESULTS + "QSAR/")
+nb_repetition = 10
+n_foldCV = 10
+rate_split = 0.15
+rate_active = 0.30
+cQSAR = QSAR_modeling.QSAR_modeling(cAnalysis.p_desc_cleaned, cAnalysis.p_AC50_cleaned, pr_QSAR, nb_repetition, n_foldCV,rate_active, rate_split)
+cQSAR.runQSARClass()
+

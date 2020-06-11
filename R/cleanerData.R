@@ -13,11 +13,11 @@ prout = args[3]
 valcor = args[4]
 maxquantile = as.double(args[5])
 
-pdesc = "../../results/DESC/desc_1D2D.csv"
-pdata = "../../data/AC50_7403.txt"
-prout = "../../results/Cleaned_Data/"
-valcor = 0.9
-maxquantile = 90
+#pdesc = "../../results/DESC/desc_1D2D.csv"
+#pdata = "../../data/AC50_7403.txt"
+#prout = "../../results/Cleaned_Data/"
+#valcor = 0.9
+#maxquantile = 90
 
 
 

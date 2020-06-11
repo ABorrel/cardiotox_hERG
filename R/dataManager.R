@@ -3,7 +3,7 @@
 # By Alexandre BORREL
 # 02-2016 => update 08-2018
 
-library (MASS)
+library(MASS)
 require(plotrix)
 require(lattice)
 library(scatterplot3d)

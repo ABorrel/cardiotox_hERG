@@ -62,9 +62,9 @@ pr_out = args[3]
 
 
 
-p_desc = "../../results/Cleaned_Data/desc1D2D_cleaned.csv"
-p_AC50 = "../../results/Cleaned_Data/AC50_cleaned.csv"
-pr_out = "../../results/PCA/"
+#p_desc = "../../results/Cleaned_Data/desc1D2D_cleaned.csv"
+#p_AC50 = "../../results/Cleaned_Data/AC50_cleaned.csv"
+#pr_out = "../../results/PCA/"
 
 
 ddesc = read.csv(p_desc, sep = ",", header = TRUE)

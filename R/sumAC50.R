@@ -12,8 +12,8 @@ p_AC50 = args[1]
 pr_out = args[2]
 
 
-p_AC50 = "../../results/Cleaned_Data/AC50_cleaned.csv"
-pr_out = "../../results/Summary_AC50/"
+#p_AC50 = "../../results/Cleaned_Data/AC50_cleaned.csv"
+#pr_out = "../../results/Summary_AC50/"
 
 dAC50 = read.csv(p_AC50, sep = ",", header = TRUE)
 rownames(dAC50) = dAC50[,1]
