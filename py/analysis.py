@@ -24,7 +24,7 @@ class analysis:
         # add shortcut
         p_desc_cleaned = pr_out + "desc1D2D_cleaned.csv"
         p_AC50_cleaned = pr_out + "AC50_cleaned.csv"
-        if not path.exists(p_desc_cleaned) and path.exists(p_AC50_cleaned):
+        if not path.exists(p_desc_cleaned) and not path.exists(p_AC50_cleaned):
             runExternal.preprocData(self.p_desc, self.p_AC50, pr_out, self.cor_val, self.max_quantile)
 
         self.p_desc_cleaned = p_desc_cleaned
@@ -57,10 +57,10 @@ class analysis:
         runExternal.PCA(self.p_desc_cleaned, self.p_AC50_cleaned, pr_out)
 
 
-    def generate_SOM(self):
+    def generate_SOM(self, grid_size):
 
         pr_out = pathFolder.createFolder(self.pr_out + "SOM/")
-        runExternal.SOM(self.p_desc_cleaned, self.p_AC50_cleaned, pr_out)
+        runExternal.SOM(self.p_desc_cleaned, self.p_AC50_cleaned, pr_out, grid_size)
 
 
     def analyse_SOM(self, pr_png):

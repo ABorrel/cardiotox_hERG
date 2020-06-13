@@ -3,7 +3,7 @@ from os import system, path, remove, chdir, getcwd, listdir
 
 
 P_RSCRIPTS = "../R/"
-P_RQSAR = "../../../../development/QSARPR/source/"
+P_RQSAR = "./../../../development/QSAR-QSPR/"
 
 
 ######
@@ -57,9 +57,9 @@ def PCA(p_desc_cleaned, p_AC50, pr_out):
     runRCMD(cmd)
 
 
-def SOM(p_desc_cleaned, p_AC50_cleaned, pr_out):
+def SOM(p_desc_cleaned, p_AC50_cleaned, pr_out, grid_size):
 
-    cmd = "./SOM_chem.R %s %s %s"%(p_desc_cleaned, p_AC50_cleaned, pr_out)
+    cmd = "./SOM_chem.R %s %s %s %s"%(p_desc_cleaned, p_AC50_cleaned, pr_out, grid_size)
     runRCMD(cmd)
 
 
@@ -76,7 +76,7 @@ def HClust(p_desc_cleaned, p_AC50_cleaned, pr_out):
 def SplitTrainTest(pdescAc50, prout, splitratio):
 
     pdescAc50 = path.abspath(pdescAc50)
-    prout = path.abspath(prout)
+    prout = path.abspath(prout) + "/"
 
     cmd = "./prepTrainTestSplitClass.R " + pdescAc50 + " " + str(splitratio) + " " + prout
     runRQSARModeling(cmd)
@@ -86,17 +86,17 @@ def prepDataQSAR(p_desc, p_AC50, rate_active, pr_run):
 
     p_desc = path.abspath(p_desc)
     p_AC50 = path.abspath(p_AC50)
-    pr_run = path.abspath(pr_run)
+    pr_run = path.abspath(pr_run) + "/"
 
-    cmd = "./preprocData.R %s %s %s %s"%(p_desc, p_AC50, rate_active, pr_run)
-    runRCMD(cmd) 
+    cmd = "./prepClassDataset.R %s %s %s %s"%(p_desc, p_AC50, rate_active, pr_run)
+    runRQSARModeling(cmd)
 
 
 def runRQSAR(p_train, p_test, n_foldCV, pr_run):
 
     p_train = path.abspath(p_train)
     p_test = path.abspath(p_test)
-    pr_run = path.abspath(pr_run)
+    pr_run = path.abspath(pr_run) + "/"
 
     cmd = "./QSARsClass.R " + p_train + " " + p_test + " 0 " + pr_run + " " + str(n_foldCV) + " > " + pr_run + "perf.txt"
     runRQSARModeling(cmd)

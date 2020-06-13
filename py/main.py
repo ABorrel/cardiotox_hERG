@@ -47,11 +47,14 @@ cAnalysis.prepDesc()
 #cAnalysis.PCA_plot()
 
 # 2.3 SOM
-#cAnalysis.generate_SOM()
+#size = 15
+#cAnalysis.generate_SOM(15)
 #cAnalysis.analyse_SOM(pr_desc + "PNG/") # have to run !!!!
+
 
 # 2.4 Hclust
 #cAnalysis.HClust_plot()
+
 
 # 3. QSAR modeling
 #######
