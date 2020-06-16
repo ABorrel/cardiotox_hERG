@@ -63,6 +63,6 @@ nb_repetition = 10
 n_foldCV = 10
 rate_split = 0.15
 rate_active = 0.30
-cQSAR = QSAR_modeling.QSAR_modeling(cAnalysis.p_desc_cleaned, cAnalysis.p_AC50_cleaned, pr_QSAR, nb_repetition, n_foldCV,rate_active, rate_split)
+cQSAR = QSAR_modeling.QSAR_modeling(cAnalysis.p_desc_cleaned, cAnalysis.p_AC50_cleaned, p_AC50, pr_QSAR, nb_repetition, n_foldCV,rate_active, rate_split)
 cQSAR.runQSARClass()
 

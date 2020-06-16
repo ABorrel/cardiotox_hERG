@@ -100,3 +100,16 @@ def runRQSAR(p_train, p_test, n_foldCV, pr_run):
 
     cmd = "./QSARsClass.R " + p_train + " " + p_test + " 0 " + pr_run + " " + str(n_foldCV) + " > " + pr_run + "perf.txt"
     runRQSARModeling(cmd)
+
+
+def plotAC50VSProb(p_prob):
+
+    cmd = "./plotAC50vsProb.R %s"%(p_prob)
+    runRCMD(cmd)
+
+def runImportanceDesc(p_desc, nb):
+    
+    p_desc = path.abspath(p_desc)
+
+    cmd = "./importancePlot.R " + str(p_desc) + " " + str(nb)
+    runRQSARModeling(cmd)
