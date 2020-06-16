@@ -14,8 +14,13 @@
 	- Toolbox R => https://github.com/ABorrel/R_toolbox
 
 ## To do
-- Add function to merge QSAR model from undersampling
+- ~~Add function to merge QSAR model from undersampling~~
+- SOM add descriptors significance 
+- Build external dataset on chembl for active chemicals on herg
 
 
 ## Update
+- 08-6-20: Unsupervised analysis 
 - 10-6-20: Add QSAR-QSPR model builder
+- 16-6-20: merge models from different machine learning
+

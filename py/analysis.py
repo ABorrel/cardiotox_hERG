@@ -63,7 +63,7 @@ class analysis:
         runExternal.SOM(self.p_desc_cleaned, self.p_AC50_cleaned, pr_out, grid_size)
 
 
-    def analyse_SOM(self, pr_png):
+    def extract_actBySOMCluster(self, pr_png):
 
         p_cluster = pathFolder.createFolder(self.pr_out + "SOM/") + "SOM_Clusters_act"
         if not path.exists(p_cluster):
@@ -79,6 +79,18 @@ class analysis:
 
             try:copyfile(pr_png + CASRN + ".png", pr_cluster + CASRN + ".png")
             except: pass
+
+
+    def signifDescBySOMCluster(self):
+
+        # check if SOM is computed
+        p_cluster = self.pr_out + "SOM/SOM_Clusters"
+        if not path.exists(p_cluster):
+            print("ERROR: no cluster file existed")
+            return 
+        
+        pr_out = pathFolder.createFolder(self.pr_out + "SOM/DescriptorSignif/")
+        runExternal.descSignifByCluster(self.p_desc_cleaned, p_cluster, pr_out)
 
 
     def HClust_plot(self):

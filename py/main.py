@@ -2,6 +2,7 @@ import pathFolder
 import dataset
 import analysis
 import QSAR_modeling
+import CHEMBLTable
 
 
 # Define folder
@@ -49,7 +50,8 @@ cAnalysis.prepDesc()
 # 2.3 SOM
 #size = 15
 #cAnalysis.generate_SOM(15)
-#cAnalysis.analyse_SOM(pr_desc + "PNG/") # have to run !!!!
+#cAnalysis.signifDescBySOMCluster()
+#cAnalysis.extract_actBySOMCluster(pr_desc + "PNG/") # have to run !!!!
 
 
 # 2.4 Hclust
@@ -63,6 +65,24 @@ nb_repetition = 10
 n_foldCV = 10
 rate_split = 0.15
 rate_active = 0.30
-cQSAR = QSAR_modeling.QSAR_modeling(cAnalysis.p_desc_cleaned, cAnalysis.p_AC50_cleaned, p_AC50, pr_QSAR, nb_repetition, n_foldCV,rate_active, rate_split)
-cQSAR.runQSARClass()
+#cQSAR = QSAR_modeling.QSAR_modeling(cAnalysis.p_desc_cleaned, cAnalysis.p_AC50_cleaned, p_AC50, pr_QSAR, nb_repetition, n_foldCV,rate_active, rate_split)
+#cQSAR.runQSARClass()
+#cQSAR.extractModels(PR_RESULTS, "RF")
+#cQSAR.extractModels(PR_RESULTS, "LDA")
+
+
+# 4. Build external test set from ChEMBL
+### Target => CHEMBL240
+##########################
+P_CHEMBL = PR_DATA + "CHEMBL27-target_chembl240.csv"
+pr_ChEMBL = pathFolder.createFolder(PR_RESULTS + "ChEMBL/")
+
+cChEMBL = CHEMBLTable.CHEMBLTable(P_CHEMBL, pr_ChEMBL)
+cChEMBL.parseCHEMBLFile()
+cChEMBL.cleanDataset(l_standard_type=["IC50", "Ki"], l_standard_relation=["'='"])
+
+
+
+
+
 

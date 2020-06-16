@@ -6,6 +6,7 @@ from os import path, listdir
 from re import search
 from numpy import mean, std
 from copy import deepcopy
+from shutil import copyfile
 
 
 class QSAR_modeling:
@@ -18,7 +19,6 @@ class QSAR_modeling:
         self.n_foldCV = n_foldCV
         self.rate_active = rate_active
         self.rate_splitTrainTest = rate_splitTrainTest
-
 
     def runQSARClass(self):
 
@@ -36,9 +36,6 @@ class QSAR_modeling:
         
         # merge results
         self.mergeQSARs()
-
-
-
 
     def prepForQSAR(self, pr_run):
 
@@ -59,10 +56,6 @@ class QSAR_modeling:
         runExternal.SplitTrainTest(pr_run + "desc_Class.csv", pr_run, self.rate_splitTrainTest)
         self.p_train = p_train
         self.p_test = p_test
-        
-
-
-
     
     def buildQSAR(self, pr_run):
 
@@ -77,9 +70,6 @@ class QSAR_modeling:
         else:
             runExternal.runRQSAR(self.p_train, self.p_test, self.n_foldCV, pr_run)
 
-
-
-
     def mergeQSARs(self):
 
         pr_QSAR_average = pathFolder.createFolder(self.pr_out + "Merge_results/")
@@ -90,8 +80,6 @@ class QSAR_modeling:
         self.mergeProbaRF(self.p_AC50_orign, pr_QSAR_proba)
         self.mergeInvolvedDesc("RF", 10, pr_QSAR_desc_involved)
         return 
-
-
 
     def mergeResults(self, pr_av):
 
@@ -163,7 +151,6 @@ class QSAR_modeling:
                 filout.write("\n")
             filout.write("\n")
         filout.close()
-
 
     def mergeProbaRF(self, p_AC50, pr_prob):
         # need to change R scripts for 
@@ -261,7 +248,6 @@ class QSAR_modeling:
         f_prob_test.close()
         runExternal.plotAC50VSProb(p_prob_test)
 
-
     def mergeInvolvedDesc(self, ML, nbdesc, pr_involvedDesc):
 
         d_importance = {}
@@ -297,4 +283,17 @@ class QSAR_modeling:
         
         runExternal.runImportanceDesc(p_desc_importance, nbdesc)
 
+    def extractModels(self, pr_results, ML):
 
+        pr_out = pathFolder.createFolder(pr_results + "QSARs_models/" + ML + "/")
+
+        l_pr_run = listdir(self.pr_out)
+
+        for pr_run in l_pr_run:
+            if search("Merge", pr_run):
+                continue
+
+            p_model = "%s%s/%sclass/model.RData"%(self.pr_out, pr_run, ML)
+            if path.exists(p_model):
+                copyfile(p_model, pr_out + pr_run + ".RData")
+        

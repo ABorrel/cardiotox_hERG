@@ -68,6 +68,10 @@ def HClust(p_desc_cleaned, p_AC50_cleaned, pr_out):
     cmd = "./HClust_chem.R %s %s %s"%(p_desc_cleaned, p_AC50_cleaned, pr_out)
     runRCMD(cmd)
 
+def descSignifByCluster(p_desc, p_cluster, pr_out):
+
+    cmd = "./descSignificantByCluster.R %s %s %s"%(p_desc, p_cluster, pr_out)
+    runRCMD(cmd)
 
 
 ############
