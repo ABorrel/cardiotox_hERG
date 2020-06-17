@@ -77,11 +77,19 @@ rate_active = 0.30
 P_CHEMBL = PR_DATA + "CHEMBL27-target_chembl240.csv"
 pr_ChEMBL = pathFolder.createFolder(PR_RESULTS + "ChEMBL/")
 
+# 4.1 Prep dataset
 cChEMBL = CHEMBLTable.CHEMBLTable(P_CHEMBL, pr_ChEMBL)
 cChEMBL.parseCHEMBLFile()
 cChEMBL.cleanDataset(l_standard_type=["IC50", "Ki"], l_standard_relation=["'='"])
+cChEMBL.computeDesc()
+
+# 4.2 run descriptor set
 
 
+# 4.3 run PCA with ChEMBL on PCA tox21
+
+
+# 4.4 apply models on it
 
 
 

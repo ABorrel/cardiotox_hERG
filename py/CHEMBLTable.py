@@ -4,6 +4,10 @@ from os import path
 
 import toolbox
 
+# import descriptor computation scripts => precise folder where descriptor are included
+import sys
+sys.path.insert(0, "./../../../development/molecular-descriptors/")
+import Chemical
 
 
 class CHEMBLTable:
@@ -49,14 +53,19 @@ class CHEMBLTable:
 
     def cleanDataset(self, l_standard_type, l_standard_relation):
 
-        if not "l_work" in dir(self):
-            self.parseCHEMBLFile()
+        # load existing data if exist
+        p_filout = self.pr_out + "ChEMBL_cleaned.csv"
+        if path.exists(p_filout):
+            self.l_work = toolbox.loadMatrixToList(p_filout, sep="\t")
+        else:
+            if not "l_work" in dir(self):
+                self.parseCHEMBLFile()
 
-        self.get_standard_type(l_standard_type)
-        self.get_standard_relation(l_standard_relation)
-        self.filterDuplicates()
+            self.get_standard_type(l_standard_type)
+            self.get_standard_relation(l_standard_relation)
+            self.filterDuplicates()
 
-        self.writeTable()
+            self.writeTable()
 
 
     def get_standard_relation(self, l_relation):
@@ -78,8 +87,6 @@ class CHEMBLTable:
 
         if self.verbose == 1:
             print("After filtering by relation => %s"%(len(self.l_work)))
-
-
 
     def get_standard_type(self, l_type):
 
@@ -210,6 +217,44 @@ class CHEMBLTable:
             lw = [row[h] for h in self.l_header]
             filout.write("\t".join(lw) + "\n")
         filout.close()
+
+
+    def computeDesc(self):
+
+        p_filout = self.pr_out + "desc_1D2D.csv"
+        if path.exists(p_filout):
+            return p_filout
+
+        # extract descriptor 2D
+        l_desc = Chemical.getLdesc("1D2D")
+
+        # open filout
+        filout = open(p_filout, "w")
+        filout.write("CHEMBLID\tSMILES\t%s\n"%("\t".join(l_desc)))
+
+        # compute descriptor
+        for d_chem in self.l_work:
+            ChEMBLid = d_chem["Molecule ChEMBL ID"]
+            SMILES = d_chem["Smiles"]
+            cChem = Chemical.Chemical(SMILES, self.pr_out)#, p_salts=path.abspath("./Salts.txt"))
+            cChem.prepChem() # prep
+            # case error cleaning
+            if cChem.err == 1:
+                continue
+            cChem.computeAll2D() # compute
+            cChem.writeMatrix("2D") # write by chem to save time in case of rerun
+            if cChem.err == 1:
+                continue
+            else:
+                # write direcly descriptor
+                filout.write("%s\t%s\t%s\n"%(ChEMBLid, cChem.smi, "\t".join([str(cChem.all2D[desc]) for desc in l_desc])))
+
+        filout.close()
+
+        return p_filout
+
+
+
 
     def checkIdenticSMI(self):
 
