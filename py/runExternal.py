@@ -73,6 +73,11 @@ def descSignifByCluster(p_desc, p_cluster, pr_out):
     cmd = "./descSignificantByCluster.R %s %s %s"%(p_desc, p_cluster, pr_out)
     runRCMD(cmd)
 
+def PCAvs(p_desc_model, p_aff_model, p_desc_test, p_aff_test, pr_out):
+
+    cmd = "./PCAvs.R %s %s %s %s %s"%(p_desc_model, p_aff_model, p_desc_test, p_aff_test, pr_out)
+    runRCMD(cmd)    
+
 
 ############
 # Function for QSAR
@@ -117,3 +122,9 @@ def runImportanceDesc(p_desc, nb):
 
     cmd = "./importancePlot.R " + str(p_desc) + " " + str(nb)
     runRQSARModeling(cmd)
+
+
+def predictDataset(p_desc_test, p_model, ML,  pr_out):
+
+    cmd = "./predictTestSet.R %s %s %s %s"%(p_desc_test, p_model, ML, pr_out)
+    runRCMD(cmd)

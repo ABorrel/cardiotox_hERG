@@ -14,9 +14,9 @@ p_desc = args[1]
 p_cluster = args[2]
 pr_out = args[3]
 
-p_desc = "../../results/Cleaned_Data/desc1D2D_cleaned.csv"
-p_cluster = "../../results/SOM/SOM_Clusters"
-pr_out = "../../results/SOM/DescriptorSignif/"
+#p_desc = "../../results/Cleaned_Data/desc1D2D_cleaned.csv"
+#p_cluster = "../../results/SOM/SOM_Clusters"
+#pr_out = "../../results/SOM/DescriptorSignif/"
 
 
 # open descriptors #
