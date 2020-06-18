@@ -3,6 +3,7 @@ from numpy import mean, std
 from os import path
 
 import toolbox
+import runExternal
 
 # import descriptor computation scripts => precise folder where descriptor are included
 import sys
@@ -50,7 +51,6 @@ class CHEMBLTable:
         self.l_ChEMBLin = l_out
         self.l_work = deepcopy(l_out)        
 
-
     def cleanDataset(self, l_standard_type, l_standard_relation):
 
         # load existing data if exist
@@ -66,7 +66,6 @@ class CHEMBLTable:
             self.filterDuplicates()
 
             self.writeTable()
-
 
     def get_standard_relation(self, l_relation):
         """Keep only value with a strict standard relation"""
@@ -218,7 +217,6 @@ class CHEMBLTable:
             filout.write("\t".join(lw) + "\n")
         filout.close()
 
-
     def computeDesc(self):
 
         p_filout = self.pr_out + "desc_1D2D.csv"
@@ -259,60 +257,30 @@ class CHEMBLTable:
 
         return p_filout
 
+    def cleanAff(self):
 
+        p_aff_cleaned = self.pr_out + "aff_cleaned.csv"
+        if path.exists(p_aff_cleaned):
+            return p_aff_cleaned
 
+        p_desc = self.computeDesc()
+        d_desc = toolbox.loadMatrix(p_desc)
 
-    def checkIdenticSMI(self):
+        l_chem = list(d_desc.keys())
 
-        if not "tableorgafull" in self.__dict__:
-            return
-
-        k1 = self.tableorgafull.keys()[0]
-
-        lsmi = []
-        i = 0
-        imax = len(self.tableorgafull[k1])
-        while i < imax:
-            smi = self.tableorgafull[k1][i]["CANONICAL_SMILES"]
-            smiclean = liganddescriptors.standardizeSMILES(smi)
-            self.tableorgafull[k1][i]["SMILES_PREP"] = smiclean
-            print("***", i, smiclean, imax, "***")
-            if smiclean == 1:
-                i += 1
-                continue
-
-            if not smiclean in lsmi:
-                lsmi.append(smiclean)
-            else:
-                for k in self.tableorgafull.keys():
-                    del self.tableorgafull[k][i]
-                imax = imax - 1
-                continue
-
-            i += 1
-
-
-
-        lorga = self.tableorgafull.keys()
-        dw = {}
-        for orga in self.tableorgafull.keys():
-            dw[orga] = {}
-            for chem in self.tableorgafull[orga]:
-                chemblID = chem["CMPD_CHEMBLID"]
-                print(chemblID)
-                print(chem["STANDARD_VALUE"], "MIC")
-                print(chem["PUBLISHED_UNITS"], "unit")
-                print(chem["MOLWEIGHT"], "weight")
-                
-                MIC_M =  (float(chem["STANDARD_VALUE"]) / 1000)/ float( chem["MOLWEIGHT"])
-                chem["MIC_M"] = str(MIC_M)
-                dw[orga][chemblID] = chem
-                
         
-        filout = open(p_filout, "w")
-        filout.write("CMPD_CHEMBLID\tSMILES\t" + "\t".join(lorga) + "\n")
-        
-        lchemID = dw[lorga[0]].keys()
-        for chemID in lchemID:
-            filout.write("%s\t%s\t%s\n"%(chemID, dw[lorga[0]][chemID]["SMILES_PREP"] ,"\t".join([dw[orga][chemID]["MIC_M"] for orga in lorga])))
-        filout.close()
+        f_aff_cleaned = open(p_aff_cleaned, "w")
+        f_aff_cleaned.write("\"\",\"ChEMBL ID\",\"Aff\"\n")
+
+        for d_chem in self.l_work:
+            ChEMBL_ID = d_chem["Molecule ChEMBL ID"]
+            if ChEMBL_ID in l_chem:
+                if d_chem["pChEMBL Value"] == "":
+                    f_aff_cleaned.write("\"%s\",\"%s\",NA\n"%(ChEMBL_ID, ChEMBL_ID))
+                else:
+                    f_aff_cleaned.write("\"%s\",\"%s\",%s\n"%(ChEMBL_ID, ChEMBL_ID, d_chem["pChEMBL Value"]))
+        f_aff_cleaned.close()
+
+        runExternal.histAC50(p_aff_cleaned, self.pr_out)
+
+        return p_aff_cleaned

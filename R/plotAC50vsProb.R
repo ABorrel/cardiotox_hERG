@@ -10,7 +10,8 @@ library(plyr)
 args <- commandArgs(TRUE)
 pprob = args[1]
 
-pprob = "../../results/QSAR/Merge_probRF/Prob_CV"
+
+#pprob = "../../results/ChEMBL_predict/predict_model_RF/Summary_pred.csv"
 
 
 

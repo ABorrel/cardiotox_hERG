@@ -294,6 +294,8 @@ class QSAR_modeling:
                 continue
 
             p_model = "%s%s/%sclass/model.RData"%(self.pr_out, pr_run, ML)
-            if path.exists(p_model):
+            if path.exists(p_model) and not path.exists(pr_out + pr_run + ".RData"):
                 copyfile(p_model, pr_out + pr_run + ".RData")
+        
+        return pr_out
         
