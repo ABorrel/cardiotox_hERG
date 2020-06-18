@@ -232,15 +232,21 @@ class CHEMBLTable:
         filout = open(p_filout, "w")
         filout.write("CHEMBLID\tSMILES\t%s\n"%("\t".join(l_desc)))
 
+        l_smi = []
         # compute descriptor
         for d_chem in self.l_work:
             ChEMBLid = d_chem["Molecule ChEMBL ID"]
             SMILES = d_chem["Smiles"]
+
             cChem = Chemical.Chemical(SMILES, self.pr_out)#, p_salts=path.abspath("./Salts.txt"))
             cChem.prepChem() # prep
             # case error cleaning
             if cChem.err == 1:
                 continue
+            if cChem.smi in l_smi:
+                continue
+            else:
+                l_smi.append(cChem.smi)
             cChem.computeAll2D() # compute
             cChem.writeMatrix("2D") # write by chem to save time in case of rerun
             if cChem.err == 1:
