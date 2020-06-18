@@ -12,8 +12,8 @@ p_AC50 = args[1]
 pr_out = args[2]
 
 
-p_AC50 = "C:/Users/Aborrel/research/ILS/HERG/results/ChEMBL/aff_cleaned.csv"
-pr_out = "C:/Users/Aborrel/research/ILS/HERG/results/ChEMBL/"
+#p_AC50 = "C:/Users/Aborrel/research/ILS/HERG/results/ChEMBL/aff_cleaned.csv"
+#pr_out = "C:/Users/Aborrel/research/ILS/HERG/results/ChEMBL/"
 
 dAC50 = read.csv(p_AC50, sep = ",", header = TRUE)
 rownames(dAC50) = dAC50[,1]

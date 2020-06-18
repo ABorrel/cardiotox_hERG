@@ -11,7 +11,7 @@ args <- commandArgs(TRUE)
 pprob = args[1]
 
 
-pprob = "../../results/ChEMBL_predict/predict_model_RF/Summary_pred.csv"
+#pprob = "../../results/ChEMBL_predict/predict_model_RF/Summary_pred.csv"
 
 
 

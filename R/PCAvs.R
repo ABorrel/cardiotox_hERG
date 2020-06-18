@@ -55,11 +55,11 @@ pdesc2 = args[3]
 pAff2 = args[4]
 prout = args[5]
 
-pdesc1 = "../../results/Cleaned_Data/desc1D2D_cleaned.csv"
-pAff1 = "../../results/Cleaned_Data/AC50_cleaned.csv"
-pdesc2 = "../../results/ChEMBL/desc_1D2D.csv"
-pAff2 = "../../results/ChEMBL/aff_cleaned.csv"
-prout = "../../results/ChEMBL_predict/PCA_vs/"
+#pdesc1 = "../../results/Cleaned_Data/desc1D2D_cleaned.csv"
+#pAff1 = "../../results/Cleaned_Data/AC50_cleaned.csv"
+#pdesc2 = "../../results/ChEMBL/desc_1D2D.csv"
+#pAff2 = "../../results/ChEMBL/aff_cleaned.csv"
+#prout = "../../results/ChEMBL_predict/PCA_vs/"
 
 
 
