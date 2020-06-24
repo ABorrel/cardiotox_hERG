@@ -63,3 +63,7 @@ class applyModel:
         # plot prob vs aff
         runExternal.plotAC50VSProb(p_filout)
 
+    def applySOM(self, p_SOMmodel):
+
+        pr_out = pathFolder.createFolder(self.pr_out + "SOM/")
+        runExternal.applySOM(self.p_desc_test, p_SOMmodel, pr_out)
