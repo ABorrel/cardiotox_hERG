@@ -83,7 +83,7 @@ add_coord = predict(res.pca, newdata = ddesc2)
 vcolor = rep(addTrans("#595959", 60), dim(ddesc1)[1])
 vcolor[which(!is.na(daff1$Aff))] = addTrans("#00008B", 100)
 
-vcolor_add = rep(addTrans("#90EE90", 50), dim(ddesc2)[1])
+vcolor_add = rep("#90EE90", dim(ddesc2)[1])
 
 
 png(paste(prout, "PCA_color.png", sep = ""), 1700, 1500)

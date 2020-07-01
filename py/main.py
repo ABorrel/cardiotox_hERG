@@ -4,6 +4,7 @@ import analysis
 import QSAR_modeling
 import CHEMBLTable
 import applyModels
+import genericTestSet
 
 
 # Define folder
@@ -31,7 +32,7 @@ c_dataset.prep_dataset()
 # compute desc
 pr_desc = pathFolder.createFolder(PR_RESULTS + "DESC/")
 p_desc = c_dataset.computeDesc(pr_desc)
-c_dataset.computePNG(pr_desc)
+#c_dataset.computePNG(pr_desc)
 
 
 # 2. analysis
@@ -39,8 +40,8 @@ c_dataset.computePNG(pr_desc)
 COR_VAL = 0.90
 MAX_QUANTILE = 90
 
-#cAnalysis = analysis.analysis(p_AC50, p_desc, PR_RESULTS, COR_VAL, MAX_QUANTILE)
-#cAnalysis.prepDesc()
+cAnalysis = analysis.analysis(p_AC50, p_desc, PR_RESULTS, COR_VAL, MAX_QUANTILE)
+cAnalysis.prepDesc()
 
 # 2.1. histogram AC50 and summary
 #cAnalysis.sumAC50()
@@ -69,13 +70,13 @@ rate_active = 0.30
 cQSAR = QSAR_modeling.QSAR_modeling(cAnalysis.p_desc_cleaned, cAnalysis.p_AC50_cleaned, p_AC50, pr_QSAR, nb_repetition, n_foldCV,rate_active, rate_split)
 cQSAR.runQSARClass()
 pr_RF_models = cQSAR.extractModels(PR_RESULTS, "RF")
-cQSAR.extractModels(PR_RESULTS, "LDA")
+pr_LDA_models = cQSAR.extractModels(PR_RESULTS, "LDA")
 
 # 4. Build external test set from ChEMBL
 ### Target => CHEMBL240
 ##########################
-P_CHEMBL = PR_DATA + "CHEMBL27-target_chembl240.csv"
-pr_ChEMBL = pathFolder.createFolder(PR_RESULTS + "ChEMBL/")
+#P_CHEMBL = PR_DATA + "CHEMBL27-target_chembl240.csv"
+#pr_ChEMBL = pathFolder.createFolder(PR_RESULTS + "ChEMBL/")
 
 # 4.1 Prep dataset
 #cChEMBL = CHEMBLTable.CHEMBLTable(P_CHEMBL, pr_ChEMBL)
@@ -83,12 +84,12 @@ pr_ChEMBL = pathFolder.createFolder(PR_RESULTS + "ChEMBL/")
 #cChEMBL.cleanDataset(l_standard_type=["IC50", "Ki"], l_standard_relation=["'='"])
 
 # 4.2 run descriptor set
-p_desc_ChEMBL = cChEMBL.computeDesc()
-p_aff_ChEMBL = cChEMBL.cleanAff()
+#p_desc_ChEMBL = cChEMBL.computeDesc()
+#p_aff_ChEMBL = cChEMBL.cleanAff()
 
 # 4.3 run PCA with ChEMBL on PCA tox21
-pr_applyModel = pathFolder.createFolder(PR_RESULTS + "ChEMBL_predict/")
-cApplyModel = applyModels.applyModel(cAnalysis.p_desc_cleaned, cAnalysis.p_AC50_cleaned, p_desc_ChEMBL, p_aff_ChEMBL, pr_RF_models, pr_applyModel)
+#pr_applyModel = pathFolder.createFolder(PR_RESULTS + "ChEMBL_predict/")
+#cApplyModel = applyModels.applyModel(cAnalysis.p_desc_cleaned, cAnalysis.p_AC50_cleaned, p_desc_ChEMBL, p_aff_ChEMBL, pr_RF_models, pr_applyModel)
 #cApplyModel.PCACombine()
 
 # 4.4 apply RF models on it
@@ -96,5 +97,22 @@ cApplyModel = applyModels.applyModel(cAnalysis.p_desc_cleaned, cAnalysis.p_AC50_
 #cApplyModel.mergePrediction()
 
 # 4.5. Apply SOM on it
-p_SOM = PR_RESULTS + "SOM/SOM_model.RData"
-cApplyModel.applySOM(p_SOM)
+#p_SOM = PR_RESULTS + "SOM/SOM_model.RData"
+#cApplyModel.applySOM(p_SOM)
+
+
+# 5. use drug external test sest
+############################
+
+p_dataset = PR_DATA + "8Candidate_Cipa_drugs.csv"
+pr_TestSet = pathFolder.createFolder(PR_RESULTS + "DrugSet/")
+c_genericSet = genericTestSet.genericTestSet(p_dataset, pr_TestSet)
+c_genericSet.loadDataset()
+p_desc = c_genericSet.computeDesc()
+p_aff = c_genericSet.setAff(allAff=1)
+
+# apply model
+cApplyModel = applyModels.applyModel(cAnalysis.p_desc_cleaned, cAnalysis.p_AC50_cleaned, p_desc, p_aff, pr_RF_models, pr_TestSet)
+cApplyModel.PCACombine()
+cApplyModel.predict()
+cApplyModel.mergePrediction()

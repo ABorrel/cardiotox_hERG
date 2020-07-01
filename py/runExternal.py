@@ -5,6 +5,7 @@ from os import system, path, remove, chdir, getcwd, listdir
 P_RSCRIPTS = "../R/"
 P_RQSAR = "./../../../development/QSAR-QSPR/"
 
+R_BIN = "& 'C:\\Program Files\\R\\R-3.6.2\\bin\\Rscript.exe'"
 
 ######
 # Main functions
@@ -13,15 +14,14 @@ def runRCMD(cmd, out = 0):
 
     workdir = getcwd()
     chdir(P_RSCRIPTS)
-    wrkdir = getcwd()
-    print(cmd)
+    print(R_BIN + " " + cmd)
     if out == 0:
-        system(cmd)
+        system(R_BIN + " " + cmd)
         output = 0
     else:
         import subprocess
         output = subprocess.check_output(cmd, shell=True)
-    chdir(wrkdir)
+    chdir(workdir)
     return output
 
 
@@ -78,6 +78,11 @@ def PCAvs(p_desc_model, p_aff_model, p_desc_test, p_aff_test, pr_out):
     cmd = "./PCAvs.R %s %s %s %s %s"%(p_desc_model, p_aff_model, p_desc_test, p_aff_test, pr_out)
     runRCMD(cmd)    
 
+
+def applySOM(p_desc, p_SOMmodel, pr_out):
+
+    cmd = "./applySOM.R %s %s %s"%(p_desc, p_SOMmodel, pr_out)
+    runRCMD(cmd)
 
 ############
 # Function for QSAR
