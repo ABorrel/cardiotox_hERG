@@ -3,6 +3,7 @@ from random import shuffle
 
 import toolbox
 import pathFolder
+import runExternal
 
 # import descriptor computation scripts => precise folder where descriptor are included
 import sys
@@ -53,7 +54,44 @@ class dataset:
         filout.close()
         self.d_dataset = d_out
 
-    
+
+    def classActive(self, p_classification):
+        """
+        Return histogram active by chemical class
+        """
+
+        if not "d_dataset" in self.__dict__:
+            self.prep_dataset()
+        
+        d_classification = toolbox.loadMatrix(p_classification, sep = ",")
+
+        d_out_class = {}
+        for CASRN in self.d_dataset:
+            if self.d_dataset[CASRN]["log10(AC50)"] != "NA":
+                try:l_class_chem = d_classification[CASRN]["Classes"]
+                except: l_class_chem = "No defined"
+
+                if l_class_chem == "NA":
+                    l_class_chem = "No defined"
+
+                d_out_class[CASRN] = l_class_chem
+        
+        p_filout = self.pr_out + "class_" + str(p_classification.split("/")[-1][0:-4])
+        filout = open(p_filout, "w")
+        filout.write("CASRN\tClass\n")
+        for chem in d_out_class.keys():
+            l_class_chem = d_out_class[chem].split("--")
+            for class_chem in l_class_chem:
+                if class_chem == "NA":
+                    class_chem = "No defined"
+                filout.write("%s\t%s\n"%(chem, class_chem))
+        filout.close()
+
+        # make hist
+        runExternal.barplotClass(p_filout)
+
+
+
     def computeDesc(self, pr_desc):
 
         p_filout = pr_desc + "desc_1D2D.csv"

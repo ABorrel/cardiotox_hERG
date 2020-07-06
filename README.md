@@ -24,4 +24,5 @@
 - 10-6-20: Add QSAR-QSPR model builder
 - 16-6-20: merge models from different machine learning
 - 1-7-20: Fix error in R runner 
+- 6-7-20: correct SOM when apply
 

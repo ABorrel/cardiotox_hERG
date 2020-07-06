@@ -1,6 +1,7 @@
 from os import path
 from statistics import mean, stdev
-from shutil import copyfile
+from shutil import copyfile, rmtree
+from re import search
 
 import pathFolder
 import runExternal
@@ -60,7 +61,9 @@ class analysis:
     def generate_SOM(self, grid_size):
 
         pr_out = pathFolder.createFolder(self.pr_out + "SOM/")
-        runExternal.SOM(self.p_desc_cleaned, self.p_AC50_cleaned, pr_out, grid_size)
+        p_model = pr_out + "SOM_model.RData"
+        if not path.exists:
+            runExternal.SOM(self.p_desc_cleaned, self.p_AC50_cleaned, pr_out, grid_size)
 
 
     def extract_actBySOMCluster(self, pr_png):
@@ -79,6 +82,60 @@ class analysis:
 
             try:copyfile(pr_png + CASRN + ".png", pr_cluster + CASRN + ".png")
             except: pass
+
+
+    def applySOMtoChemClassification(self, p_classification, pr_png):
+
+        # define exist folder
+        name_folder = p_classification.split("/")[-1][:-4]
+        pr_out = pathFolder.createFolder(self.pr_out + "SOM/" + name_folder + "/")
+
+        d_classification = toolbox.loadMatrix(p_classification, sep = ",")
+        l_classif = []
+        for chem in d_classification.keys():
+            l_class = d_classification[chem]["Classes"]
+            l_class = l_class.split("--")
+            for classChem in l_class:
+                if not classChem in l_classif and not classChem == "NA":
+                    l_classif.append(classChem)
+
+        # need to apply the model for each class and redifine a p_desc file based only on active chemical
+        f_desc = open(self.p_desc, "r")
+        l_chemdesc = f_desc.readlines()
+        f_desc.close()
+
+        d_AC50 = toolbox.loadMatrix(self.p_AC50_cleaned, sep = ",")
+
+        for chemClass in l_classif:
+            pr_out_sub = pathFolder.createFolder(pr_out + chemClass.replace(" ", "_").replace("(", "-").replace(")", "") + "/")
+            p_fdesc = pr_out_sub + "desc.csv"
+            f_desc_sp = open(p_fdesc, "w")
+            f_desc_sp.write(l_chemdesc[0])
+
+            c_chem = 0
+            l_chem = []
+            for chem in d_classification.keys():
+                if not chem in list(d_AC50.keys()):
+                    continue
+                if d_AC50[chem]["Aff"] == "NA":
+                    continue
+                if search(chemClass, d_classification[chem]["Classes"]):
+                    for chemdesc in l_chemdesc:
+                        if search("^"+d_classification[chem]["CASRN"] + "\t", chemdesc):
+                            if not d_classification[chem]["CASRN"] in l_chem:
+                                c_chem = c_chem  + 1
+                                #print(chemClass, chemdesc[0:10], d_classification[chem]["CASRN"], d_classification[chem]["Classes"])
+                                f_desc_sp.write(chemdesc)
+                                l_chem.append(d_classification[chem]["CASRN"])
+                            break
+            f_desc_sp.close()
+            if c_chem > 1:
+                runExternal.extractClusterSOM(p_fdesc, self.pr_out + "SOM/SOM_model.RData", pr_out_sub)
+
+            else:
+                rmtree(pr_out_sub)
+
+        return 
 
 
     def signifDescBySOMCluster(self):

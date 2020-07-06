@@ -84,6 +84,18 @@ def applySOM(p_desc, p_SOMmodel, pr_out):
     cmd = "./applySOM.R %s %s %s"%(p_desc, p_SOMmodel, pr_out)
     runRCMD(cmd)
 
+def extractClusterSOM(p_desc, p_SOMmodel, pr_out):
+
+    cmd = "./extractClusterFromSOM.R %s %s %s"%(p_desc, p_SOMmodel, pr_out)
+    runRCMD(cmd)
+
+
+def barplotClass(p_filin):
+
+    cmd = "./hist_classChem.R %s"%(p_filin)
+    runRCMD(cmd)
+
+
 ############
 # Function for QSAR
 

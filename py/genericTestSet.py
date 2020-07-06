@@ -1,5 +1,7 @@
 import toolbox
 import pathFolder
+import searchInComptox
+
 from os import path
 
 # import descriptor computation scripts => precise folder where descriptor are included
@@ -15,10 +17,26 @@ class genericTestSet:
         self.pr_out = pr_out
         self.sep = ","
 
-    def loadDataset(self):
+    def loadDataset(self, loadDb=0):
 
         d_dataset = toolbox.loadMatrix(self.p_dataset, sep = self.sep)
         self.d_dataset = d_dataset
+
+        if loadDb == 1:
+            # load SMILES from comptox
+            l_header = list(d_dataset[list(d_dataset.keys())[0]].keys())
+            if not "SMILES" in l_header:
+                for chem in d_dataset.keys():
+                    CASRN = d_dataset[chem]["CASRN"]
+                    print("CASRN:", CASRN, "LOAD chem")
+                    c_search = searchInComptox.loadComptox(CASRN)
+                    c_search.searchInDB()
+                    if c_search.err != 1:
+                        self.d_dataset[chem]["SMILES"] = c_search.SMILES
+                    else:
+                        self.d_dataset[chem]["SMILES"] = "--"
+
+                    print("Load done:", self.d_dataset[chem]["SMILES"])
 
 
     def computeDesc(self):
