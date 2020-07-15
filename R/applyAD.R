@@ -50,62 +50,40 @@ MCC = function (tp, tn, fp, fn){
 ################
 
 args <- commandArgs(TRUE)
-pprob = args[1]
+p_pred = args[1]
+p_AD = args[2]
+pr_out = args[3]
 
 
-#pprob = "../../results/ChEMBL_predict/predict_model_RF/Summary_pred.csv"
+p_pred = "../../results/ChEMBL_patch_clamp/predict/predict_model_RF/Merge_pred.csv"
+p_AD = "../../results/ChEMBL_patch_clamp/predict/AD/AD_zscore.csv"
+pr_out = "../../results/ChEMBL_patch_clamp/predict/predict_AD/"
 
-
-
-
-d = read.csv(pprob, sep = "\t")
+# open prediction
+d = read.csv(p_pred, sep = "\t")
 if (dim(d)[2] == 1){
-  d = read.csv(pprob, sep = ",")  
+  d = read.csv(p_pred, sep = ",")  
 }
 rownames(d) = d[,1]
 d = d[,-1]
+
+
+# open AD
+d_AD = read.csv(p_AD, sep = ",")
+rownames(d_AD) = d_AD[,1]
+l_inAD = rownames(d_AD)[which(d_AD$AD == 1)]
+
+l_ID_inAD = intersect(rownames(d), l_inAD)
+
+# define light d
+d = d[l_ID_inAD,]
 
 d[which(d[,"Real"] == 0),"Real"] = NA
 dact = na.omit(d)
 dinact = d[which(is.na(d[,3])),]
 
 
-# define name short
-pprob = str_sub(pprob, 1,-5)
-
-# Use geom_pointrange
-ggplot(dact, aes(x=Real, y=Mpred)) + 
-  geom_pointrange(aes(ymin=Mpred-SDpred, ymax=Mpred+SDpred))
-
-ggsave(paste(pprob, "_act.png", sep = ""),  width = 8, height = 8, dpi = 300, bg="transparent")
-
-
-
-lact = rep("act", dim(d)[1])
-lact[which(is.na(d[,3]))] = "inact"
-
-dhist = d
-dhist[,3] = lact
-
-mu <- ddply(dhist, "Real", summarise, grp.mean=mean(Mpred))
-
-
-ggplot(dhist, aes(x=Mpred, color=Real, fill=Real)) +
-  #geom_histogram(aes(y=..density..), position="identity", alpha=0.15)+
-  geom_density(alpha=0.3)+
-  geom_vline(data=mu, aes(xintercept=grp.mean, color=Real),
-             linetype=c("dashed", "solid"))+
-  #xlim(0,120)+
-  theme(text = element_text(size=19))+
-  scale_fill_manual(values=c("#eb9999", "#290000"), labels = c("active", "inactive"))+
-  #scale_color_manual(values=c("#eb9999", "#290000", "#d21919", "#a40000"), labels = c("hek293 cell based", "hek2$
-  labs(title="",x="Prob", y = "Density")
-
-ggsave(paste(pprob, "_hist.png", sep = ""),  width = 8, height = 7, dpi = 300, bg="transparent")
-
-
-
-
+# SUMMARY PREDICTION
 h = c("NB active", "NB inact", "TP", "FN", "TN", "FP", "Mact prob", "SDact prob", "Minact prob", "SDinact prob", "Acc", "Sp", "Se", "MCC")
 
 nbact = dim(dact)[1]
@@ -131,5 +109,4 @@ cval = c(nbact, nbinact, TP, FN, TN, FP, Mact,SDact, Minact, SDinact, Acc, Sp, S
 names(cval) = h 
 
 
-
-write.csv(cval, file = paste(pprob, "_sum.csv", sep = ""))
+write.csv(cval, file = paste(pr_out, "sum_Pred_inAD.csv", sep = ""))

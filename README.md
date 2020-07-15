@@ -15,8 +15,9 @@
 
 ## To do
 - ~~Add function to merge QSAR model from undersampling~~
-- SOM add descriptors significance 
+- ~~SOM add descriptors significance~~ 
 - Build external dataset on chembl for active chemicals on herg
+- merge AD scripts with the QSAR-QSPR scripts
 
 
 ## Update
@@ -25,4 +26,4 @@
 - 16-6-20: merge models from different machine learning
 - 1-7-20: Fix error in R runner 
 - 6-7-20: correct SOM when apply
-
+- 15-7-20: Add AD computation

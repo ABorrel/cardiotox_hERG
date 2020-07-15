@@ -1,6 +1,7 @@
 from copy import deepcopy
 from numpy import mean, std
 from os import path
+from re import search
 
 import toolbox
 import runExternal
@@ -66,6 +67,26 @@ class CHEMBLTable:
             self.filterDuplicates()
 
             self.writeTable()
+
+    def filterOnDescription(self, search_str):
+        
+        if not "l_work" in dir(self):
+            self.parseCHEMBLFile()
+
+        i = 0
+        i_max = len(self.l_work) 
+
+        while i < i_max:
+            desc = self.l_work[i]["Assay Description"]
+            desc = desc.lower()
+
+            if not search(search_str, desc):
+                del self.l_work[i]
+                i_max = i_max - 1
+            else:
+                i = i + 1
+            
+
 
     def get_standard_relation(self, l_relation):
         """Keep only value with a strict standard relation"""
@@ -236,7 +257,7 @@ class CHEMBLTable:
             ChEMBLid = d_chem["Molecule ChEMBL ID"]
             SMILES = d_chem["Smiles"]
 
-            cChem = Chemical.Chemical(SMILES, self.pr_out)#, p_salts=path.abspath("./Salts.txt"))
+            cChem = Chemical.Chemical(SMILES, self.pr_out, p_salts=path.abspath("./Salts.txt"))
             cChem.prepChem() # prep
             # case error cleaning
             if cChem.err == 1:
@@ -257,9 +278,9 @@ class CHEMBLTable:
 
         return p_filout
 
-    def cleanAff(self):
+    def prep_aff(self, typeAff="pAff", cutoff_uM=""):
 
-        p_aff_cleaned = self.pr_out + "aff_cleaned.csv"
+        p_aff_cleaned = "%saff_%s_%s.csv"%(self.pr_out, typeAff, cutoff_uM)
         if path.exists(p_aff_cleaned):
             return p_aff_cleaned
 
@@ -268,19 +289,47 @@ class CHEMBLTable:
 
         l_chem = list(d_desc.keys())
 
+        if typeAff == "pAff":
+            f_aff_cleaned = open(p_aff_cleaned, "w")
+            f_aff_cleaned.write("\"\",\"ChEMBL ID\",\"Aff\"\n")
+
+            for d_chem in self.l_work:
+                ChEMBL_ID = d_chem["Molecule ChEMBL ID"]
+                if ChEMBL_ID in l_chem:
+                    if d_chem["pChEMBL Value"] == "":
+                        f_aff_cleaned.write("\"%s\",\"%s\",NA\n"%(ChEMBL_ID, ChEMBL_ID))
+                    else:
+                        f_aff_cleaned.write("\"%s\",\"%s\",%s\n"%(ChEMBL_ID, ChEMBL_ID, d_chem["pChEMBL Value"]))
+            f_aff_cleaned.close()
+            runExternal.histAC50(p_aff_cleaned, self.pr_out)
+            return p_aff_cleaned
         
-        f_aff_cleaned = open(p_aff_cleaned, "w")
-        f_aff_cleaned.write("\"\",\"ChEMBL ID\",\"Aff\"\n")
+        else:
+            f_aff_cleaned = open(p_aff_cleaned, "w")
+            f_aff_cleaned.write("\"\",\"ChEMBL ID\",\"Aff\"\n")
+            n_act = 0
+            n_inact = 0
 
-        for d_chem in self.l_work:
-            ChEMBL_ID = d_chem["Molecule ChEMBL ID"]
-            if ChEMBL_ID in l_chem:
-                if d_chem["pChEMBL Value"] == "":
-                    f_aff_cleaned.write("\"%s\",\"%s\",NA\n"%(ChEMBL_ID, ChEMBL_ID))
-                else:
-                    f_aff_cleaned.write("\"%s\",\"%s\",%s\n"%(ChEMBL_ID, ChEMBL_ID, d_chem["pChEMBL Value"]))
-        f_aff_cleaned.close()
+            for d_chem in self.l_work:
+                ChEMBL_ID = d_chem["Molecule ChEMBL ID"]
+                if ChEMBL_ID in l_chem:
+                    val_aff =  d_chem["Standard Value"]
+                    unit = d_chem["Standard Units"]
+                    
+                    l_val_converted = toolbox.convertUnit([val_aff], [unit])
+                    val_converted = l_val_converted[0]
 
-        runExternal.histAC50(p_aff_cleaned, self.pr_out)
+                    if val_converted <= cutoff_uM:
+                        f_aff_cleaned.write("\"%s\",\"%s\",0\n"%(ChEMBL_ID, ChEMBL_ID))
+                        n_inact = n_inact + 1
+                    else:
+                        f_aff_cleaned.write("\"%s\",\"%s\",1\n"%(ChEMBL_ID, ChEMBL_ID))
+                        n_act = n_act + 1
+            f_aff_cleaned.close()
 
-        return p_aff_cleaned
+            fsum = open(self.pr_out + "class_sum.txt", "w")
+            fsum.write("NB chemical: %s\nNB active: %s\nNB inactive: %s\n"%(len(self.l_work), n_act, n_inact)) 
+            fsum.close()
+
+            return p_aff_cleaned
+

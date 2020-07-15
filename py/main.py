@@ -81,7 +81,7 @@ rate_active = 0.30
 cQSAR = QSAR_modeling.QSAR_modeling(cAnalysis.p_desc_cleaned, cAnalysis.p_AC50_cleaned, p_AC50, pr_QSAR, nb_repetition, n_foldCV,rate_active, rate_split)
 cQSAR.runQSARClass()
 pr_RF_models = cQSAR.extractModels(PR_RESULTS, "RF")
-pr_LDA_models = cQSAR.extractModels(PR_RESULTS, "LDA")
+#pr_LDA_models = cQSAR.extractModels(PR_RESULTS, "LDA")
 
 # 4. Build external test set from ChEMBL
 ### Target => CHEMBL240
@@ -136,18 +136,56 @@ pr_LDA_models = cQSAR.extractModels(PR_RESULTS, "LDA")
 ## 6. use drug external test sest 2
 #############################
 
-p_dataset = PR_DATA + "hERG_Active_Annotated_listRefChem_July1.csv"
-pr_TestSet = pathFolder.createFolder(PR_RESULTS + "hERG_Active_Annotated_listRefChem_July1/")
-c_genericSet = genericTestSet.genericTestSet(p_dataset, pr_TestSet)
-c_genericSet.loadDataset()
-p_desc = c_genericSet.computeDesc()
-p_aff = c_genericSet.setAff(allAff=1)
+#p_dataset = PR_DATA + "hERG_Active_Annotated_listRefChem_July1.csv"
+#pr_TestSet = pathFolder.createFolder(PR_RESULTS + "hERG_Active_Annotated_listRefChem_July1/")
+#c_genericSet = genericTestSet.genericTestSet(p_dataset, pr_TestSet)
+#c_genericSet.loadDataset()
+#p_desc = c_genericSet.computeDesc()
+#p_aff = c_genericSet.setAff(allAff=1)
 
 # apply model
-cApplyModel = applyModels.applyModel(cAnalysis.p_desc_cleaned, cAnalysis.p_AC50_cleaned, p_desc, p_aff, pr_RF_models, pr_TestSet)
+#cApplyModel = applyModels.applyModel(cAnalysis.p_desc_cleaned, cAnalysis.p_AC50_cleaned, p_desc, p_aff, pr_RF_models, pr_TestSet)
 #cApplyModel.PCACombine()
+#cApplyModel.predict()
+#cApplyModel.mergePrediction()
+# SOM
+#p_SOM = PR_RESULTS + "SOM/SOM_model.RData"
+#cApplyModel.applySOM(p_SOM)
+
+
+
+## 7. develop test set from Liu 2020 and Zhang 2016
+## => https://doi.org/10.1039/C5TX00294J
+## => https://doi.org/10.1016/j.snb.2019.127065
+######################################
+P_CHEMBL = PR_DATA + "CHEMBL27-target_chembl240.csv"
+pr_ChEMBL_patch_clamp = pathFolder.createFolder(PR_RESULTS + "ChEMBL_patch_clamp/")
+
+## 7.1 Prep dataset
+cChEMBL = CHEMBLTable.CHEMBLTable(P_CHEMBL, pr_ChEMBL_patch_clamp)
+cChEMBL.parseCHEMBLFile()
+cChEMBL.filterOnDescription("patch clamp")
+cChEMBL.cleanDataset(l_standard_type=["IC50"], l_standard_relation=["'='"])
+
+
+## 7.2 run descriptor set
+p_desc_ChEMBL = cChEMBL.computeDesc()
+p_aff_ChEMBL = cChEMBL.prep_aff(typeAff="class", cutoff_uM=30.0)
+
+
+## 7.3 run PCA with ChEMBL on PCA tox21
+pr_applyModel = pathFolder.createFolder(pr_ChEMBL_patch_clamp + "predict/")
+cApplyModel = applyModels.applyModel(cAnalysis.p_desc_cleaned, cAnalysis.p_AC50_cleaned, p_desc_ChEMBL, p_aff_ChEMBL, pr_RF_models, pr_applyModel)
+cApplyModel.PCACombine()
+
+## 7.4 apply RF models on it
 cApplyModel.predict()
 cApplyModel.mergePrediction()
-# SOM
-p_SOM = PR_RESULTS + "SOM/SOM_model.RData"
-cApplyModel.applySOM(p_SOM)
+cApplyModel.computeAD()
+cApplyModel.applyAD()
+
+
+## 7.5. Apply SOM on it
+#p_SOM = PR_RESULTS + "SOM/SOM_model.RData"
+#cApplyModel.applySOM(p_SOM)
+

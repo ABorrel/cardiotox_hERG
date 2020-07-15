@@ -34,8 +34,9 @@ class applyModel:
         
     def mergePrediction(self):
 
-        p_filout = self.pr_allPredict + "Summary_pred.csv"
-        if path.exists(p_filout):
+        p_filout = self.pr_allPredict + "Merge_pred.csv"
+        if path.exists(p_filout) and path.getsize(p_filout) > 25:
+            self.p_pred = p_filout
             return
         
         d_out = {}
@@ -58,12 +59,32 @@ class applyModel:
             SD_pred = std(d_out[chemblID])
             filout.write("%s\t%s\t%s\t%s\n"%(chemblID, round(M_pred, 2), round(SD_pred, 2), d_aff[chemblID]["Aff"]))
         filout.close()
-
+        self.p_pred = p_filout
 
         # plot prob vs aff
         runExternal.plotAC50VSProb(p_filout)
+
+        return p_filout
 
     def applySOM(self, p_SOMmodel):
 
         pr_out = pathFolder.createFolder(self.pr_out + "SOM/")
         runExternal.applySOM(self.p_desc_test, p_SOMmodel, pr_out)
+
+    def computeAD(self):
+
+        pr_out = pathFolder.createFolder(self.pr_out + "AD/")
+        
+        p_out = pr_out + "AD_zscore.csv"
+        if path.exists(p_out):
+            self.p_AD = p_out
+
+        else:
+            runExternal.AD(self.p_desc_model, self.p_desc_test, pr_out)
+            self.p_AD = p_out
+    
+
+    def applyAD(self):
+        
+        pr_out = pathFolder.createFolder(self.pr_out + "predict_AD/")
+        runExternal.applyAD(self.p_pred, self.p_AD, pr_out)

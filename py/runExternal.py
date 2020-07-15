@@ -96,6 +96,18 @@ def barplotClass(p_filin):
     runRCMD(cmd)
 
 
+def AD(p_desc_model, p_desc_test, pr_out):
+
+    cmd = "./computeAD.R %s %s %s"%(p_desc_model, p_desc_test, pr_out)
+    runRCMD(cmd)
+
+
+def applyAD(p_pred, p_AD, pr_out):
+
+    cmd = "applyAD.R %s %s %s"%(p_pred, p_AD, pr_out)
+    runRCMD(cmd)
+
+
 ############
 # Function for QSAR
 
