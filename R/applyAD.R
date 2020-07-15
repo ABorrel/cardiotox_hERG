@@ -55,9 +55,9 @@ p_AD = args[2]
 pr_out = args[3]
 
 
-p_pred = "../../results/ChEMBL_patch_clamp/predict/predict_model_RF/Merge_pred.csv"
-p_AD = "../../results/ChEMBL_patch_clamp/predict/AD/AD_zscore.csv"
-pr_out = "../../results/ChEMBL_patch_clamp/predict/predict_AD/"
+#p_pred = "../../results/ChEMBL_patch_clamp/predict/predict_model_RF/Merge_pred.csv"
+#p_AD = "../../results/ChEMBL_patch_clamp/predict/AD/AD_zscore.csv"
+#pr_out = "../../results/ChEMBL_patch_clamp/predict/predict_AD/"
 
 # open prediction
 d = read.csv(p_pred, sep = "\t")
