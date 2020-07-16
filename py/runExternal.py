@@ -1,11 +1,11 @@
-from os import system, path, remove, chdir, getcwd, listdir
-
+from os import system, path, remove, chdir, getcwd, listdir, name
+import subprocess
 
 
 P_RSCRIPTS = "../R/"
 P_RQSAR = "./../../../development/QSAR-QSPR/"
 
-R_BIN = "& 'C:\\Program Files\\R\\R-3.6.2\\bin\\Rscript.exe'"
+R_BIN = "C:\\Program Files\\R\\R-3.6.2\\bin\\Rscript.exe"
 
 ######
 # Main functions
@@ -14,23 +14,34 @@ def runRCMD(cmd, out = 0):
 
     workdir = getcwd()
     chdir(P_RSCRIPTS)
-    print(R_BIN + " " + cmd)
-    if out == 0:
-        system(R_BIN + " " + cmd)
-        output = 0
+    if name == "nt":
+        l_elem = cmd.split(" ")
+        cmd_line = [R_BIN] + l_elem
+        print(cmd_line)
+        p = subprocess.Popen(cmd_line)
+        (output, err) = p.communicate() 
+        p.wait()
+        print(err)
     else:
-        import subprocess
-        output = subprocess.check_output(cmd, shell=True)
+        system(cmd)
     chdir(workdir)
-    return output
+    
 
 
 def runRQSARModeling(cmd):
 
     workdir = getcwd()
     chdir(P_RQSAR)
-    print(cmd)
-    system(cmd)
+    if name == "nt":
+        l_elem = cmd.split(" ")
+        cmd_line = [R_BIN] + l_elem
+        print(cmd_line)
+        p = subprocess.Popen(cmd_line)
+        (output, err) = p.communicate() 
+        p.wait()
+        print(err)
+    else:
+        system(cmd)
     chdir(workdir)
 
 
@@ -96,15 +107,10 @@ def barplotClass(p_filin):
     runRCMD(cmd)
 
 
-def AD(p_desc_model, p_desc_test, pr_out):
-
-    cmd = "./computeAD.R %s %s %s"%(p_desc_model, p_desc_test, pr_out)
-    runRCMD(cmd)
-
 
 def applyAD(p_pred, p_AD, pr_out):
 
-    cmd = "applyAD.R %s %s %s"%(p_pred, p_AD, pr_out)
+    cmd = "./applyAD.R %s %s %s"%(p_pred, p_AD, pr_out)
     runRCMD(cmd)
 
 
@@ -151,6 +157,13 @@ def runImportanceDesc(p_desc, nb):
 
     cmd = "./importancePlot.R " + str(p_desc) + " " + str(nb)
     runRQSARModeling(cmd)
+
+
+def AD(p_desc_model, p_desc_test, pr_out):
+
+    cmd = "./computeAD.R %s %s %s"%(p_desc_model, p_desc_test, pr_out)
+    runRQSARModeling(cmd)
+
 
 
 def predictDataset(p_desc_test, p_model, ML,  pr_out):

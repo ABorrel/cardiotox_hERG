@@ -78,10 +78,13 @@ nb_repetition = 10
 n_foldCV = 10
 rate_split = 0.15
 rate_active = 0.30
-cQSAR = QSAR_modeling.QSAR_modeling(cAnalysis.p_desc_cleaned, cAnalysis.p_AC50_cleaned, p_AC50, pr_QSAR, nb_repetition, n_foldCV,rate_active, rate_split)
+cQSAR = QSAR_modeling.QSAR_modeling(cAnalysis.p_desc_cleaned, p_desc, cAnalysis.p_AC50_cleaned, p_AC50, pr_QSAR, nb_repetition, n_foldCV,rate_active, rate_split)
 cQSAR.runQSARClass()
 pr_RF_models = cQSAR.extractModels(PR_RESULTS, "RF")
 #pr_LDA_models = cQSAR.extractModels(PR_RESULTS, "LDA")
+
+sss
+
 
 # 4. Build external test set from ChEMBL
 ### Target => CHEMBL240

@@ -2,7 +2,7 @@ import pathFolder
 import runExternal
 import toolbox
 
-from os import path, listdir
+from os import path, listdir, rename
 from re import search
 from numpy import mean, std
 from copy import deepcopy
@@ -10,8 +10,9 @@ from shutil import copyfile
 
 
 class QSAR_modeling:
-    def __init__(self, p_desc_clean, p_AC50, p_AC50_origin, pr_out, nb_repetition, n_foldCV, rate_active, rate_splitTrainTest):
+    def __init__(self, p_desc_clean, p_desc_origin, p_AC50, p_AC50_origin, pr_out, nb_repetition, n_foldCV, rate_active, rate_splitTrainTest):
         self.p_desc = p_desc_clean
+        self.p_desc_orign = p_desc_origin
         self.p_AC50 = p_AC50
         self.p_AC50_orign = p_AC50_origin
         self.pr_out = pr_out
@@ -22,40 +23,71 @@ class QSAR_modeling:
 
     def runQSARClass(self):
 
+        # define train and test set here
+        self.prepSplitTrainTestSet()
+
+        # check applicability model
+        pr_AD = pathFolder.createFolder(self.pr_out + "AD/")
+        runExternal.AD(self.p_trainGlobal, self.p_test, pr_AD)
+        www
+
         for i in range(1, self.repetition + 1):
             pr_run = self.pr_out + str(i) + "/"
             #rmtree(pr_run)############################################################################### to remove
             pathFolder.createFolder(pr_run)
 
             # prepare dataset => split train / test
-            self.prepForQSAR(pr_run)
+            self.prepTrainSetforUnderSampling(pr_run)
 
             # build QSAR
             self.buildQSAR(pr_run)
+            sss
 
         
         # merge results
         self.mergeQSARs()
 
-    def prepForQSAR(self, pr_run):
 
+    def prepSplitTrainTestSet(self):
 
         # define train and test set
-        p_train = pr_run + "train.csv"
-        p_test = pr_run + "test.csv"
+        p_train = self.pr_out + "trainGlobal.csv"
+        p_test = self.pr_out + "test.csv"
 
         if path.exists(p_train) and path.exists(p_test):
-            self.p_train = p_train
+            self.p_trainGlobal = p_train
             self.p_test = p_test
             return 
 
-        # prep descriptor with classes
-        if not path.exists(pr_run + "desc_Class.csv"):
-            runExternal.prepDataQSAR(self.p_desc, self.p_AC50, self.rate_active, pr_run)
+        # prep descriptor with classes without ratio of active
+        if not path.exists(self.pr_out + "desc_Class.csv"):
+            runExternal.prepDataQSAR(self.p_desc, self.p_AC50, 0, self.pr_out)
 
-        runExternal.SplitTrainTest(pr_run + "desc_Class.csv", pr_run, self.rate_splitTrainTest)
-        self.p_train = p_train
+        runExternal.SplitTrainTest(self.pr_out + "desc_Class.csv", self.pr_out, self.rate_splitTrainTest)
+        # rename train in global train
+        rename(self.pr_out + "train.csv", self.pr_out + "trainGlobal.csv")
+        self.p_trainGlobal = p_train
         self.p_test = p_test
+
+
+    def prepTrainSetforUnderSampling(self, pr_run):
+
+        # define train and test set
+        p_train = pr_run + "train.csv"
+
+        if path.exists(p_train):
+            self.p_train = p_train
+
+        else:
+            # prep descriptor with classes without ratio of active
+            runExternal.prepDataQSAR(self.p_trainGlobal, self.p_AC50, self.rate_active, pr_run)
+            # to apply similar formating and create train.csv
+            runExternal.SplitTrainTest(pr_run + "desc_Class.csv", pr_run, 0)
+            
+            # Rename file in train set file
+            self.p_train = p_train
+
+
     
     def buildQSAR(self, pr_run):
 
