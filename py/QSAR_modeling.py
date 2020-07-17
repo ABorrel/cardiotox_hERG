@@ -30,8 +30,6 @@ class QSAR_modeling:
         pr_AD = pathFolder.createFolder(self.pr_out + "AD/")
         runExternal.AD(self.p_trainGlobal, self.p_test, pr_AD)
 
-        kkkk
-
         for i in range(1, self.repetition + 1):
             pr_run = self.pr_out + str(i) + "/"
             #rmtree(pr_run)############################################################################### to remove
