@@ -163,6 +163,10 @@ def runImportanceDesc(p_desc, nb):
 
 def AD(p_desc_model, p_desc_test, pr_out):
 
+    p_desc_model = path.abspath(p_desc_model)
+    p_desc_test = path.abspath(p_desc_test)
+    pr_out = path.abspath(pr_out)
+
     cmd = "./computeAD.R %s %s %s"%(p_desc_model, p_desc_test, pr_out)
     runRQSARModeling(cmd)
 

@@ -2,7 +2,7 @@ import pathFolder
 import runExternal
 import toolbox
 
-from os import path, listdir, rename
+from os import path, listdir, rename, remove
 from re import search
 from numpy import mean, std
 from copy import deepcopy
@@ -29,6 +29,8 @@ class QSAR_modeling:
         # check applicability model
         pr_AD = pathFolder.createFolder(self.pr_out + "AD/")
         runExternal.AD(self.p_trainGlobal, self.p_test, pr_AD)
+
+        kkkk
 
         for i in range(1, self.repetition + 1):
             pr_run = self.pr_out + str(i) + "/"
@@ -57,15 +59,19 @@ class QSAR_modeling:
             self.p_test = p_test
             return 
 
-        # prep descriptor with classes without ratio of active
-        if not path.exists(self.pr_out + "desc_Class.csv"):
-            runExternal.prepDataQSAR(self.p_desc, self.p_AC50, 0, self.pr_out)
-
+        # prep descriptor with classes without ratio of active => define train global
+        runExternal.prepDataQSAR(self.p_desc, self.p_AC50, 0, self.pr_out)
         runExternal.SplitTrainTest(self.pr_out + "desc_Class.csv", self.pr_out, self.rate_splitTrainTest)
         # rename train in global train
         rename(self.pr_out + "train.csv", self.pr_out + "trainGlobal.csv")
         self.p_trainGlobal = p_train
+
+        # extract Test set with ratio active vs inactive
+        runExternal.prepDataQSAR(self.p_desc, self.p_AC50, self.rate_active, self.pr_out)
+        runExternal.SplitTrainTest(self.pr_out + "desc_Class.csv", self.pr_out, self.rate_splitTrainTest)
         self.p_test = p_test
+
+        remove(self.pr_out + "train.csv")
 
 
     def prepTrainSetforUnderSampling(self, pr_run):
