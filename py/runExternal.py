@@ -23,6 +23,7 @@ def runRCMD(cmd, out = 0):
         p.wait()
         print(err)
     else:
+        print(cmd)
         system(cmd)
     chdir(workdir)
     
@@ -41,6 +42,7 @@ def runRQSARModeling(cmd):
         p.wait()
         print(err)
     else:
+        print(cmd)
         system(cmd)
     chdir(workdir)
 

@@ -29,7 +29,6 @@ class QSAR_modeling:
         # check applicability model
         pr_AD = pathFolder.createFolder(self.pr_out + "AD/")
         runExternal.AD(self.p_trainGlobal, self.p_test, pr_AD)
-        www
 
         for i in range(1, self.repetition + 1):
             pr_run = self.pr_out + str(i) + "/"
@@ -41,7 +40,6 @@ class QSAR_modeling:
 
             # build QSAR
             self.buildQSAR(pr_run)
-            sss
 
         
         # merge results
