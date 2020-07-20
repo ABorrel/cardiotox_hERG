@@ -17,17 +17,40 @@ class genericTestSet:
         self.pr_out = pr_out
         self.sep = ","
 
-    def loadDataset(self, loadDb=0):
+    def loadDataset(self, loadDb=0, p_mapFile=""):
+
+        p_dataset_preproc = self.pr_out + "dataset_prepoc.csv"
+        #if path.exists(p_dataset):
+        #    self.p_dataset_preproc = p_dataset_preproc
 
         d_dataset = toolbox.loadMatrix(self.p_dataset, sep = self.sep)
         self.d_dataset = d_dataset
 
+        l_h = list(self.d_dataset[list(self.d_dataset.keys())[0]].keys())
+        #l_h.append("CARSN")
+        #l_h.append("SMILES")
+
+        if p_mapFile != "": # from pubchem
+            d_map = toolbox.loadMatrix(p_mapFile, sep = ",")
+            for ID_sample in d_map.keys():
+                PUBCHEM_SID = d_map[ID_sample]["PUBCHEM_SID"]
+                CASRN = d_map[ID_sample]["CAS"]
+
+                for chem in self.d_dataset.keys():
+                    if self.d_dataset[chem]["PUBCHEM_SID"] == PUBCHEM_SID:
+                        self.d_dataset[chem]["CASRN"] = CASRN
+                        break
+
+
         if loadDb == 1:
             # load SMILES from comptox
-            l_header = list(d_dataset[list(d_dataset.keys())[0]].keys())
-            if not "SMILES" in l_header:
+
+            if not "SMILES" in l_h:
                 for chem in d_dataset.keys():
+                    if not "CASRN" in list(d_dataset[chem].keys()):
+                        continue
                     CASRN = d_dataset[chem]["CASRN"]
+                    CASRN = CASRN.split("|")[0]
                     print("CASRN:", CASRN, "LOAD chem")
                     c_search = searchInComptox.loadComptox(CASRN)
                     c_search.searchInDB()
@@ -37,6 +60,16 @@ class genericTestSet:
                         self.d_dataset[chem]["SMILES"] = "--"
 
                     print("Load done:", self.d_dataset[chem]["SMILES"])
+
+        
+        f_dataset_cleanned = open(p_dataset_preproc, "w")
+        f_dataset_cleanned.write("CASRN\tSMILES\t" + "\t".join(l_h) + "\n")
+        for chem in self.d_dataset.keys():
+            if "CASRN" in list(self.d_dataset[chem].keys()):
+                f_dataset_cleanned.write("%s\t%s\t%s\n"%(self.d_dataset[chem]["CASRN"], self.d_dataset[chem]["SMILES"], "\t".join([self.d_dataset[chem][h] for h in l_h])))
+        f_dataset_cleanned.close()
+
+
 
 
     def computeDesc(self):
@@ -65,7 +98,7 @@ class genericTestSet:
             CASRN = self.d_dataset[chem]["CASRN"]
             SMILES = self.d_dataset[chem]["SMILES"]
 
-            cChem = Chemical.Chemical(SMILES, self.pr_desc, p_salts=path.abspath("./Salts.txt"))
+            cChem = Chemical.Chemical(SMILES, self.pr_desc)#, p_salts=path.abspath("./Salts.txt"))
             cChem.prepChem() # prep
             # case error cleaning
             if cChem.err == 1:

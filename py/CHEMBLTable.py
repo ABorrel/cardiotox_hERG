@@ -306,7 +306,7 @@ class CHEMBLTable:
         
         else:
             f_aff_cleaned = open(p_aff_cleaned, "w")
-            f_aff_cleaned.write("\"\",\"ChEMBL ID\",\"Aff\"\n")
+            f_aff_cleaned.write("\"ChEMBLID\",\"AC50-uM\",\"Aff\"\n")
             n_act = 0
             n_inact = 0
 
@@ -320,10 +320,10 @@ class CHEMBLTable:
                     val_converted = l_val_converted[0]
 
                     if val_converted <= cutoff_uM:
-                        f_aff_cleaned.write("\"%s\",\"%s\",0\n"%(ChEMBL_ID, ChEMBL_ID))
+                        f_aff_cleaned.write("\"%s\",\"%s\",0\n"%(ChEMBL_ID, val_converted))
                         n_inact = n_inact + 1
                     else:
-                        f_aff_cleaned.write("\"%s\",\"%s\",1\n"%(ChEMBL_ID, ChEMBL_ID))
+                        f_aff_cleaned.write("\"%s\",\"%s\",1\n"%(ChEMBL_ID, val_converted))
                         n_act = n_act + 1
             f_aff_cleaned.close()
 

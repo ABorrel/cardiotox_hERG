@@ -21,7 +21,36 @@ class QSAR_modeling:
         self.rate_active = rate_active
         self.rate_splitTrainTest = rate_splitTrainTest
 
-    def runQSARClass(self):
+
+    def runQSARClassUnderSamplingAllSet(self):
+
+        # check applicability model
+        pr_AD = pathFolder.createFolder(self.pr_out + "AD/")
+        
+
+        for i in range(1, self.repetition + 1):
+            pr_run = self.pr_out + str(i) + "/"
+            #rmtree(pr_run)############################################################################### to remove
+            pathFolder.createFolder(pr_run)
+
+            # prepare dataset => split train / test
+            self.prepTrainSetforUnderSampling(pr_run)
+
+            # check AD
+            pr_AD_run = pathFolder.createFolder(pr_AD + str(i) + "/")
+            if len(listdir(pr_AD_run)) < 6:
+                runExternal.AD(self.p_train, self.p_test, pr_AD_run)
+
+            # build QSAR
+            self.buildQSAR(pr_run)
+
+        
+        # merge results
+        self.mergeQSARs()
+
+
+
+    def runQSARClassUnderSamplingTrain(self):
 
         # define train and test set here
         self.prepSplitTrainTestSet()
@@ -36,7 +65,7 @@ class QSAR_modeling:
             pathFolder.createFolder(pr_run)
 
             # prepare dataset => split train / test
-            self.prepTrainSetforUnderSampling(pr_run)
+            self.prepTrainSetforUnderSampling(pr_run, 0)
 
             # build QSAR
             self.buildQSAR(pr_run)
@@ -72,23 +101,43 @@ class QSAR_modeling:
         remove(self.pr_out + "train.csv")
 
 
-    def prepTrainSetforUnderSampling(self, pr_run):
+    def prepTrainSetforUnderSampling(self, pr_run, splitRatio=""):
 
-        # define train and test set
-        p_train = pr_run + "train.csv"
 
-        if path.exists(p_train):
-            self.p_train = p_train
+        # Case where only the train set is created
+        if splitRatio == 0: 
+            # define train and test set
+            p_train = pr_run + "train.csv"
+
+            if path.exists(p_train):
+                self.p_train = p_train
+
+            else:
+                # prep descriptor with classes without ratio of active
+                runExternal.prepDataQSAR(self.p_trainGlobal, self.p_AC50, self.rate_active, pr_run)
+                # to apply similar formating and create train.csv
+                runExternal.SplitTrainTest(pr_run + "desc_Class.csv", pr_run, 0)
+                
+                # Rename file in train set file
+                self.p_train = p_train
 
         else:
-            # prep descriptor with classes without ratio of active
-            runExternal.prepDataQSAR(self.p_trainGlobal, self.p_AC50, self.rate_active, pr_run)
-            # to apply similar formating and create train.csv
-            runExternal.SplitTrainTest(pr_run + "desc_Class.csv", pr_run, 0)
-            
-            # Rename file in train set file
-            self.p_train = p_train
+            # define train and test set
+            p_train = pr_run + "train.csv"
+            p_test = pr_run + "test.csv"
 
+            if path.exists(p_train) and path.exists(p_test):
+                self.p_train = p_train
+                self.p_test = p_test
+                return 
+
+            # prep descriptor with classes
+            if not path.exists(pr_run + "desc_Class.csv"):
+                runExternal.prepDataQSAR(self.p_desc, self.p_AC50, self.rate_active, pr_run)
+
+            runExternal.SplitTrainTest(pr_run + "desc_Class.csv", pr_run, self.rate_splitTrainTest)
+            self.p_train = p_train
+            self.p_test = p_test
 
     
     def buildQSAR(self, pr_run):
@@ -117,6 +166,11 @@ class QSAR_modeling:
 
     def mergeResults(self, pr_av):
 
+        p_filout = pr_av + "average_perf.csv"
+        if path.exists(p_filout):
+            return 
+        
+
 
         l_criteria = ["Acc", "Sp", "Se", "MCC"]
         l_dataset = ["CV", "train", "test"]
@@ -133,7 +187,7 @@ class QSAR_modeling:
 
         l_pr_run = listdir(self.pr_out)
         for pr_run in l_pr_run:
-            if search("Merge", pr_run):
+            if search("Merge", pr_run) or search("AD", pr_run):
                 continue
 
             p_perfCV = self.pr_out + pr_run + "/perfCV.csv"
@@ -173,7 +227,6 @@ class QSAR_modeling:
 
 
         # write result
-        p_filout = pr_av + "average_perf.csv"
         filout = open(p_filout, "w")
         for dataset in l_dataset:
             filout.write(str(dataset) + "\n")
@@ -189,6 +242,9 @@ class QSAR_modeling:
     def mergeProbaRF(self, p_AC50, pr_prob):
         # need to change R scripts for 
 
+        if len(listdir(pr_prob)) > 10:
+            return 
+
         d_prob = {}
         l_dataset = ["CV", "train", "test"]
 
@@ -196,7 +252,7 @@ class QSAR_modeling:
         d_AC50 = toolbox.loadMatrix(p_AC50)
 
         for pr_run in l_pr_run:
-            if search("Merge", pr_run):
+            if search("Merge", pr_run) or search("AD", pr_run):
                 continue
 
             d_prob[pr_run] = {}
@@ -284,12 +340,17 @@ class QSAR_modeling:
 
     def mergeInvolvedDesc(self, ML, nbdesc, pr_involvedDesc):
 
+
         d_importance = {}
         pr_out = pathFolder.createFolder(pr_involvedDesc + ML + "/")
 
+        p_desc_importance = pr_out + "Av_importance"
+        if path.exists(p_desc_importance):
+            return
+
         l_pr_run = listdir(self.pr_out)
         for run in l_pr_run:
-            if search("Merge", run):
+            if search("Merge", run) or search("AD", run):
                 continue
 
             if not run in list(d_importance.keys()):
@@ -301,7 +362,6 @@ class QSAR_modeling:
 
 
         # global importance 
-        p_desc_importance = pr_out + "Av_importance"
         f_desc_importance = open(p_desc_importance, "w")
         f_desc_importance.write("Desc\tRun\tval\n")
 
@@ -309,7 +369,7 @@ class QSAR_modeling:
         
         for desc in l_desc:
             for run in l_pr_run:
-                if search("Merge", run):
+                if search("Merge", run) or search("AD", run):
                     continue
                 try: f_desc_importance.write(desc + "\t" + str(run) + "\t" + str(d_importance[run][desc]["x"]) + "\n")
                 except: f_desc_importance.write(desc + "\t" + str(run) + "\t0.0\n")
@@ -322,9 +382,12 @@ class QSAR_modeling:
         pr_out = pathFolder.createFolder(pr_results + "QSARs_models/" + ML + "/")
 
         l_pr_run = listdir(self.pr_out)
+        l_model = listdir(pr_out)
+        if len(l_model) > 2:
+            return pr_out
 
         for pr_run in l_pr_run:
-            if search("Merge", pr_run):
+            if search("Merge", pr_run) or search("AD", pr_run):
                 continue
 
             p_model = "%s%s/%sclass/model.RData"%(self.pr_out, pr_run, ML)
