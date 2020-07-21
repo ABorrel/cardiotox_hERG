@@ -61,7 +61,17 @@ class genericTestSet:
 
                     print("Load done:", self.d_dataset[chem]["SMILES"])
 
-        
+
+        else:
+            if not "SMILES" in l_h:
+                for chem in d_dataset.keys():
+                    if not "CASRN" in list(d_dataset[chem].keys()):
+                        continue
+                    CASRN = d_dataset[chem]["CASRN"]
+                    CASRN = CASRN.split("|")[0]
+                    self.d_dataset[chem]["SMILES"] = "--"
+
+
         f_dataset_cleanned = open(p_dataset_preproc, "w")
         f_dataset_cleanned.write("CASRN\tSMILES\t" + "\t".join(l_h) + "\n")
         for chem in self.d_dataset.keys():

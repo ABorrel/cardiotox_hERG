@@ -220,8 +220,8 @@ p_dataset = PR_DATA + "AID_588834_datatable_all.csv"
 p_mapp = PR_DATA + "AID_588834_ID_mapping.csv"
 pr_TestSet = pathFolder.createFolder(PR_RESULTS + "AID_588834/")
 c_genericSet = genericTestSet.genericTestSet(p_dataset, pr_TestSet)
-c_genericSet.loadDataset(loadDb=1, p_mapFile=p_mapp)
-p_desc = c_genericSet.computeDesc()
+c_genericSet.loadDataset(loadDb=0, p_mapFile=p_mapp)
+#p_desc = c_genericSet.computeDesc()
 #p_aff = c_genericSet.setAff(allAff=1)
 ss
 ## apply model
