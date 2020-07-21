@@ -11,10 +11,11 @@ args <- commandArgs(TRUE)
 p_overlap = args[1]
 
 
-#p_overlap = "./../../results/ChEMBL_patch_clamp/predict/OverlapModel/overlap_train_test"
+p_overlap = "../../results/AID_588834/OverlapModel/overlap_train_test"
   
   
 d_overlap = read.csv(p_overlap, sep = "\t")
+d_overlap$Include = as.double(as.character(d_overlap$Include))
 
 # make a sum file
 nb_overlap = length(which(d_overlap$Include==1))
@@ -28,13 +29,16 @@ names(c_w) = c("Overlap", "no_overlap", "per active")
 write.csv(c_w, file = paste(p_overlap, ".sum", sep = ""))
 
 
-d_overlap$AC50.model = as.double(as.character(d_overlap$AC50.model))
-d_overlap$AC50.test = as.double(as.character(d_overlap$AC50.test))
+d_overlap$AC50.model = as.double(as.character(d_overlap$LogAC50.model))
+d_overlap$AC50.test = as.double(as.character(d_overlap$LogAC50.test))
 d_overlap$Include = as.factor(as.character(d_overlap$Include))
 
-d_overlap = d_overlap[which(d_overlap$AC50.test <= 30),]
+
+d_overlap = na.omit(d_overlap)
+cor_val = round(cor(d_overlap$AC50.model, d_overlap$AC50.test),2)
 
 
-ggplot(d_overlap, aes(x=AC50.model, y=AC50.test)) + geom_point()
+ggplot(d_overlap, aes(x=LogAC50.model, y=LogAC50.test)) + geom_point()+
+  labs(title = paste("Cor: ", cor_val, sep = ""))
 ggsave(paste(p_overlap, ".png", sep = ""))
 

@@ -57,10 +57,9 @@ prout = args[5]
 
 #pdesc1 = "../../results/Cleaned_Data/desc1D2D_cleaned.csv"
 #pAff1 = "../../results/Cleaned_Data/AC50_cleaned.csv"
-#pdesc2 = "../../results/ChEMBL/desc_1D2D.csv"
-#pAff2 = "../../results/ChEMBL/aff_cleaned.csv"
-#prout = "../../results/ChEMBL_predict/PCA_vs/"
-
+#pdesc2 = "../../results/AID_588834/desc_cleaned.csv"
+#pAff2 = "../../results/AID_588834/aff_cleaned.csv"
+#prout = "../../results/AID_588834/PCA_vs/"
 
 
 ddesc1 = read.csv(pdesc1, sep = ",", row.names = 1)
@@ -71,9 +70,15 @@ ddesc2 = ddesc2[,-1]
 daff1 = read.csv(pAff1, header = TRUE, row.names = 1)
 daff2 = read.csv(pAff2, header = TRUE, row.names = 1)
 
-# organise same order
-daff1 = daff1[rownames(ddesc1),]
-daff2 = daff2[rownames(ddesc2),]
+l_chem1 = intersect(rownames(ddesc1), rownames(daff1))
+l_chem2 = intersect(rownames(ddesc2), rownames(daff2))
+
+# organize same order
+daff1 = daff1[l_chem1,]
+daff2 = daff2[l_chem2,]
+
+ddesc1 = ddesc1[l_chem1,]
+ddesc2 = ddesc2[l_chem2,]
 
 res.pca <- prcomp(ddesc1, scale = TRUE)
 var_cap = generatePCAcoords(ddesc1)[[2]]

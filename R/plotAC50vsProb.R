@@ -35,7 +35,11 @@ sensibility = function (tp, fn){
 
 MCC = function (tp, tn, fp, fn){
   numerator = tp*tn-fp*fn
-  denumerator = (tp+fp) * (tp+fn) * (tn+fp) * (tn+fn)
+  A1 = as.double(tp+fp)
+  A2 = tp+fn
+  A3 = tn+fp
+  A4 = tn+fn
+  denumerator = A1 * A2 *A3 *A4
   mcc = numerator / sqrt(denumerator)
   if(is.na(mcc)){
     mcc = 0
@@ -53,7 +57,7 @@ args <- commandArgs(TRUE)
 pprob = args[1]
 
 
-#pprob = "../../results/ChEMBL_predict/predict_model_RF/Summary_pred.csv"
+#pprob = "../../results/AID_588834/predict_model_RF/Merge_pred.csv"
 
 
 

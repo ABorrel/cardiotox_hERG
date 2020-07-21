@@ -121,9 +121,10 @@ p_desc_test = args[2]
 pr_out = args[3]
 
 
+
 #p_desc_model = "C:\\Users\\Aborrel\\research\\ILS\\HERG\\results\\Cleaned_Data\\desc1D2D_cleaned.csv"
-#p_desc_test = "C:\\Users\\Aborrel\\research\\ILS\\HERG\\results\\DrugSet\\DESC\\desc_1D2D.csv"
-#pr_out = "C:\\Users\\Aborrel\\research\\ILS\\HERG\\results\\DrugSet\\AD\\"
+#p_desc_test = "C:\\Users\\Aborrel\\research\\ILS\\HERG\\results\\AID_588834\\DESC\\desc_1D2D.csv"
+#pr_out = "C:\\Users\\Aborrel\\research\\ILS\\HERG\\results\\AID_588834\\AD\\"
 
 
 ddesc1 = read.csv(p_desc_model, sep = ",", row.names = 1)

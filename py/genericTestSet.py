@@ -20,8 +20,10 @@ class genericTestSet:
     def loadDataset(self, loadDb=0, p_mapFile=""):
 
         p_dataset_preproc = self.pr_out + "dataset_prepoc.csv"
-        #if path.exists(p_dataset):
+        #if path.exists(p_dataset_preproc):
+        #    self.d_dataset = toolbox.loadMatrix(p_dataset_preproc)
         #    self.p_dataset_preproc = p_dataset_preproc
+        #    return 
 
         d_dataset = toolbox.loadMatrix(self.p_dataset, sep = self.sep)
         self.d_dataset = d_dataset
@@ -62,12 +64,23 @@ class genericTestSet:
                     print("Load done:", self.d_dataset[chem]["SMILES"])
 
 
+        elif path.exists(loadDb):# case of batch search
+            d_database = toolbox.loadMatrix(loadDb, sep = ",")
+            for chem in self.d_dataset.keys():
+                if not "CASRN" in list(d_dataset[chem].keys()) or self.d_dataset[chem]["CASRN"] == "":
+                    continue
+                CASRN = self.d_dataset[chem]["CASRN"]
+                if CASRN in list(d_database.keys()):
+                    self.d_dataset[chem]["SMILES"] = d_database[CASRN]["SMILES"]
+                else:
+                    self.d_dataset[chem]["SMILES"] = "--"
+
         else:
             if not "SMILES" in l_h:
-                for chem in d_dataset.keys():
+                for chem in self.d_dataset.keys():
                     if not "CASRN" in list(d_dataset[chem].keys()):
                         continue
-                    CASRN = d_dataset[chem]["CASRN"]
+                    CASRN = self.d_dataset[chem]["CASRN"]
                     CASRN = CASRN.split("|")[0]
                     self.d_dataset[chem]["SMILES"] = "--"
 
@@ -75,7 +88,7 @@ class genericTestSet:
         f_dataset_cleanned = open(p_dataset_preproc, "w")
         f_dataset_cleanned.write("CASRN\tSMILES\t" + "\t".join(l_h) + "\n")
         for chem in self.d_dataset.keys():
-            if "CASRN" in list(self.d_dataset[chem].keys()):
+            if "CASRN" in list(self.d_dataset[chem].keys()) and self.d_dataset[chem]["CASRN"] != "":
                 f_dataset_cleanned.write("%s\t%s\t%s\n"%(self.d_dataset[chem]["CASRN"], self.d_dataset[chem]["SMILES"], "\t".join([self.d_dataset[chem][h] for h in l_h])))
         f_dataset_cleanned.close()
 
@@ -86,7 +99,7 @@ class genericTestSet:
 
         if not "d_dataset" in self.__dict__:
             self.loadDataset()
-        
+
         pr_out = pathFolder.createFolder(self.pr_out + "DESC/")
         self.pr_desc = pr_out
 
@@ -108,7 +121,7 @@ class genericTestSet:
             CASRN = self.d_dataset[chem]["CASRN"]
             SMILES = self.d_dataset[chem]["SMILES"]
 
-            cChem = Chemical.Chemical(SMILES, self.pr_desc)#, p_salts=path.abspath("./Salts.txt"))
+            cChem = Chemical.Chemical(SMILES, self.pr_desc, p_salts=path.abspath("./Salts.txt"))
             cChem.prepChem() # prep
             # case error cleaning
             if cChem.err == 1:
@@ -128,26 +141,44 @@ class genericTestSet:
         filout.close()
         self.p_desc = p_filout
         return p_filout
-        
-        
+
+
     def setAff(self, allAff=0):
         """
         Add here part to open aff file and formate it
         """
-        
+
         if not "p_desc" in self.__dict__:
             self.computeDesc()
 
         p_aff = self.pr_out + "aff_formated.csv"
-        if path.exists(p_aff):
-            return p_aff
-        
+        #if path.exists(p_aff):
+        #    return p_aff
+
         d_desc = toolbox.loadMatrix(self.p_desc, sep = "\t")
 
-        filout = open(p_aff, "w")
-        filout.write("\"\",\"ID\",\"Aff\"\n")
-        for chem in d_desc.keys():
-            filout.write("\"%s\",\"%s\",%s\n"%(chem, chem, allAff))
-        filout.close()
+
+        if allAff == "PUBCHEM_ACTIVITY_OUTCOME": # in this case is pubchem format
+            filout = open(p_aff, "w")
+            filout.write("\"ID\",\"LogAC50\",\"Aff\"\n")
+            for chem in self.d_dataset.keys():
+                if not "CASRN" in list(self.d_dataset[chem].keys()):
+                    continue
+                if self.d_dataset[chem][allAff] == "Active":
+                    aff = 1
+                else:
+                    aff = 0
+                AC50 = self.d_dataset[chem]["Fit_LogAC50"]
+                if AC50 != "":
+                    filout.write("\"%s\",\"%s\",\"%s\"\n"%(self.d_dataset[chem]["CASRN"], self.d_dataset[chem]["Fit_LogAC50"], aff))
+                else:
+                    filout.write("\"%s\",\"NA\",\"%s\"\n"%(self.d_dataset[chem]["CASRN"], aff))
+            filout.close()
+        else:
+            filout = open(p_aff, "w")
+            filout.write("\"\",\"ID\",\"Aff\"\n")
+            for chem in d_desc.keys():
+                filout.write("\"%s\",\"%s\",%s\n"%(chem, chem, allAff))
+            filout.close()
 
         return p_aff

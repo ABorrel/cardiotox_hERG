@@ -34,6 +34,7 @@ def runRQSARModeling(cmd):
     workdir = getcwd()
     chdir(P_RQSAR)
     if name == "nt":
+        cmd = cmd.replace("/", "\\")
         l_elem = cmd.split(" ")
         cmd_line = [R_BIN] + l_elem
         print(cmd_line)
@@ -116,6 +117,11 @@ def applyAD(p_pred, p_AD, pr_out):
     runRCMD(cmd)
 
 
+def overlapPlot(p_filin):
+
+    cmd = "./overlap_sets.R %s"%(p_filin)
+    runRCMD(cmd)
+
 ############
 # Function for QSAR
 
@@ -168,7 +174,7 @@ def AD(p_desc_model, p_desc_test, pr_out):
     pr_out = path.abspath(pr_out) + "/"
 
     cmd = "./computeAD.R %s %s %s"%(p_desc_model, p_desc_test, pr_out)
-    runRQSARModeling(cmd)
+    runRCMD(cmd)
 
 
 

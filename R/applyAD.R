@@ -32,17 +32,19 @@ sensibility = function (tp, fn){
   return (se)
 }
 
-
 MCC = function (tp, tn, fp, fn){
   numerator = tp*tn-fp*fn
-  denumerator = (tp+fp) * (tp+fn) * (tn+fp) * (tn+fn)
+  A1 = as.double(tp+fp)
+  A2 = tp+fn
+  A3 = tn+fp
+  A4 = tn+fn
+  denumerator = A1 * A2 *A3 *A4
   mcc = numerator / sqrt(denumerator)
   if(is.na(mcc)){
     mcc = 0
   }
   return (mcc)
 }
-
 
 
 ################
@@ -55,9 +57,9 @@ p_AD = args[2]
 pr_out = args[3]
 
 
-#p_pred = "../../results/ChEMBL_patch_clamp/predict/predict_model_RF/Merge_pred.csv"
-#p_AD = "../../results/ChEMBL_patch_clamp/predict/AD/AD_zscore.csv"
-#pr_out = "../../results/ChEMBL_patch_clamp/predict/predict_AD/"
+#p_pred = "../../results/AID_588834/predict_model_RF/Merge_pred.csv"
+#p_AD = "../../results/AID_588834/AD/AD_zscore.csv"
+#pr_out = "../../results/AID_588834/predict_AD//"
 
 # open prediction
 d = read.csv(p_pred, sep = "\t")

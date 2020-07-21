@@ -80,9 +80,9 @@ nb_repetition = 10
 n_foldCV = 10
 rate_split = 0.15
 rate_active = 0.30
-#cQSAR = QSAR_modeling.QSAR_modeling(cAnalysis.p_desc_cleaned, p_desc, cAnalysis.p_AC50_cleaned, p_AC50, pr_QSAR, nb_repetition, n_foldCV,rate_active, rate_split)
+cQSAR = QSAR_modeling.QSAR_modeling(cAnalysis.p_desc_cleaned, p_desc, cAnalysis.p_AC50_cleaned, p_AC50, pr_QSAR, nb_repetition, n_foldCV,rate_active, rate_split)
 #cQSAR.runQSARClassUnderSamplingAllSet()
-#pr_RF_models = cQSAR.extractModels(PR_RESULTS, "RF")
+pr_RF_models = cQSAR.extractModels(PR_RESULTS, "RF")
 #pr_LDA_models = cQSAR.extractModels(PR_RESULTS, "LDA")
 
 
@@ -216,61 +216,50 @@ rate_active = 0.30
 ## => https://pubchem.ncbi.nlm.nih.gov/bioassay/588834
 ########################################################
 
-p_dataset = PR_DATA + "AID_588834_datatable_all.csv"
-p_mapp = PR_DATA + "AID_588834_ID_mapping.csv"
-pr_TestSet = pathFolder.createFolder(PR_RESULTS + "AID_588834/")
-c_genericSet = genericTestSet.genericTestSet(p_dataset, pr_TestSet)
-c_genericSet.loadDataset(loadDb=0, p_mapFile=p_mapp)
+#p_dataset = PR_DATA + "AID_588834_datatable_all.csv"
+#p_mapp = PR_DATA + "AID_588834_ID_mapping.csv"
+#p_SMILESComptox = PR_DATA + "CompToxChemicalsDashboard-SMILES.csv"
+#pr_TestSet = pathFolder.createFolder(PR_RESULTS + "AID_588834/")
+#c_genericSet = genericTestSet.genericTestSet(p_dataset, pr_TestSet)
+#c_genericSet.loadDataset(loadDb=p_SMILESComptox, p_mapFile=p_mapp)
 #p_desc = c_genericSet.computeDesc()
-#p_aff = c_genericSet.setAff(allAff=1)
-ss
+#p_aff = c_genericSet.setAff(allAff="PUBCHEM_ACTIVITY_OUTCOME")
+
+
+
 ## apply model
-#cApplyModel = applyModels.applyModel(cAnalysis.p_desc_cleaned, cAnalysis.p_desc, cAnalysis.p_AC50_cleaned, p_desc, p_aff, pr_RF_models, pr_TestSet)
+#cApplyModel = applyModels.applyModel(cAnalysis.p_desc_cleaned, cAnalysis.p_desc, cAnalysis.p_AC50, p_desc, p_aff, pr_RF_models, pr_TestSet)
+#p_aff = cApplyModel.overlapSetWithID(rm_overlap=1)
 #cApplyModel.PCACombine()
 #cApplyModel.predict()
 #cApplyModel.mergePrediction()
 #cApplyModel.computeAD()
 #cApplyModel.applyAD()
 
-
 # SOM
 #p_SOM = PR_RESULTS + "SOM/SOM_model.RData"
 #cApplyModel.applySOM(p_SOM)
 
 
+## 9. Shagun test set -> 588834
+################################
 
-## 7. develop test set from Liu 2020 and Zhang 2016
-## => https://doi.org/10.1039/C5TX00294J
-## => https://doi.org/10.1016/j.snb.2019.127065
-######################################
-P_CHEMBL = PR_DATA + "CHEMBL27-target_chembl240.csv"
-pr_ChEMBL_patch_clamp = pathFolder.createFolder(PR_RESULTS + "ChEMBL_patch_clamp/")
+p_dataset = PR_DATA + "Ext_Test_Set_Final_1014Chem.csv"
+p_SMILESComptox = PR_DATA + "CompToxChemicalsDashboard-SMILES.csv"
+pr_TestSet = pathFolder.createFolder(PR_RESULTS + "Ext_Test_Set_Final_1014Chem/")
+c_genericSet = genericTestSet.genericTestSet(p_dataset, pr_TestSet)
+c_genericSet.loadDataset(loadDb=p_SMILESComptox)
+p_desc = c_genericSet.computeDesc()
+p_aff = c_genericSet.setAff(allAff="PUBCHEM_ACTIVITY_OUTCOME")
 
-## 7.1 Prep dataset
-cChEMBL = CHEMBLTable.CHEMBLTable(P_CHEMBL, pr_ChEMBL_patch_clamp)
-#cChEMBL.parseCHEMBLFile()
-#cChEMBL.filterOnDescription("patch clamp")
-cChEMBL.cleanDataset(l_standard_type=["IC50"], l_standard_relation=["'='"])
-
-
-## 7.2 run descriptor set
-p_desc_ChEMBL = cChEMBL.computeDesc()
-p_aff_ChEMBL = cChEMBL.prep_aff(typeAff="class", cutoff_uM=30.0)
-
-
-## 7.3 run PCA with ChEMBL on PCA tox21
-pr_applyModel = pathFolder.createFolder(pr_ChEMBL_patch_clamp + "predict/")
-cApplyModel = applyModels.applyModel(cAnalysis.p_desc_cleaned, cAnalysis.p_desc, p_AC50, p_desc_ChEMBL, p_aff_ChEMBL, pr_RF_models, pr_applyModel)
-cApplyModel.overlapSet()
+## apply model
+cApplyModel = applyModels.applyModel(cAnalysis.p_desc_cleaned, cAnalysis.p_desc, cAnalysis.p_AC50, p_desc, p_aff, pr_RF_models, pr_TestSet)
 cApplyModel.PCACombine()
-
-## 7.4 apply RF models on it
 cApplyModel.predict()
 cApplyModel.mergePrediction()
 cApplyModel.computeAD()
 cApplyModel.applyAD()
 
-
-## 7.5. Apply SOM on it
+# SOM
 p_SOM = PR_RESULTS + "SOM/SOM_model.RData"
 cApplyModel.applySOM(p_SOM)
