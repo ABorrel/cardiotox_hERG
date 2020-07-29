@@ -10,7 +10,8 @@ import sys
 sys.path.insert(0, "./../../../development/molecular-descriptors/")
 import Chemical
 
-
+from PIL import Image, ImageFont, ImageDraw
+font = ImageFont.truetype("./OpenSans-Regular.ttf", size=24)
 
 class dataset:
     def __init__(self, p_smi, p_AC50, pr_out):
@@ -55,7 +56,7 @@ class dataset:
         self.d_dataset = d_out
 
 
-    def classActive(self, p_classification):
+    def classChem(self, p_classification):
         """
         Return histogram active by chemical class
         """
@@ -65,22 +66,29 @@ class dataset:
         
         d_classification = toolbox.loadMatrix(p_classification, sep = ",")
 
-        d_out_class = {}
+
+        # for active chem
+        d_out_class_active = {}
+        d_out_class_all = {}
         for CASRN in self.d_dataset:
+            try:l_class_chem = d_classification[CASRN]["Classes"]
+            except: l_class_chem = "No defined"
+
+            if l_class_chem == "NA":
+                l_class_chem = "No defined"
+
             if self.d_dataset[CASRN]["log10(AC50)"] != "NA":
-                try:l_class_chem = d_classification[CASRN]["Classes"]
-                except: l_class_chem = "No defined"
+                d_out_class_active[CASRN] = l_class_chem
 
-                if l_class_chem == "NA":
-                    l_class_chem = "No defined"
-
-                d_out_class[CASRN] = l_class_chem
+            d_out_class_all[CASRN] = l_class_chem
         
-        p_filout = self.pr_out + "class_" + str(p_classification.split("/")[-1][0:-4])
+        
+        # for active chemicals
+        p_filout = self.pr_out + "class_active_" + str(p_classification.split("/")[-1][0:-4])
         filout = open(p_filout, "w")
         filout.write("CASRN\tClass\n")
-        for chem in d_out_class.keys():
-            l_class_chem = d_out_class[chem].split("--")
+        for chem in d_out_class_active.keys():
+            l_class_chem = d_out_class_active[chem].split("--")
             for class_chem in l_class_chem:
                 if class_chem == "NA":
                     class_chem = "No defined"
@@ -90,6 +98,22 @@ class dataset:
         # make hist
         runExternal.barplotClass(p_filout)
 
+        # for all
+        p_filout = self.pr_out + "class_" + str(p_classification.split("/")[-1][0:-4])
+        filout = open(p_filout, "w")
+        filout.write("CASRN\tClass\n")
+        for chem in d_out_class_all.keys():
+            l_class_chem = d_out_class_all[chem].split("--")
+            for class_chem in l_class_chem:
+                if class_chem == "NA":
+                    class_chem = "No defined"
+                filout.write("%s\t%s\n"%(chem, class_chem))
+        filout.close()
+
+        # make hist
+        runExternal.barplotClass(p_filout)
+
+        self.d_class = d_out_class_all
 
 
     def computeDesc(self, pr_desc):
@@ -144,3 +168,104 @@ class dataset:
                 p_png_inch = cChem.computePNG()
                 if cChem.err == 0:
                     rename(p_png_inch, p_png)
+
+
+    def rankActiveChem(self, pr_PNG):
+
+        pr_out = pathFolder.createFolder(self.pr_out + "ranking/")
+        
+        l_aff = []
+        d_temp = {}
+        for CASRN in self.d_dataset.keys():
+            aff = self.d_dataset[CASRN]["log10(AC50)"]
+            name = self.d_dataset[CASRN]["PREFERRED_NAME"]
+            if aff == "NA":
+                continue
+            else:
+                l_aff.append(float(aff))
+                d_temp[CASRN] = {}
+                d_temp[CASRN]["aff"] = aff
+                d_temp[CASRN]["name"] = name
+                d_temp[CASRN]["class"] = self.d_class[CASRN]
+
+        l_aff.sort(reverse=True)
+        
+        print(l_aff)
+
+        lw = []
+        l_ppng = []
+        nb_page = 0
+        i_page = 1
+        rank = 1
+        nchem_page = 0
+        l_pngout = []
+
+        for aff in l_aff:
+            i = 0
+            l_casrn = list(d_temp.keys())
+            imax = len(l_casrn)
+            while i < imax:
+                if nchem_page == 6:
+                    p_image = pr_out + "page_"+ str(i_page) + ".png"
+                    l_pngout.append(p_image)
+                    imgnew = Image.new("RGB", (1535, 1285), (250, 250, 250))
+
+                    i_image=0
+                    i_img_max = len(l_ppng)
+                    while i_image < i_img_max:
+
+                        # put png
+                        img1 = Image.open(l_ppng[i_image])
+                        if i_image < 3:
+                            imgnew.paste(img1, (0 + i_image * 510,0))
+                                
+                            draw = ImageDraw.Draw(imgnew)
+                            draw.text((5 + 510 * i_image, 500), lw[0 + (i_image*5)], (0, 0, 0), font=font)
+                            draw.text((5 + 510 * i_image, 525), lw[1 + (i_image*5)], (0, 0, 0), font=font)
+                            draw.text((5 + 510 * i_image, 550), lw[2 + (i_image*5)], (0, 0, 0), font=font)
+                            draw.text((5 + 510 * i_image, 575), lw[3 + (i_image*5)], (0, 0, 0), font=font)
+                            draw.text((5 + 510 * i_image, 600), lw[4 + (i_image*5)], (0, 0, 0), font=font)
+                        else:
+                            imgnew.paste(img1, (0 + (i_image-3) * 510, 650))
+                            draw = ImageDraw.Draw(imgnew)
+                            draw.text((5 + 510 * (i_image-3), 1150), lw[15 + ((i_image-3)*5)], (0, 0, 0), font=font)
+                            draw.text((5 + 510 * (i_image-3), 1175), lw[16 + ((i_image-3)*5)], (0, 0, 0), font=font)
+                            draw.text((5 + 510 * (i_image-3), 1200), lw[17 + ((i_image-3)*5)], (0, 0, 0), font=font)
+                            draw.text((5 + 510 * (i_image-3), 1225), lw[18 + ((i_image-3)*5)], (0, 0, 0), font=font)
+                            draw.text((5 + 510 * (i_image-3), 1250), lw[19 + ((i_image-3)*5)], (0, 0, 0), font=font)
+                        i_image = i_image + 1
+                    
+                    imgnew.save(p_image)
+                    # add
+                    nchem_page = 0
+                    lw = []
+                    l_ppng = []
+                    i_page = i_page + 1
+
+                if float(d_temp[l_casrn[i]]["aff"]) == aff:
+                    if not path.exists(pr_PNG + l_casrn[i] + ".png"):
+                        i = i + 1
+                        continue
+                    l_ppng.append(pr_PNG + l_casrn[i] + ".png")
+                    lw.append("%s"%(l_casrn[i]))
+                    lw.append("Name: %s"%(d_temp[l_casrn[i]]["name"]))
+                    lw.append("pIC50: %s"%(round(aff, 2)))
+                    lw.append("Rank: %s"%(rank))
+                    lw.append("Classes: %s"%(d_temp[l_casrn[i]]["class"]))
+                    nchem_page = nchem_page + 1
+                    
+                    # remove chem for speed up the process of search
+                    del d_temp[l_casrn[i]]
+                    del l_casrn[i]
+                    imax = imax - 1
+                    i = i - 1
+                    rank = rank + 1
+                i = i + 1
+
+        lpdf = []
+        for ppng in l_pngout:
+            ppdf = runExternal.pngtopdf(ppng)
+            lpdf.append(ppdf)
+
+        # merge pdf sheet
+        runExternal.mergepdfs(lpdf, pr_out + "chem_rank.pdf")

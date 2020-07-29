@@ -1,18 +1,16 @@
-import pathFolder
-import dataset
 import analysis
-import QSAR_modeling
-import CHEMBLTable
 import applyModels
+import CHEMBLTable
+import dataset
 import genericTestSet
-
+import pathFolder
+import QSAR_modeling
 
 # Define folder
 ################
 PR_ROOT = "../../"
 PR_DATA = PR_ROOT + "data/"
 PR_RESULTS = pathFolder.createFolder(PR_ROOT + "results/")
-
 
 # MAIN
 #######
@@ -25,22 +23,27 @@ p_smi = PR_DATA + "list_chemicals-2020-06-09-09-11-41.csv"
 p_AC50 = PR_DATA + "AC50_7403.txt"
 pr_dataset = pathFolder.createFolder(PR_RESULTS + "dataset/")
 
-# load dataset
+# 1.1 load dataset
 c_dataset = dataset.dataset(p_smi, p_AC50, pr_dataset)
 c_dataset.prep_dataset()
 
+# 1.2 chemical classification
 # classification from Interferences
-#p_classification = PR_DATA + "class_from_interferences.csv"
-#c_dataset.classActive(p_classification)
+p_classification = PR_DATA + "class_from_interferences.csv"
+c_dataset.classChem(p_classification)
 
-#p_classification = PR_DATA + "hERG_Active_Annotated_listRefChem_July1.csv"
-#c_dataset.classActive(p_classification)
+#####p_classification = PR_DATA + "hERG_Active_Annotated_listRefChem_July1.csv"
+#####c_dataset.classActive(p_classification)
 
-# compute desc
+
+# 1.3 compute desc
 pr_desc = pathFolder.createFolder(PR_RESULTS + "DESC/")
-p_desc = c_dataset.computeDesc(pr_desc)
+#p_desc = c_dataset.computeDesc(pr_desc)
 #c_dataset.computePNG(pr_desc)
 
+# 1.4 rank active chemical and save in a PDF
+c_dataset.rankActiveChem(pr_desc + "PNG/")
+sss
 
 # 2. analysis
 #####

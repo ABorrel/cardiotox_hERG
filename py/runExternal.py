@@ -5,7 +5,7 @@ import subprocess
 P_RSCRIPTS = "../R/"
 P_RQSAR = "./../../../development/QSAR-QSPR/"
 
-R_BIN = "C:\\Program Files\\R\\R-3.6.2\\bin\\Rscript.exe"
+R_BIN = "C:\\Program Files\\R\\R-4.0.2\\bin\\Rscript.exe"
 
 ######
 # Main functions
@@ -46,6 +46,27 @@ def runRQSARModeling(cmd):
         print(cmd)
         system(cmd)
     chdir(workdir)
+
+
+def pngtopdf(ppng):
+
+    if name == "nt":
+        cmd = "convert.exe -quality 100 -density 50 " + ppng + " " + ppng[:-3] + "pdf"
+        cmd = "img2pdf.exe " + ppng + " -o " + ppng[:-3] + "pdf"
+    else:
+        cmd = "convert -quality 100 -density 50 " + ppng + " " + ppng[:-3] + "pdf"
+    print (cmd)
+    system(cmd)
+    return ppng[:-3] + "pdf"
+
+def mergepdfs(lpdfs, pout):
+
+    if name == "nt":
+        cmd = "pdfunite.exe " + " ".join(lpdfs) + " " + pout
+    else:
+        cmd = "pdfunite " + " ".join(lpdfs) + " " + pout
+    print (cmd)
+    system(cmd)
 
 
 
@@ -121,6 +142,8 @@ def overlapPlot(p_filin):
 
     cmd = "./overlap_sets.R %s"%(p_filin)
     runRCMD(cmd)
+
+
 
 ############
 # Function for QSAR
