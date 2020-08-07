@@ -3,7 +3,6 @@ library(ggplot2)
 library(factoextra)
 
 
-
 generatePCAcoords = function(din){
   
   dinScale = scale(din)
@@ -48,6 +47,7 @@ computeDistFromCenter = function(coord_centroid, res.pca, name_plot=""){
       geom_density(alpha=0.3, fill="blue")+
       theme(text = element_text(size=19))+
       scale_color_manual(values=c("#cde2ff")) + 
+      xlim(0,30)+
       labs(title="",x="Distance to centroid", y = "Density")
     ggsave(paste(pr_out, "hist_", name_plot, "_dist.png", sep = ""),  width = 8, height = 7, dpi = 300, bg="transparent")
   }
@@ -80,7 +80,8 @@ computeZscore = function(d_dist, M, SD, name_plot=""){
       geom_density(alpha=0.3, fill="blue") +
       theme(text = element_text(size=19)) +
       scale_color_manual(values=c("#cde2ff")) + 
-      labs(title="",x="Z-scores to centroid", y = "Density")
+      xlim(0, 7)+
+      labs(title="",x="Z-scores", y = "Density")
     ggsave(paste(pr_out, "hist_", name_plot, "_Zscore.png", sep = ""),  width = 8, height = 7, dpi = 300, bg="transparent")
   }
   return(d_Zscore)
@@ -121,17 +122,35 @@ p_desc_test = args[2]
 pr_out = args[3]
 
 
-
-#p_desc_model = "C:\\Users\\Aborrel\\research\\ILS\\HERG\\results\\Cleaned_Data\\desc1D2D_cleaned.csv"
-#p_desc_test = "C:\\Users\\Aborrel\\research\\ILS\\HERG\\results\\AID_588834\\DESC\\desc_1D2D.csv"
-#pr_out = "C:\\Users\\Aborrel\\research\\ILS\\HERG\\results\\AID_588834\\AD\\"
+#p_desc_model = "C:\\Users\\Aborrel\\research\\ILS\\HERG\\results\\QSAR\\1\\train.csv"
+#p_desc_test = "C:\\Users\\Aborrel\\research\\ILS\\HERG\\results\\QSAR\\1\\test.csv"
+#pr_out = "C:\\Users\\Aborrel\\research\\ILS\\HERG\\results\\QSAR\\AD\\1\\"
 
 
 ddesc1 = read.csv(p_desc_model, sep = ",", row.names = 1)
 ddesc2 = read.csv(p_desc_test, sep = "\t", row.names = 1)
+if(dim(ddesc2)[2] == 0){
+  ddesc2 = read.csv(p_desc_test, sep = ",", row.names = 1) # case we use another format of table  
+}
 
 # remove SMILES
-ddesc2 = ddesc2[,-1]
+if("SMILES" %in% colnames(ddesc1))
+{
+  ddesc1 = ddesc1[, -which(colnames(ddesc1) == "SMILES")]
+}
+if("SMILES" %in% colnames(ddesc2))
+{
+  ddesc2 = ddesc2[, -which(colnames(ddesc2) == "SMILES")]
+}
+
+if("Aff" %in% colnames(ddesc1))
+{
+  ddesc1 = ddesc1[, -which(colnames(ddesc1) == "Aff")]
+}
+if("Aff" %in% colnames(ddesc2))
+{
+  ddesc2 = ddesc2[, -which(colnames(ddesc2) == "Aff")]
+}
 
 res.pca <- prcomp(ddesc1, scale = TRUE)
 var_cap = generatePCAcoords(ddesc1)[[2]]
@@ -147,7 +166,7 @@ SD = sd(d_dist$dist)
 
 # transform in z-score
 d_zscore_train = computeZscore(d_dist, M, SD, "trainning")
-
+write.csv(d_zscore_train, file=paste(pr_out, "AD_Train_zscore.csv", sep=""))
 
 #######################
 # for the external set
@@ -167,6 +186,25 @@ d_zscore_test = cbind(d_zscore_test, l_AD)
 d_zscore_test = d_zscore_test[,-1]
 colnames(d_zscore_test)[dim(d_zscore_test)[2]] = "AD"
 
-write.csv(d_zscore_test, file=paste(pr_out, "AD_zscore.csv", sep=""))
+write.csv(d_zscore_test, file=paste(pr_out, "AD_Test_zscore.csv", sep=""))
+
+
+# plot PCA
+
+vcolor = rep(addTrans("#595959", 60), dim(ddesc1)[1])
+vcolor_add = rep("#90EE90", dim(ddesc2)[1])
+
+
+png(paste(pr_out, "PCA_color.png", sep = ""), 1700, 1500)
+par(mar=c(8,8,8,8))
+plot(rbind(add_coord[,1],res.pca$x[,1]) ,rbind(add_coord[,2],res.pca$x[,2]) , pch=19, col = "white", xlab = paste("CP1: ", round (var_cap[1], 2), "%", sep = ""), ylab = paste("CP2: ", round(var_cap[2], 2), "%", sep = ""), cex.lab = 4, cex.main = 4, cex.axis = 1.75, cex = 2.5)
+points(res.pca$x[,1], res.pca$x[,2], pch=19, col = vcolor, cex = 2.5)
+#points(res.pca$x[which(vcolor != "darkgray"),1], res.pca$x[which(vcolor != "darkgray"),2], pch=19, col = vcolor[which(vcolor != "darkgray")], cex = 2.5)
+points(add_coord[,1], add_coord[,2], col = vcolor_add, pch = 19, cex = 2.5)
+points(res.pca$x[which(vcolor != "#5959593C"),1], res.pca$x[which(vcolor != "#5959593C"),2], pch=19, col = vcolor[which(vcolor != "#5959593C")], cex = 2.5)
+
+abline(h=0,v=0)
+warnings ()
+dev.off()
 
 

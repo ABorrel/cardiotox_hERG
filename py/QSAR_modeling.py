@@ -158,10 +158,12 @@ class QSAR_modeling:
         pr_QSAR_average = pathFolder.createFolder(self.pr_out + "Merge_results/")
         pr_QSAR_proba = pathFolder.createFolder(self.pr_out + "Merge_probRF/")# proba of prediction merged
         pr_QSAR_desc_involved = pathFolder.createFolder(self.pr_out + "Merge_involvedDesc/")
+        pr_AD =  pathFolder.createFolder(self.pr_out + "Merge_AD/")
 
-        self.mergeResults(pr_QSAR_average)
-        self.mergeProbaRF(self.p_AC50_orign, pr_QSAR_proba)
-        self.mergeInvolvedDesc("RF", 10, pr_QSAR_desc_involved)
+        #self.mergeResults(pr_QSAR_average)
+        #self.mergeProbaRF(self.p_AC50_orign, pr_QSAR_proba)
+        #self.mergeInvolvedDesc("RF", 10, pr_QSAR_desc_involved)
+        self.mergeAD(pr_AD)
         return 
 
     def mergeResults(self, pr_av):
@@ -238,6 +240,46 @@ class QSAR_modeling:
                 filout.write("\n")
             filout.write("\n")
         filout.close()
+
+    def mergeAD(self, pr_out):
+
+        pr_AD_all = self.pr_out + "AD/"
+        l_pr_run = listdir(pr_AD_all)
+
+        d_Zscore_train = {}
+        d_Zscore_test = {}
+        for pr_run in l_pr_run:
+            p_Zscore_train = pr_AD_all + pr_run + "/AD_Train_zscore.csv"
+            p_Zscore_test = pr_AD_all + pr_run + "/AD_Test_zscore.csv"
+            
+            d_train = toolbox.loadMatrix(p_Zscore_train, sep = ",")
+            d_test = toolbox.loadMatrix(p_Zscore_test, sep = ",")
+
+            for chem_train in d_train.keys():
+                if not chem_train in list(d_Zscore_train.keys()):
+                    d_Zscore_train[chem_train] = d_train[chem_train]["Zscore"]
+
+            for chem_test in d_test.keys():
+                if not chem_test in list(d_Zscore_test.keys()):
+                    d_Zscore_test[chem_test] = d_test[chem_test]["Zscore"]
+        
+        # write zscore
+        p_train = pr_out + "Zscores_train.csv"
+        ftrain = open(p_train, "w")
+        ftrain.write("CASRN\tZscore\n")
+        for chem in d_Zscore_train.keys():
+            ftrain.write("%s\t%s\n"%(chem, d_Zscore_train[chem]))
+        ftrain.close()
+
+        p_test = pr_out + "Zscores_test.csv"
+        ftest = open(p_test, "w")
+        ftest.write("CASRN\tZscore\n")
+        for chem in d_Zscore_test.keys():
+            ftest.write("%s\t%s\n"%(chem, d_Zscore_test[chem]))
+        ftest.close()
+
+
+
 
     def mergeProbaRF(self, p_AC50, pr_prob):
         # need to change R scripts for 

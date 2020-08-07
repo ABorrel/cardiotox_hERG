@@ -38,12 +38,12 @@ c_dataset.classChem(p_classification)
 
 # 1.3 compute desc
 pr_desc = pathFolder.createFolder(PR_RESULTS + "DESC/")
-#p_desc = c_dataset.computeDesc(pr_desc)
+p_desc = c_dataset.computeDesc(pr_desc)
 #c_dataset.computePNG(pr_desc)
 
 # 1.4 rank active chemical and save in a PDF
-c_dataset.rankActiveChem(pr_desc + "PNG/")
-sss
+#c_dataset.rankActiveChem(pr_desc + "PNG/")
+
 
 # 2. analysis
 #####
@@ -84,8 +84,9 @@ n_foldCV = 10
 rate_split = 0.15
 rate_active = 0.30
 cQSAR = QSAR_modeling.QSAR_modeling(cAnalysis.p_desc_cleaned, p_desc, cAnalysis.p_AC50_cleaned, p_AC50, pr_QSAR, nb_repetition, n_foldCV,rate_active, rate_split)
-#cQSAR.runQSARClassUnderSamplingAllSet()
-pr_RF_models = cQSAR.extractModels(PR_RESULTS, "RF")
+cQSAR.runQSARClassUnderSamplingAllSet()
+ee
+# pr_RF_models = cQSAR.extractModels(PR_RESULTS, "RF")
 #pr_LDA_models = cQSAR.extractModels(PR_RESULTS, "LDA")
 
 
