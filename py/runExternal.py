@@ -144,6 +144,11 @@ def overlapPlot(p_filin):
     runRCMD(cmd)
 
 
+def mergeADs(p_train, p_test, p_desc, pr_out):
+
+    cmd = "./mergeADs.R %s %s %s %s"%(p_train, p_test, p_desc, pr_out)
+    runRCMD(cmd)
+
 
 ############
 # Function for QSAR

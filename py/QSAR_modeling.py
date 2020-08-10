@@ -279,6 +279,13 @@ class QSAR_modeling:
         ftest.close()
 
 
+        # draw histogram for AD and add summary and PCA
+        runExternal.mergeADs(p_train, p_test, self.p_desc, pr_AD_all)
+
+
+
+
+
 
 
     def mergeProbaRF(self, p_AC50, pr_prob):
