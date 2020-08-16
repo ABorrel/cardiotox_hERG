@@ -79,6 +79,10 @@ def preprocData(p_desc, p_AC50, pr_out, cor_val, max_quantile):
     cmd = "./cleanerData.R %s %s %s %s %s"%(p_desc, p_AC50, pr_out, cor_val, max_quantile)
     runRCMD(cmd)
 
+def combineAndPredDesc(p_desc_rdkit, p_desc_opera, pr_out):
+
+    cmd = "./mergerDescData.R %s %s %s"%(p_desc_rdkit, p_desc_opera, pr_out)
+    runRCMD(cmd)
 
 def histAC50(p_AC50, pr_out):
 
@@ -148,6 +152,8 @@ def mergeADs(p_train, p_test, p_desc, pr_out):
 
     cmd = "./mergeADs.R %s %s %s %s"%(p_train, p_test, p_desc, pr_out)
     runRCMD(cmd)
+
+
 
 
 ############

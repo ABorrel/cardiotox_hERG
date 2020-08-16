@@ -10,9 +10,10 @@ import toolbox
 
 
 class analysis:
-    def __init__(self, p_AC50, p_desc, pr_out, cor_val, max_quantile):
+    def __init__(self, p_AC50, p_desc, p_desc_OPERA, pr_out, cor_val, max_quantile):
         self.p_AC50 = p_AC50
         self.p_desc = p_desc
+        self.p_desc_opera = p_desc_OPERA
         self.pr_out = pr_out
         self.cor_val = cor_val
         self.max_quantile = max_quantile
@@ -30,6 +31,19 @@ class analysis:
 
         self.p_desc_cleaned = p_desc_cleaned
         self.p_AC50_cleaned = p_AC50_cleaned
+
+
+    def combineDescAndPrep(self, pr_out):
+
+        p_desc_cleaned = pr_out + "desc_cleaned.csv"
+        p_AC50_cleaned = pr_out + "AC50_cleaned.csv"
+
+        if not path.exists(p_desc_cleaned) and not path.exists(p_AC50_cleaned):
+            runExternal.combineAndPredDesc(self.p_desc, self.p_desc_opera, pr_out)
+
+        self.p_desc = pr_out + 'desc_global.csv'
+        self.pr_out = pr_out
+
 
 
     def sumAC50(self):

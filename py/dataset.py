@@ -118,36 +118,105 @@ class dataset:
 
     def computeDesc(self, pr_desc):
 
-        p_filout = pr_desc + "desc_1D2D.csv"
+        p_filout_RDKIT = pr_desc + "desc_1D2D.csv"
+        p_filout_OPERA = pr_desc + "desc_OPERA.csv"
+        if path.exists(p_filout_RDKIT) and path.exists(p_filout_OPERA):
+            return [p_filout_RDKIT, p_filout_OPERA]
+
+        # create opera descriptor
+        pr_OPERA = pathFolder.createFolder(pr_desc + "OPERA/")
+        p_listchem = pr_OPERA + "listChem.smi"
+        
+
+        # extract descriptor 2D
+        if not path.exists(p_filout_RDKIT):
+            flistchem = open(p_listchem, "w")
+            l_desc = Chemical.getLdesc("1D2D")
+
+            # open filout
+            filout = open(p_filout_RDKIT, "w")
+            filout.write("CASRN\tSMILES\t%s\n"%("\t".join(l_desc)))
+
+            # compute descriptor
+            l_smi = []
+            for CASRN in self.d_dataset.keys():
+                SMILES = self.d_dataset[CASRN]["SMILES"]
+                cChem = Chemical.Chemical(SMILES, pr_desc, p_salts=path.abspath("./Salts.txt"))
+                cChem.prepChem() # prep
+                # case error cleaning
+                if cChem.err == 1:
+                    continue
+                cChem.computeAll2D() # compute
+                cChem.writeMatrix("2D") # write by chem to save time in case of rerun
+                if cChem.err == 1:
+                    continue
+                else:
+                    # write direcly descriptor
+                    filout.write("%s\t%s\t%s\n"%(CASRN, cChem.smi, "\t".join([str(cChem.all2D[desc]) for desc in l_desc])))
+                    l_smi.append(cChem.smi)
+            filout.close()
+            flistchem.write("\n".join(l_smi))
+            flistchem.close()
+
+        #############
+        # RUN OPERA #
+        # need to add name in OPERA
+        if path.exists(pr_OPERA + "desc_OPERA.csv"):
+            l_chem_opera = toolbox.loadMatrixToList(pr_OPERA + "desc_OPERA.csv", sep=",")
+            l_chem_rdkit = toolbox.loadMatrixToList(p_filout_RDKIT, sep = "\t")
+            print(len(l_chem_rdkit))
+            print(len(l_chem_opera))
+            l_header_opera = list(l_chem_opera[0].keys())
+            l_header_opera.remove("MoleculeID")
+            i = 0
+            imax = len(l_chem_opera)
+            while i < imax:
+                i_rdkit = int(l_chem_opera[i]["MoleculeID"].split("_")[-1]) - 1
+                casrn = l_chem_rdkit[i_rdkit]["CASRN"]
+                l_chem_opera[i]["CASRN"] = casrn
+                i = i + 1
+            
+            # write 
+            fopera = open(p_filout_OPERA, "w")
+            fopera.write("CASRN,%s\n"%(",".join(l_header_opera)))
+            for chem in l_chem_opera:
+                fopera.write("%s,%s\n"%(chem["CASRN"], ",".join([str(chem[h]) for h in l_header_opera])))
+
+            fopera.close()
+
+        else:
+            print("RUN opera with => ", p_listchem)
+
+
+        return [p_filout_RDKIT, p_filout_OPERA]
+
+
+    def computeDescOPERA(self, pr_desc):
+
+        p_filout = self.pr_desc + "desc_OPERA.csv"
         if path.exists(p_filout):
             return p_filout
 
-        # extract descriptor 2D
-        l_desc = Chemical.getLdesc("1D2D")
-
-        # open filout
-        filout = open(p_filout, "w")
-        filout.write("CASRN\tSMILES\t%s\n"%("\t".join(l_desc)))
-
-        # compute descriptor
+        # write list of SMILES for OPERA
+        pr_OPERA = pathFolder.createFolder(pr_desc + "OPERA/")
+        p_lSMI = pr_OPERA + "listChem.smi"
+        flSMI = open(p_lSMI, "w")
+        l_w = []
         for CASRN in self.d_dataset.keys():
             SMILES = self.d_dataset[CASRN]["SMILES"]
-            cChem = Chemical.Chemical(SMILES, pr_desc)#, p_salts=path.abspath("./Salts.txt"))
-            cChem.prepChem() # prep
-            # case error cleaning
-            if cChem.err == 1:
-                continue
-            cChem.computeAll2D() # compute
-            cChem.writeMatrix("2D") # write by chem to save time in case of rerun
-            if cChem.err == 1:
-                continue
-            else:
-                # write direcly descriptor
-                filout.write("%s\t%s\t%s\n"%(CASRN, cChem.smi, "\t".join([str(cChem.all2D[desc]) for desc in l_desc])))
+            if SMILES != "--":
+                l_w.append(self.d_dataset[CASRN]["SMILES"])
+        
+        flSMI.write("\n".join(l_w))
+        flSMI.close()
 
-        filout.close()
+        print("RUN OPERA COMMAND LINE")
 
-        return p_filout
+        print("ERROR - OPERA desc no computed")
+        return 0
+
+
+        return 
 
 
     def computePNG(self, pr_desc):

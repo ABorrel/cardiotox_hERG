@@ -38,19 +38,22 @@ c_dataset.classChem(p_classification)
 
 # 1.3 compute desc
 pr_desc = pathFolder.createFolder(PR_RESULTS + "DESC/")
-p_desc = c_dataset.computeDesc(pr_desc)
+l_p_desc = c_dataset.computeDesc(pr_desc)
+p_desc = l_p_desc[0]
+p_desc_opera = l_p_desc[1]
 #c_dataset.computePNG(pr_desc)
 
 # 1.4 rank active chemical and save in a PDF
 #c_dataset.rankActiveChem(pr_desc + "PNG/")
 
 
-# 2. analysis
+# 2. analysis => using only rdkit descriptors
 #####
+
 COR_VAL = 0.90
 MAX_QUANTILE = 90
 
-cAnalysis = analysis.analysis(p_AC50, p_desc, PR_RESULTS, COR_VAL, MAX_QUANTILE)
+cAnalysis = analysis.analysis(p_AC50, p_desc, p_desc_opera, PR_RESULTS, COR_VAL, MAX_QUANTILE)
 cAnalysis.prepDesc()
 
 ## 2.1. histogram AC50 and summary
@@ -76,13 +79,17 @@ size = 15
 
 ## 3. QSAR modeling
 #######
-# 3.1 using a new defintion of test set at each iteration
-########################
 pr_QSAR = pathFolder.createFolder(PR_RESULTS + "QSAR/")
 nb_repetition = 10
 n_foldCV = 10
 rate_split = 0.15
 rate_active = 0.30
+# => Prep and combine OPERA and rdkit desc
+cAnalysis.combineDescAndPrep(pr_QSAR)
+cAnalysis.prepDesc()
+
+# 3.1 using a new defintion of test set at each iteration
+########################
 cQSAR = QSAR_modeling.QSAR_modeling(cAnalysis.p_desc_cleaned, p_desc, cAnalysis.p_AC50_cleaned, p_AC50, pr_QSAR, nb_repetition, n_foldCV,rate_active, rate_split)
 cQSAR.runQSARClassUnderSamplingAllSet()
 ee
