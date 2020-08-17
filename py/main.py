@@ -76,6 +76,9 @@ size = 15
 ## 2.4 Hclust
 #cAnalysis.HClust_plot()
 
+## 2.5 desc Significance active vs not active
+cAnalysis.signifDescActInact()
+ddd
 
 ## 3. QSAR modeling
 #######

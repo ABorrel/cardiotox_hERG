@@ -154,6 +154,11 @@ def mergeADs(p_train, p_test, p_desc, pr_out):
     runRCMD(cmd)
 
 
+def SignifDesc(p_desc, p_AC50, pr_out):
+
+    cmd = "./SignifDesc.R %s %s %s"%(p_desc, p_AC50, pr_out)
+    runRCMD(cmd)
+
 
 
 ############

@@ -71,6 +71,15 @@ class analysis:
         pr_out = pathFolder.createFolder(self.pr_out + "PCA/")
         runExternal.PCA(self.p_desc_cleaned, self.p_AC50_cleaned, pr_out)
 
+    def signifDescActInact(self):
+
+        pr_out = pathFolder.createFolder(self.pr_out + "SignifDesc/")
+        # for rdkit
+        runExternal.SignifDesc(self.p_desc, self.p_AC50, pr_out + "Rdkit_")
+        # for OPERA
+        runExternal.SignifDesc(self.p_desc_opera, self.p_AC50, pr_out + "OPERA_")
+
+
 
     def generate_SOM(self, grid_size):
 

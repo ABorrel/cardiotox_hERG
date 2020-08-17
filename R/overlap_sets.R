@@ -38,7 +38,13 @@ d_overlap = na.omit(d_overlap)
 cor_val = round(cor(d_overlap$AC50.model, d_overlap$AC50.test),2)
 
 
-ggplot(d_overlap, aes(x=LogAC50.model, y=LogAC50.test)) + geom_point()+
-  labs(title = paste("Cor: ", cor_val, sep = ""))
+ggplot(d_overlap, aes(x=LogAC50.model, y=LogAC50.test)) + 
+  geom_point()+
+  xlab("Log(IC50) model")+
+  ylab("Log(IC50) test")+
+  theme(axis.title.x = element_text(size = 16), axis.title.y = element_text(size = 16), axis.text.x = element_text(size = 12), axis.text.y = element_text(size = 12))+
+  geom_text(x=4.5, y=7.5, label= paste("Cor: ", cor_val, sep = ""), size=6)+
+  geom_abline(intercept = 0, slope = 1, color="red", 
+              linetype="dashed", size=1.5)+
 ggsave(paste(p_overlap, ".png", sep = ""))
 
