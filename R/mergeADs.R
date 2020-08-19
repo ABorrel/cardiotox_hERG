@@ -40,11 +40,10 @@ p_desc = args[3]
 pr_out = args[4]
 
 
-p_train_AD = "./../../results/QSAR/Merge_AD/Zscores_train.csv"
-p_test_AD = "./../../results/QSAR/Merge_AD/Zscores_test.csv"
-p_desc = "./../../results/Cleaned_Data/desc1D2D_cleaned.csv"
-
-pr_out = "./../../results/QSAR/Merge_AD/"
+#p_train_AD = "./../../results/QSAR/Merge_AD/Zscores_train.csv"
+#p_test_AD = "./../../results/QSAR/Merge_AD/Zscores_test.csv"
+#p_desc = "./../../results/Cleaned_Data/desc1D2D_cleaned.csv"
+#pr_out = "./../../results/QSAR/Merge_AD/"
 
 
 # desc 

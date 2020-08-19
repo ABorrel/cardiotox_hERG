@@ -77,8 +77,7 @@ size = 15
 #cAnalysis.HClust_plot()
 
 ## 2.5 desc Significance active vs not active
-cAnalysis.signifDescActInact()
-ddd
+#cAnalysis.signifDescActInact()
 
 ## 3. QSAR modeling
 #######
@@ -88,13 +87,13 @@ n_foldCV = 10
 rate_split = 0.15
 rate_active = 0.30
 # => Prep and combine OPERA and rdkit desc
-cAnalysis.combineDescAndPrep(pr_QSAR)
+cAnalysis.combineDesc(pr_QSAR)
 cAnalysis.prepDesc()
 
 # 3.1 using a new defintion of test set at each iteration
 ########################
 cQSAR = QSAR_modeling.QSAR_modeling(cAnalysis.p_desc_cleaned, p_desc, cAnalysis.p_AC50_cleaned, p_AC50, pr_QSAR, nb_repetition, n_foldCV,rate_active, rate_split)
-cQSAR.runQSARClassUnderSamplingAllSet()
+cQSAR.runQSARClassUnderSamplingAllSet(force_run=0)
 ee
 # pr_RF_models = cQSAR.extractModels(PR_RESULTS, "RF")
 #pr_LDA_models = cQSAR.extractModels(PR_RESULTS, "LDA")

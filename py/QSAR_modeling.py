@@ -22,13 +22,13 @@ class QSAR_modeling:
         self.rate_splitTrainTest = rate_splitTrainTest
 
 
-    def runQSARClassUnderSamplingAllSet(self):
+    def runQSARClassUnderSamplingAllSet(self, force_run = 0):
 
         # check applicability model
         pr_AD = pathFolder.createFolder(self.pr_out + "AD/")
         
 
-        for i in range(1, self.repetition + 1):
+        for i in range(1, self.repetition + 1):###### need to be change
             pr_run = self.pr_out + str(i) + "/"
             #rmtree(pr_run)############################################################################### to remove
             pathFolder.createFolder(pr_run)
@@ -42,7 +42,7 @@ class QSAR_modeling:
                 runExternal.AD(self.p_train, self.p_test, pr_AD_run)
 
             # build QSAR
-            self.buildQSAR(pr_run)
+            self.buildQSAR(pr_run, force_run=force_run)
 
         
         # merge results
@@ -140,7 +140,7 @@ class QSAR_modeling:
             self.p_test = p_test
 
     
-    def buildQSAR(self, pr_run):
+    def buildQSAR(self, pr_run, force_run = 0):
 
         # do not run if performance file already exist
 
@@ -148,8 +148,11 @@ class QSAR_modeling:
         p_perfCV = pr_run + "perfCV.csv"
         p_perfTest = pr_run + "perfTest.csv"
 
-        if path.exists(p_perfCV) and path.exists(p_perfTrain) and path.exists(p_perfTest):
-            return 
+        if force_run == 0:
+            if path.exists(p_perfCV) and path.exists(p_perfTrain) and path.exists(p_perfTest):
+                return 
+            else:
+                runExternal.runRQSAR(self.p_train, self.p_test, self.n_foldCV, pr_run)
         else:
             runExternal.runRQSAR(self.p_train, self.p_test, self.n_foldCV, pr_run)
 
@@ -160,9 +163,9 @@ class QSAR_modeling:
         pr_QSAR_desc_involved = pathFolder.createFolder(self.pr_out + "Merge_involvedDesc/")
         pr_AD =  pathFolder.createFolder(self.pr_out + "Merge_AD/")
 
-        #self.mergeResults(pr_QSAR_average)
-        #self.mergeProbaRF(self.p_AC50_orign, pr_QSAR_proba)
-        #self.mergeInvolvedDesc("RF", 10, pr_QSAR_desc_involved)
+        self.mergeResults(pr_QSAR_average)
+        self.mergeProbaRF(self.p_AC50_orign, pr_QSAR_proba)
+        self.mergeInvolvedDesc("RF", 10, pr_QSAR_desc_involved)
         self.mergeAD(pr_AD)
         return 
 
@@ -249,6 +252,8 @@ class QSAR_modeling:
         d_Zscore_train = {}
         d_Zscore_test = {}
         for pr_run in l_pr_run:
+            try:run = int(pr_run)
+            except:continue
             p_Zscore_train = pr_AD_all + pr_run + "/AD_Train_zscore.csv"
             p_Zscore_test = pr_AD_all + pr_run + "/AD_Test_zscore.csv"
             
@@ -301,7 +306,7 @@ class QSAR_modeling:
         d_AC50 = toolbox.loadMatrix(p_AC50)
 
         for pr_run in l_pr_run:
-            if search("Merge", pr_run) or search("AD", pr_run):
+            if search("Merge", pr_run) or search("AD", pr_run) or search("Cleaned", pr_run) or search("desc_global.csv", pr_run):
                 continue
 
             d_prob[pr_run] = {}
@@ -328,7 +333,7 @@ class QSAR_modeling:
         d_av["test"] = {}
 
         for run in l_pr_run:
-            if search("Merge", run):
+            if search("Merge", run) or search("AD", run) or search("Cleaned", run) or search("desc_global.csv", run):
                 continue
 
             # CV
@@ -399,7 +404,7 @@ class QSAR_modeling:
 
         l_pr_run = listdir(self.pr_out)
         for run in l_pr_run:
-            if search("Merge", run) or search("AD", run):
+            if search("Merge", run) or search("AD", run) or search("Cleaned", run) or search("desc_global.csv", run):
                 continue
 
             if not run in list(d_importance.keys()):
@@ -418,7 +423,7 @@ class QSAR_modeling:
         
         for desc in l_desc:
             for run in l_pr_run:
-                if search("Merge", run) or search("AD", run):
+                if search("Merge", run) or search("AD", run) or search("Cleaned", run) or search("desc_global.csv", run):
                     continue
                 try: f_desc_importance.write(desc + "\t" + str(run) + "\t" + str(d_importance[run][desc]["x"]) + "\n")
                 except: f_desc_importance.write(desc + "\t" + str(run) + "\t0.0\n")
@@ -436,7 +441,7 @@ class QSAR_modeling:
             return pr_out
 
         for pr_run in l_pr_run:
-            if search("Merge", pr_run) or search("AD", pr_run):
+            if search("Merge", pr_run) or search("AD", pr_run) or search("Cleaned", pr_run) or search("desc_global.csv", pr_run):
                 continue
 
             p_model = "%s%s/%sclass/model.RData"%(self.pr_out, pr_run, ML)

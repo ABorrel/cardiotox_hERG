@@ -9,7 +9,6 @@ computeTableSignif = function(ddesc, dAC50, prresult){
     
   dout = data.frame()
   for(j in seq(2, dim(ddesc)[2])){
-    print(j)
     dact = ddesc[lact,j]
     dinact = ddesc[linact,j]
     typeTest = conditionTtest(dact, dinact)
@@ -38,26 +37,11 @@ computeTableSignif = function(ddesc, dAC50, prresult){
   colnames(dout) = c("Nbact", "Nbinact", "Mact", "Minact", "pval", "Signif")
   orderPval = order(dout[,5],decreasing=F)
   dout = dout[orderPval,]
-  pfilout = paste(presult, colnames(dAC50)[i], ".csv", sep = "")
+  pfilout = paste(prresult, "desc_signif.csv", sep = "")
   write.csv(dout, pfilout)
 }
 
 
-
-
-mergeCol = function(ddesc, lmerge, delNA = 1){
-  
-  dtemp = ddesc[,lmerge]
-  if(delNA == 1){
-    dout = rowMeans(dtemp, na.rm = TRUE)
-  }else{
-    dout = rowMeans(dtemp, na.rm = FALSE)  
-  }
-  
-  dout[which(dout == "NaN")] = NA
-  
-  return (dout)
-}
 
 
 
@@ -70,22 +54,38 @@ pdesc = args[1]
 pAC50 = args[2]
 pr_out = args[3]
 
-#pdesc = "./../../results/DESC/desc_1D2D.csv"
+#pdesc = "../../results/DESC/desc_OPERA.csv"
 #pAC50 = "./../../data/AC50_7403.txt"
-#presult = "./../../results/SignifDesc/Rdkit_"
+#presult = "./../../results/SignifDesc/OPERA_"
 
 # AC50
 dAC50 = read.csv(pAC50, sep=",", header = TRUE)
+if(dim(dAC50)[2] == 1){
+  dAC50 = read.csv(pAC50, sep = "\t", header = TRUE)
+}
 rownames(dAC50) = dAC50[,1]
 
 # descriptor
 ddesc = read.csv(pdesc, sep = "\t", header = TRUE)
-if(dim(ddesc == 0)){
+if(dim(ddesc)[2] == 1){
   ddesc = read.csv(pdesc, sep = ",", header = TRUE)
 }
 
 rownames(ddesc) = ddesc[,1]
 ddesc = ddesc[,-1]
 
+# reduce desc for OPERA
+if (!is.integer0(grep("OPERA", pr_out))){
+  l_opera_pred = NULL
+  for(opera_desc in colnames(ddesc)){
+    if(!is.integer0(grep("_pred", opera_desc, fixed = TRUE))){
+      if(is.integer0(grep("_predRange", opera_desc, fixed = TRUE)) && is.integer0(grep("pKa_b_pred", opera_desc, fixed = TRUE)) && is.integer0(grep("pKa_a_pred", opera_desc, fixed = TRUE)) && is.integer0(grep("CATMoS", opera_desc, fixed = TRUE)) && is.integer0(grep("CERAPP", opera_desc, fixed = TRUE))&& is.integer0(grep("CoMPARA", opera_desc, fixed = TRUE))){
+        l_opera_pred = append(l_opera_pred, opera_desc)
+      }
+    }
+  }
+  ddesc = ddesc[,l_opera_pred]
+}
+
 # for any conditions
-computeTableSignif(ddesc, dAC50, prresult)
+computeTableSignif(ddesc, dAC50, pr_out)

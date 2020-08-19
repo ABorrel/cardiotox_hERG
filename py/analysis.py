@@ -33,12 +33,11 @@ class analysis:
         self.p_AC50_cleaned = p_AC50_cleaned
 
 
-    def combineDescAndPrep(self, pr_out):
+    def combineDesc(self, pr_out):
 
-        p_desc_cleaned = pr_out + "desc_cleaned.csv"
-        p_AC50_cleaned = pr_out + "AC50_cleaned.csv"
+        p_global = pr_out + 'desc_global.csv'
 
-        if not path.exists(p_desc_cleaned) and not path.exists(p_AC50_cleaned):
+        if not path.exists(p_global):
             runExternal.combineAndPredDesc(self.p_desc, self.p_desc_opera, pr_out)
 
         self.p_desc = pr_out + 'desc_global.csv'
