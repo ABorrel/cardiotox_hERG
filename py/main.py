@@ -79,6 +79,7 @@ size = 15
 ## 2.5 desc Significance active vs not active
 #cAnalysis.signifDescActInact()
 
+
 ## 3. QSAR modeling
 #######
 pr_QSAR = pathFolder.createFolder(PR_RESULTS + "QSAR/")
@@ -94,8 +95,7 @@ cAnalysis.prepDesc()
 ########################
 cQSAR = QSAR_modeling.QSAR_modeling(cAnalysis.p_desc_cleaned, p_desc, cAnalysis.p_AC50_cleaned, p_AC50, pr_QSAR, nb_repetition, n_foldCV,rate_active, rate_split)
 cQSAR.runQSARClassUnderSamplingAllSet(force_run=0)
-ee
-# pr_RF_models = cQSAR.extractModels(PR_RESULTS, "RF")
+pr_RF_models = cQSAR.extractModels(PR_RESULTS, "RF")
 #pr_LDA_models = cQSAR.extractModels(PR_RESULTS, "LDA")
 
 

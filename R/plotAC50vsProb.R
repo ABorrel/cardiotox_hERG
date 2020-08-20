@@ -124,7 +124,7 @@ FP = length(which(dinact[,1] >= 0.5))
 Minact = mean(dinact[,1])
 SDinact = sd(dinact[,1])
 
-Acc = accuracy(TP, TN, FP, TN)
+Acc = accuracy(TP, TN, FP, FN)
 Sp = specificity(TN, FP)
 Se = sensibility(TP, FN)
 mcc = MCC(TP, TN, FP, FN)

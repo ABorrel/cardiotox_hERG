@@ -2,21 +2,28 @@
 library(Toolbox)
 
 
-computeTableSignif = function(ddesc, dAC50, prresult){
+computeTableSignif = function(ddesc, dAC50, pr_out){
   
   lact = rownames(dAC50[which(!is.na(dAC50[,2])),])
   linact = rownames(dAC50[which(is.na(dAC50[,2])),])
     
   dout = data.frame()
-  for(j in seq(2, dim(ddesc)[2])){
+  for(j in seq(1, dim(ddesc)[2])){
+    print(j)
+    print(colnames(ddesc)[j])
     dact = ddesc[lact,j]
+    dact = na.omit(dact)
     dinact = ddesc[linact,j]
+    dinact = na.omit(dinact)
     typeTest = conditionTtest(dact, dinact)
     if (typeTest == 0){
       pval = comparisonTest(dact, dinact, "non-parametric")
-    }else{
+    }else if (typeTest == 1){
       pval = comparisonTest(dact, dinact, "parametric")
+    }else{
+      pval = NA
     }
+    pval = as.double(as.character(pval))
     if(!is.na(pval)){
       dout[j,1] = length(lact)
       dout[j,2] = length(linact)
@@ -29,15 +36,15 @@ computeTableSignif = function(ddesc, dAC50, prresult){
       dout[j,2] = length(linact)
       dout[j,3] = round(mean(dact, na.rm = TRUE),2)
       dout[j,4] = round(mean(dinact, na.rm = TRUE),2)
-      dout[j,5] = "NA"
-      dout[j,6] = "NA"
+      dout[j,5] = NA
+      dout[j,6] = NA
     }
   }      
   rownames(dout) = colnames(ddesc)
   colnames(dout) = c("Nbact", "Nbinact", "Mact", "Minact", "pval", "Signif")
   orderPval = order(dout[,5],decreasing=F)
   dout = dout[orderPval,]
-  pfilout = paste(prresult, "desc_signif.csv", sep = "")
+  pfilout = paste(pr_out, "desc_signif.csv", sep = "")
   write.csv(dout, pfilout)
 }
 
@@ -54,9 +61,9 @@ pdesc = args[1]
 pAC50 = args[2]
 pr_out = args[3]
 
-#pdesc = "../../results/DESC/desc_OPERA.csv"
-#pAC50 = "./../../data/AC50_7403.txt"
-#presult = "./../../results/SignifDesc/OPERA_"
+pdesc = "../../results/DESC/desc_OPERA.csv"
+pAC50 = "./../../data/AC50_7403.txt"
+pr_out = "./../../results/SignifDesc/OPERA_"
 
 # AC50
 dAC50 = read.csv(pAC50, sep=",", header = TRUE)
