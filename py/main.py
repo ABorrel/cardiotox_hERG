@@ -6,9 +6,10 @@ import genericTestSet
 import pathFolder
 import QSAR_modeling
 
+from os import path
 # Define folder
 ################
-PR_ROOT = "../../"
+PR_ROOT = path.abspath("../../") + "/"
 PR_DATA = PR_ROOT + "data/"
 PR_RESULTS = pathFolder.createFolder(PR_ROOT + "results/")
 
@@ -80,22 +81,23 @@ size = 15
 #cAnalysis.signifDescActInact()
 
 
-## 3. QSAR modeling
+## 3. QSAR modeling - classification
 #######
-pr_QSAR = pathFolder.createFolder(PR_RESULTS + "QSAR/")
+pr_QSAR = pathFolder.createFolder(PR_RESULTS + "QSARclass/")
 nb_repetition = 10
 n_foldCV = 10
 rate_split = 0.15
 rate_active = 0.30
 # => Prep and combine OPERA and rdkit desc
-cAnalysis.combineDesc(pr_QSAR)
-cAnalysis.prepDesc()
+#cAnalysis.combineDesc(pr_QSAR)
+#cAnalysis.prepDesc()
+
 
 # 3.1 using a new defintion of test set at each iteration
 ########################
-cQSAR = QSAR_modeling.QSAR_modeling(cAnalysis.p_desc_cleaned, p_desc, cAnalysis.p_AC50_cleaned, p_AC50, pr_QSAR, nb_repetition, n_foldCV,rate_active, rate_split)
-cQSAR.runQSARClassUnderSamplingAllSet(force_run=0)
-pr_RF_models = cQSAR.extractModels(PR_RESULTS, "RF")
+#cQSAR = QSAR_modeling.QSAR_modeling(cAnalysis.p_desc_cleaned, p_desc, cAnalysis.p_AC50_cleaned, p_AC50, pr_QSAR, nb_repetition, n_foldCV,rate_active, rate_split)
+#cQSAR.runQSARClassUnderSamplingAllSet(force_run=1)
+#pr_RF_models = cQSAR.extractModels(PR_RESULTS, "RF")
 #pr_LDA_models = cQSAR.extractModels(PR_RESULTS, "LDA")
 
 
@@ -112,36 +114,60 @@ pr_RF_models = cQSAR.extractModels(PR_RESULTS, "RF")
 #pr_LDA_samplingTrain_models = cQSAR.extractModels(PR_RESULTS, "LDA_samplingTrain")
 
 
-# 4. Build external test set from ChEMBL
+# 4 QSAR modeling regression
+#############
+pr_QSARreg = pathFolder.createFolder(PR_RESULTS + "QSARreg/")
+n_foldCV = 10
+rate_split = 0.15
+nb_repetition = 10
+
+# 4.1 prep data
+#################
+# => Prep and combine OPERA and rdkit desc
+cAnalysis.combineDesc(pr_QSARreg)
+
+# 4.2 run reg model
+####################
+cQSARreg = QSAR_modeling.QSAR_modeling(cAnalysis.p_desc, p_desc, p_AC50, p_AC50, pr_QSARreg, nb_repetition, n_foldCV, 0, rate_split)
+cQSARreg.runQSARReg(cAnalysis.cor_val, cAnalysis.max_quantile)
+ss
+#cQSAR.runQSARClassUnderSamplingTrain()
+#pr_RF_samplingTrain_models = cQSAR.extractModels(PR_RESULTS, "RF_samplingTrain")
+#pr_LDA_samplingTrain_models = cQSAR.extractModels(PR_RESULTS, "LDA_samplingTrain")
+
+
+
+
+# 5. Build external test set from ChEMBL
 ### Target => CHEMBL240
 ##########################
 #P_CHEMBL = PR_DATA + "CHEMBL27-target_chembl240.csv"
 #pr_ChEMBL = pathFolder.createFolder(PR_RESULTS + "ChEMBL/")
 
-## 4.1 Prep dataset
+## 5.1 Prep dataset
 #cChEMBL = CHEMBLTable.CHEMBLTable(P_CHEMBL, pr_ChEMBL)
 #cChEMBL.parseCHEMBLFile()
 #cChEMBL.cleanDataset(l_standard_type=["IC50", "Ki"], l_standard_relation=["'='"])
 
-## 4.2 run descriptor set
+## 5.2 run descriptor set
 #p_desc_ChEMBL = cChEMBL.computeDesc()
 #p_aff_ChEMBL = cChEMBL.cleanAff()
 
-## 4.3 run PCA with ChEMBL on PCA tox21
+## 5.3 run PCA with ChEMBL on PCA tox21
 #pr_applyModel = pathFolder.createFolder(PR_RESULTS + "ChEMBL_predict/")
 #cApplyModel = applyModels.applyModel(cAnalysis.p_desc_cleaned, cAnalysis.p_AC50_cleaned, p_desc_ChEMBL, p_aff_ChEMBL, pr_RF_models, pr_applyModel)
 #cApplyModel.PCACombine()
 
-## 4.4 apply RF models on it
+## 5.4 apply RF models on it
 #cApplyModel.predict()
 #cApplyModel.mergePrediction()
 
-## 4.5. Apply SOM on it
+## 5.5. Apply SOM on it
 #p_SOM = PR_RESULTS + "SOM/SOM_model.RData"
 #cApplyModel.applySOM(p_SOM)
 
 
-## 5. use drug external test sest 1
+## 6. use drug external test sest 1
 ############################
 
 #p_dataset = PR_DATA + "8Candidate_Cipa_drugs.csv"
@@ -162,7 +188,7 @@ pr_RF_models = cQSAR.extractModels(PR_RESULTS, "RF")
 #p_SOM = PR_RESULTS + "SOM/SOM_model.RData"
 #cApplyModel.applySOM(p_SOM)
 
-## 6. use drug external test sest 2
+## 7. use drug external test sest 2
 #############################
 
 #p_dataset = PR_DATA + "hERG_Active_Annotated_listRefChem_July1.csv"
@@ -188,21 +214,21 @@ pr_RF_models = cQSAR.extractModels(PR_RESULTS, "RF")
 
 
 
-## 7. develop test set from Liu 2020 and Zhang 2016
+## 8. develop test set from Liu 2020 and Zhang 2016
 ## => https://doi.org/10.1039/C5TX00294J
 ## => https://doi.org/10.1016/j.snb.2019.127065
 ######################################
 #P_CHEMBL = PR_DATA + "CHEMBL27-target_chembl240.csv"
 #pr_ChEMBL_patch_clamp = pathFolder.createFolder(PR_RESULTS + "ChEMBL_patch_clamp/")
 
-## 7.1 Prep dataset
+## 8.1 Prep dataset
 #cChEMBL = CHEMBLTable.CHEMBLTable(P_CHEMBL, pr_ChEMBL_patch_clamp)
 #cChEMBL.parseCHEMBLFile()
 #cChEMBL.filterOnDescription("patch clamp")
 #cChEMBL.cleanDataset(l_standard_type=["IC50"], l_standard_relation=["'='"])
 
 
-## 7.2 run descriptor set
+## 8.2 run descriptor set
 #p_desc_ChEMBL = cChEMBL.computeDesc()
 #p_aff_ChEMBL = cChEMBL.prep_aff(typeAff="class", cutoff_uM=30.0)
 

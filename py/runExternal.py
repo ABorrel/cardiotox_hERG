@@ -76,7 +76,7 @@ def mergepdfs(lpdfs, pout):
 
 def preprocData(p_desc, p_AC50, pr_out, cor_val, max_quantile):
 
-    cmd = "./cleanerData.R %s %s %s %s %s"%(p_desc, p_AC50, pr_out, cor_val, max_quantile)
+    cmd = "./cleanerData.R %s %s %s %s %s %s"%(p_desc, p_AC50, pr_out, cor_val, max_quantile)
     runRCMD(cmd)
 
 def combineAndPredDesc(p_desc_rdkit, p_desc_opera, pr_out):
@@ -173,6 +173,12 @@ def SplitTrainTest(pdescAc50, prout, splitratio):
     runRQSARModeling(cmd)
 
 
+def prepDataQSARReg(pdesc, paff, prout, corcoef, maxQuantile, valSplit, typeAff="All", logaff=0, nbNA = 10):
+
+    cmd = "./QSARsPrep.R " + str(pdesc) + " " + str(paff) + " " + prout + " " + str(corcoef) + " " + str(
+        maxQuantile) + " " + str(valSplit) + " " + str(logaff) + " " + str(typeAff) + " " + str(nbNA)
+    runRQSARModeling(cmd) 
+
 def prepDataQSAR(p_desc, p_AC50, rate_active, pr_run):
 
     p_desc = path.abspath(p_desc)
@@ -192,6 +198,12 @@ def runRQSAR(p_train, p_test, n_foldCV, pr_run):
     cmd = "./QSARsClass.R " + p_train + " " + p_test + " 0 " + pr_run + " " + str(n_foldCV) + " > " + pr_run + "perf.txt"
     runRQSARModeling(cmd)
 
+
+def runQSARReg(ptrain, ptest, pcluster, prout, nbfold=10):
+
+    cmd_QSAR = "./QSARsReg.R " + ptrain + " " + ptest + " " + pcluster + " " + prout + " " + str(nbfold) + " 1 >" + prout + "perf.txt"
+    runRQSARModeling(cmd_QSAR)
+    
 
 def plotAC50VSProb(p_prob):
 

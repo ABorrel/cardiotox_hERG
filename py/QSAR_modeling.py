@@ -44,7 +44,6 @@ class QSAR_modeling:
             # build QSAR
             self.buildQSAR(pr_run, force_run=force_run)
 
-        
         # merge results
         self.mergeQSARs()
 
@@ -73,6 +72,17 @@ class QSAR_modeling:
         
         # merge results
         self.mergeQSARs()
+
+    def runQSARReg(self, corcoef, maxQuantile):
+        for i in range(1, self.repetition+1):
+            pr_run = pathFolder.createFolder(self.pr_out + str(i) + "/")
+            print(pr_run)
+            runExternal.prepDataQSARReg(self.p_desc, self.p_AC50, pr_run, corcoef, maxQuantile, self.rate_splitTrainTest,  typeAff="All", logaff=0, nbNA = 10)
+            runExternal.runQSARReg(pr_run + "trainSet.csv", pr_run + "testSet.csv", "0", pr_run, self.n_foldCV)
+            
+            ddd
+
+        return 
 
 
     def prepSplitTrainTestSet(self):

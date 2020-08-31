@@ -28,3 +28,4 @@
 - 6-7-20: correct SOM when apply
 - 15-7-20: Add AD computation
 - 7-8-20: fix AD for figure and push clustering
+- 31-8-20: add model regression

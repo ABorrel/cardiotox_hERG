@@ -20,7 +20,6 @@ maxquantile = as.double(args[5])
 #maxquantile = 90
 
 
-
 ##############################
 # Process descriptors matrix #
 ##############################
