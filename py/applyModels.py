@@ -34,8 +34,12 @@ class applyModel:
         l_models = listdir(self.pr_models)
         for model in l_models:
             runExternal.predictDataset(self.p_desc_test, self.pr_models + model, name_model + "class", pr_out)
-
         self.pr_allPredict = pr_out
+
+
+    def predictReg(self):
+        pr_out = pathFolder.createFolder(self.pr_out + "predict_Reg_model_RF/")
+        runExternal.predictRegDataset(self.p_desc_test, self.p_aff_test, self.p_AD, self.pr_models, pr_out)
 
         
     def mergePrediction(self):
@@ -54,6 +58,8 @@ class applyModel:
             dpred = toolbox.loadMatrix(self.pr_allPredict + fpred, sep = ",")
 
             for chemblID in dpred.keys():
+                if dpred[chemblID]["Pred"] == "NA":
+                    continue
                 if not chemblID in list(d_out.keys()):
                     d_out[chemblID] = []
                 d_out[chemblID].append(float(dpred[chemblID]["Pred"]))
@@ -83,7 +89,7 @@ class applyModel:
 
         pr_out = pathFolder.createFolder(self.pr_out + "AD/")
         
-        p_out = pr_out + "AD_zscore.csv"
+        p_out = pr_out + "AD_Test_zscore.csv"
         if path.exists(p_out):
             self.p_AD = p_out
 
@@ -178,60 +184,61 @@ class applyModel:
         filout.close()
 
 
-    def overlapSetWithID(self, rm_overlap=0):
+    def overlapSetWithID(self, rm_overlap=0, rm_inactive=0):
 
         pr_out = pathFolder.createFolder(self.pr_out + "OverlapModel/")
-
         p_filout = pr_out + "overlap_train_test"
-        
+
+        print(self.p_desc_model)
+        print(self.p_desc_test)
+        print(self.p_aff_model)
+        print(self.p_aff_test)
 
         # desc
-        #d_desc_model = toolbox.loadMatrix(self.p_desc_model, sep = "\t")
+        d_desc_model = toolbox.loadMatrix(self.p_desc_model, sep = ",")
         d_desc_test = toolbox.loadMatrix(self.p_desc_test, sep = "\t")
 
         # AC50
-        d_AC50_model = toolbox.loadMatrix(self.p_aff_model, sep = "\t")
+        d_AC50_model = toolbox.loadMatrix(self.p_aff_model, sep = ",")
         d_AC50_test = toolbox.loadMatrix(self.p_aff_test, sep = ",")
-
-
 
         # convert in -log
         for chem in d_AC50_test.keys():
             if d_AC50_test[chem]["LogAC50"] != "NA":
                 d_AC50_test[chem]["LogAC50"] = -float(d_AC50_test[chem]["LogAC50"])
 
-
         filout = open(p_filout, "w")
         filout.write("ID\tSMILES\tLogAC50 model\tLogAC50 test\tAff\tInclude\n")
 
         for chem in d_AC50_test.keys():
+            
             if not chem in list(d_desc_test.keys()): # case SMILES is not define
                 continue
             if chem in list(d_AC50_model.keys()):
-                filout.write("%s\t%s\t%s\t%s\t%s\t1\n"%(chem, d_desc_test[chem]["SMILES"] ,d_AC50_model[chem]["LogAC50"], d_AC50_test[chem]["LogAC50"], d_AC50_test[chem]["Aff"]))
+                if d_AC50_model[chem]["Aff"] == "NA":aff = 0
+                else:aff = 1
+                filout.write("%s\t%s\t%s\t%s\t%s\t1\n"%(chem, d_desc_test[chem]["SMILES"] ,d_AC50_model[chem]["Aff"], d_AC50_test[chem]["LogAC50"], aff))
             else:
-                filout.write("%s\t%s\tNA\t%s\t%s\t0\n"%(chem, d_desc_test[chem]["SMILES"] , d_AC50_test[chem]["LogAC50"], d_AC50_test[chem]["Aff"]))
+                if d_AC50_test[chem]["LogAC50"] == "NA":aff = 0
+                else:aff = 1
+                filout.write("%s\t%s\tNA\t%s\t%s\t0\n"%(chem, d_desc_test[chem]["SMILES"] , d_AC50_test[chem]["LogAC50"], aff))
         filout.close()
-
         runExternal.overlapPlot(p_filout)
 
-
         # write new pAff in case of rm_overlap = 1
-
-        if rm_overlap == 1:
-            p_filout = self.pr_out + "aff_cleaned.csv"
+        if rm_overlap == 1 and rm_inactive == 0:
+            p_filout = pr_out + "aff_cleaned.csv"
             filout = open(p_filout, "w")
             filout.write("\"ID\",\"LogAC50\",\"Aff\"\n")
             
             for chem in d_AC50_test.keys():
                 if not chem in list(d_AC50_model.keys()):
                     filout.write("\"%s\",\"%s\",\"%s\"\n"%(chem, d_AC50_test[chem]["LogAC50"], d_AC50_test[chem]["Aff"]))
-            
             filout.close()
             self.p_aff_test = p_filout
 
             # rm overlap in the desc set
-            p_desc_out = self.pr_out + "desc_cleaned.csv"
+            p_desc_out = pr_out + "desc_cleaned.csv"
 
             d_desc = toolbox.loadMatrix(self.p_desc_test, sep ="\t")
             l_h = list(d_desc_test[list(d_desc_test.keys())[0]].keys())
@@ -243,5 +250,42 @@ class applyModel:
             for chem in d_desc.keys():
                  if not chem in list(d_AC50_model.keys()):
                     f_desc_out.write("%s\t%s\t%s\n"%(chem, d_desc[chem]["SMILES"], "\t".join([d_desc[chem][h] for h in l_h])))
+            f_desc_out.close()
+            self.p_desc_test = p_desc_out
+        
+
+        elif rm_overlap == 1 and rm_inactive == 1:
+            p_filout = pr_out + "aff_active_cleaned.csv"
+            filout = open(p_filout, "w")
+            filout.write("\"ID\",\"LogAC50\",\"Aff\"\n")
+            
+            #print(list(d_AC50_test.keys()))
+            #print(list(d_AC50_model.keys()))
+
+            for chem in d_AC50_test.keys():
+                if not chem in list(d_AC50_model.keys()):
+                    if d_AC50_test[chem]["Aff"] == "0" :
+                        continue
+                    else:
+                        filout.write("\"%s\",\"%s\",\"%s\"\n"%(chem, d_AC50_test[chem]["LogAC50"], d_AC50_test[chem]["Aff"]))
+            filout.close()
+            self.p_aff_test = p_filout
+
+            # rm overlap in the desc set
+            p_desc_out = pr_out + "desc_active_cleaned.csv"
+
+            d_desc = toolbox.loadMatrix(self.p_desc_test, sep ="\t")
+            l_h = list(d_desc_test[list(d_desc_test.keys())[0]].keys())
+            l_h.remove("SMILES")
+            l_h.remove("CASRN")
+
+            f_desc_out = open(p_desc_out, "w")
+            f_desc_out.write("CASRN\tSMILES\t%s\n"%("\t".join(l_h)))
+            for chem in d_desc.keys():
+                 if not chem in list(d_AC50_model.keys()):
+                    if d_AC50_test[chem]["LogAC50"] == "NA":
+                        continue
+                    else:
+                        f_desc_out.write("%s\t%s\t%s\n"%(chem, d_desc[chem]["SMILES"], "\t".join([d_desc[chem][h] for h in l_h])))
             f_desc_out.close()
             self.p_desc_test = p_desc_out

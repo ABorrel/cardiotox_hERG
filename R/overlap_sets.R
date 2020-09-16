@@ -10,9 +10,7 @@ library(ggplot2)
 args <- commandArgs(TRUE)
 p_overlap = args[1]
 
-
-p_overlap = "../../results/AID_588834/OverlapModel/overlap_train_test"
-  
+#p_overlap = "../../results/AID_588834/OverlapModel/overlap_train_test"  
   
 d_overlap = read.csv(p_overlap, sep = "\t")
 d_overlap$Include = as.double(as.character(d_overlap$Include))

@@ -64,11 +64,13 @@ prout = args[5]
 
 ddesc1 = read.csv(pdesc1, sep = ",", row.names = 1)
 ddesc2 = read.csv(pdesc2, sep = "\t", row.names = 1)
+
 # remove SMILES
 ddesc2 = ddesc2[,-1]
 
 daff1 = read.csv(pAff1, header = TRUE, row.names = 1)
 daff2 = read.csv(pAff2, header = TRUE, row.names = 1)
+
 
 l_chem1 = intersect(rownames(ddesc1), rownames(daff1))
 l_chem2 = intersect(rownames(ddesc2), rownames(daff2))

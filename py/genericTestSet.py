@@ -1,6 +1,7 @@
 import toolbox
 import pathFolder
 import searchInComptox
+import runExternal
 
 from os import path
 
@@ -20,10 +21,10 @@ class genericTestSet:
     def loadDataset(self, loadDb=0, p_mapFile=""):
 
         p_dataset_preproc = self.pr_out + "dataset_prepoc.csv"
-        #if path.exists(p_dataset_preproc):
-        #    self.d_dataset = toolbox.loadMatrix(p_dataset_preproc)
-        #    self.p_dataset_preproc = p_dataset_preproc
-        #    return 
+        if path.exists(p_dataset_preproc):
+            self.d_dataset = toolbox.loadMatrix(p_dataset_preproc)
+            self.p_dataset_preproc = p_dataset_preproc
+            return 
 
         d_dataset = toolbox.loadMatrix(self.p_dataset, sep = self.sep)
         self.d_dataset = d_dataset
@@ -92,6 +93,8 @@ class genericTestSet:
                 f_dataset_cleanned.write("%s\t%s\t%s\n"%(self.d_dataset[chem]["CASRN"], self.d_dataset[chem]["SMILES"], "\t".join([self.d_dataset[chem][h] for h in l_h])))
         f_dataset_cleanned.close()
 
+        self.d_dataset = toolbox.loadMatrix(p_dataset_preproc)
+        self.p_dataset_preproc = p_dataset_preproc
 
 
 
@@ -103,44 +106,91 @@ class genericTestSet:
         pr_out = pathFolder.createFolder(self.pr_out + "DESC/")
         self.pr_desc = pr_out
 
-        p_filout = pr_out + "desc_1D2D.csv"
-        if path.exists(p_filout):
-            self.p_desc = p_filout
-            return p_filout
+        p_filout_1D2D = pr_out + "desc_1D2D.csv"
+        p_filout_OPERA = pr_out + "desc_OPERA.csv"
+        if path.exists(p_filout_1D2D) and path.exists(p_filout_OPERA):
+            self.p_desc = p_filout_1D2D
+            self.p_desc_opera = p_filout_OPERA
 
-        # extract descriptor 2D
-        l_desc = Chemical.getLdesc("1D2D")
+        else:
+            # 1D2D ================
+            # extract descriptor 2D
+            if not path.exists(p_filout_1D2D):
+                l_desc = Chemical.getLdesc("1D2D")
 
-        # open filout
-        filout = open(p_filout, "w")
-        filout.write("CASRN\tSMILES\t%s\n"%("\t".join(l_desc)))
+                # open filout
+                filout = open(p_filout_1D2D, "w")
+                filout.write("CASRN\tSMILES\t%s\n"%("\t".join(l_desc)))
 
-        l_smi = []
-        # compute descriptor
-        for chem in self.d_dataset.keys():
-            CASRN = self.d_dataset[chem]["CASRN"]
-            SMILES = self.d_dataset[chem]["SMILES"]
+                l_smi = []
+                # compute descriptor
+                for chem in self.d_dataset.keys():
+                    CASRN = self.d_dataset[chem]["CASRN"]
+                    SMILES = self.d_dataset[chem]["SMILES"]
 
-            cChem = Chemical.Chemical(SMILES, self.pr_desc, p_salts=path.abspath("./Salts.txt"))
-            cChem.prepChem() # prep
-            # case error cleaning
-            if cChem.err == 1:
-                continue
-            if cChem.smi in l_smi:
-                continue
+                    cChem = Chemical.Chemical(SMILES, self.pr_desc, p_salts=path.abspath("./Salts.txt"))
+                    cChem.prepChem() # prep
+                    # case error cleaning
+                    if cChem.err == 1:
+                        continue
+                    if cChem.smi in l_smi:
+                        continue
+                    else:
+                        l_smi.append(cChem.smi)
+                    cChem.computeAll2D() # compute
+                    cChem.writeMatrix("2D") # write by chem to save time in case of rerun
+                    if cChem.err == 1:
+                        continue
+                    else:
+                        # write direcly descriptor
+                        filout.write("%s\t%s\t%s\n"%(CASRN, cChem.smi, "\t".join([str(cChem.all2D[desc]) for desc in l_desc])))
+                filout.close()
+            self.p_desc = p_filout_1D2D
+
+
+            ### OPERA =============
+            pr_OPERA = pathFolder.createFolder(pr_out + "OPERA/")
+            p_listchem = pr_OPERA + "listChem.smi"
+            f_listchem = open(p_listchem, "w")
+            d_desc_1D2D = toolbox.loadMatrix(p_filout_1D2D)
+            for chem in d_desc_1D2D.keys():
+                f_listchem.write(d_desc_1D2D[chem]["SMILES"] + "\n")
+            f_listchem.close()
+
+            if path.exists(pr_OPERA + "desc_OPERA.csv"):
+                l_chem_opera = toolbox.loadMatrixToList(pr_OPERA + "desc_OPERA.csv", sep=",")
+                l_chem_rdkit = toolbox.loadMatrixToList(p_filout_1D2D, sep = "\t")
+                print(len(l_chem_rdkit))
+                print(len(l_chem_opera))
+                l_header_opera = list(l_chem_opera[0].keys())
+                l_header_opera.remove("MoleculeID")
+                i = 0
+                imax = len(l_chem_opera)
+                while i < imax:
+                    i_rdkit = int(l_chem_opera[i]["MoleculeID"].split("_")[-1]) - 1
+                    casrn = l_chem_rdkit[i_rdkit]["CASRN"]
+                    l_chem_opera[i]["CASRN"] = casrn
+                    i = i + 1
+                
+                # write 
+                fopera = open(p_filout_OPERA, "w")
+                fopera.write("CASRN,%s\n"%(",".join(l_header_opera)))
+                for chem in l_chem_opera:
+                    fopera.write("%s,%s\n"%(chem["CASRN"], ",".join([str(chem[h]) for h in l_header_opera])))
+                fopera.close()
+                
+                self.p_desc_opera = p_filout_OPERA
             else:
-                l_smi.append(cChem.smi)
-            cChem.computeAll2D() # compute
-            cChem.writeMatrix("2D") # write by chem to save time in case of rerun
-            if cChem.err == 1:
-                continue
-            else:
-                # write direcly descriptor
-                filout.write("%s\t%s\t%s\n"%(CASRN, cChem.smi, "\t".join([str(cChem.all2D[desc]) for desc in l_desc])))
+                print("RUN opera with => ", p_listchem)
 
-        filout.close()
-        self.p_desc = p_filout
-        return p_filout
+
+    def combineDesc(self):
+
+        p_global = self.pr_out + 'desc_global.csv'
+
+        if not path.exists(p_global):
+            runExternal.combineAndPredDesc(self.p_desc, self.p_desc_opera, self.pr_out)
+        self.p_desc = p_global
 
 
     def setAff(self, allAff=0):
@@ -181,4 +231,4 @@ class genericTestSet:
                 filout.write("\"%s\",\"%s\",%s\n"%(chem, chem, allAff))
             filout.close()
 
-        return p_aff
+        self.p_aff = p_aff

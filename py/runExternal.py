@@ -74,9 +74,9 @@ def mergepdfs(lpdfs, pout):
 # Functions for analysis
 
 
-def preprocData(p_desc, p_AC50, pr_out, cor_val, max_quantile):
+def preprocData(p_desc, p_AC50, pr_out, cor_val, max_quantile, act=0):
 
-    cmd = "./cleanerData.R %s %s %s %s %s %s"%(p_desc, p_AC50, pr_out, cor_val, max_quantile)
+    cmd = "./cleanerData.R %s %s %s %s %s %s"%(p_desc, p_AC50, pr_out, cor_val, max_quantile, act)
     runRCMD(cmd)
 
 def combineAndPredDesc(p_desc_rdkit, p_desc_opera, pr_out):
@@ -159,7 +159,10 @@ def SignifDesc(p_desc, p_AC50, pr_out):
     cmd = "./SignifDesc.R %s %s %s"%(p_desc, p_AC50, pr_out)
     runRCMD(cmd)
 
+def predictRegDataset(p_desc, p_aff, p_AD, p_model, pr_out):
 
+    cmd = "./applyQSARRegModel.R %s %s %s %s %s"%(p_desc, p_aff, p_AD, p_model, pr_out)
+    runRCMD(cmd)
 
 ############
 # Function for QSAR
