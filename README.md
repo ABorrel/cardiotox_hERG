@@ -28,4 +28,8 @@
 - 15-7-20: Add AD computation
 - 7-8-20: fix AD for figure and push clustering
 - 31-8-20: add model regression
+<<<<<<< HEAD
 - 05-10-20: change hyperparameter for regression modeling
+=======
+- 16-9-20: Fix error with modeling
+>>>>>>> 18f281780c78867f1fb59026ac9559a6067ff451

@@ -69,13 +69,13 @@ class QSAR_modeling:
             # build QSAR
             self.buildQSAR(pr_run)
 
-        
         # merge results
         self.mergeQSARs()
 
     def runQSARReg(self, corcoef, maxQuantile):
         for i in range(1, self.repetition+1):
             pr_run = pathFolder.createFolder(self.pr_out + str(i) + "/")
+<<<<<<< HEAD
             if not path.exists(pr_run + "trainSet.csv"):
                 runExternal.prepDataQSARReg(self.p_desc, self.p_AC50, pr_run, corcoef, maxQuantile, self.rate_splitTrainTest,  typeAff="All", logaff=0, nbNA = 10)
             
@@ -113,6 +113,15 @@ class QSAR_modeling:
             for ML in d_result[run]["CV"].keys():
                 filout.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"%(ML, d_result[run]["CV"][ML]["R2"], d_result[run]["CV"][ML]["R02"], d_result[run]["CV"][ML]["MAE"], d_result[run]["CV"][ML]["r"], d_result[run]["train"][ML]["R2"], d_result[run]["train"][ML]["R02"], d_result[run]["train"][ML]["MAE"], d_result[run]["train"][ML]["r"], d_result[run]["test"][ML]["R2"], d_result[run]["test"][ML]["R02"], d_result[run]["test"][ML]["MAE"], d_result[run]["test"][ML]["r"]))
         filout.close()
+=======
+            print(pr_run)
+            #if not path.exists(pr_run + "trainSet.csv"):
+            #    runExternal.prepDataQSARReg(self.p_desc, self.p_AC50, pr_run, corcoef, maxQuantile, self.rate_splitTrainTest,  typeAff="All", logaff=0, nbNA = 10)
+            #runExternal.runQSARReg(pr_run + "trainSet.csv", pr_run + "testSet.csv", "0", pr_run, self.n_foldCV)
+        
+        self.mergeRegQSARs()
+        return 
+>>>>>>> 18f281780c78867f1fb59026ac9559a6067ff451
 
 
     def prepSplitTrainTestSet(self):
@@ -196,6 +205,73 @@ class QSAR_modeling:
         else:
             runExternal.runRQSAR(self.p_train, self.p_test, self.n_foldCV, pr_run)
 
+    
+    def mergeRegQSARs(self):
+
+
+        p_filout = self.pr_out + "sum_perf.csv"
+        #if path.exists(p_filout):
+        #    return 
+        
+        l_criteria = ["R2", "R02", "MAE", "r", "RMSEP"]
+        l_dataset = ["CV", "train", "test"]
+        
+        # output to write
+        d_result = {}
+        for dataset in l_dataset:
+            d_result[dataset] = {}
+
+        # performance by ML
+        d_perf = {}
+        for criteria in l_criteria:
+            d_perf[criteria] = []
+
+        l_pr_run = listdir(self.pr_out)
+        for pr_run in l_pr_run:
+            if search("sum_perf", pr_run) or search("Cleaned_Data", pr_run) or search("desc_global.csv", pr_run) :
+                continue
+
+            p_perfCV = self.pr_out + pr_run + "/perfCV.csv"
+            p_perfTrain = self.pr_out + pr_run + "/perfTrain.csv"
+            p_perfTest = self.pr_out + pr_run + "/perfTest.csv"
+
+            try:
+                M_CV = toolbox.loadMatrix(p_perfCV, sep=",")
+                M_train = toolbox.loadMatrix(p_perfTrain, sep=",")
+                M_test = toolbox.loadMatrix(p_perfTest, sep=",")
+            except:
+                continue
+
+            l_ML = list(M_CV.keys())
+            
+            #build results
+            if not l_ML[0] in list(d_result["CV"].keys()):
+                for ML in l_ML:
+                    d_result["CV"][ML] = deepcopy(d_perf)
+                    d_result["train"][ML] = deepcopy(d_perf)
+                    d_result["test"][ML] = deepcopy(d_perf)
+
+            for ML in l_ML:
+                for criteria in l_criteria:
+                    d_result["CV"][ML][criteria].append(M_CV[ML][criteria])
+                    d_result["train"][ML][criteria].append(M_train[ML][criteria])
+                    d_result["test"][ML][criteria].append(M_test[ML][criteria])
+
+
+        filout = open(p_filout, "w")
+        imax = self.repetition
+        i = 0
+        while i < imax:
+            filout.write("%s\tCV\t\t\t\t\t\tTrain\t\t\t\t\t\t\tTest\n"%(i+1))
+            filout.write("\t%s\t\t\t%s\t\t\t%s\n"%("\t".join(l_criteria),"\t".join(l_criteria),"\t".join(l_criteria)))
+            for ML in  d_result["CV"].keys():
+                filout.write("%s\t%s\t\t%s\t%s\t\t%s\t%s\n"%(ML, "\t".join([d_result["CV"][ML][c][i] for c in l_criteria]), ML, "\t".join([d_result["train"][ML][c][i] for c in l_criteria]), ML, "\t".join([d_result["test"][ML][c][i] for c in l_criteria])))
+            i = i + 1
+        filout.close()                
+
+
+
+
     def mergeQSARs(self):
 
         pr_QSAR_average = pathFolder.createFolder(self.pr_out + "Merge_results/")
@@ -215,8 +291,6 @@ class QSAR_modeling:
         if path.exists(p_filout):
             return 
         
-
-
         l_criteria = ["Acc", "Sp", "Se", "MCC"]
         l_dataset = ["CV", "train", "test"]
         

@@ -24,7 +24,7 @@ class analysis:
         pr_out = pathFolder.createFolder(self.pr_out + "Cleaned_Data/")
 
         # add shortcut
-        p_desc_cleaned = pr_out + "desc1D2D_cleaned.csv"
+        p_desc_cleaned = pr_out + "desc_cleaned.csv"
         p_AC50_cleaned = pr_out + "AC50_cleaned.csv"
         if not path.exists(p_desc_cleaned) and not path.exists(p_AC50_cleaned):
             runExternal.preprocData(self.p_desc, self.p_AC50, pr_out, self.cor_val, self.max_quantile)
@@ -33,16 +33,25 @@ class analysis:
         self.p_AC50_cleaned = p_AC50_cleaned
 
 
-    def combineDesc(self, pr_out):
+    def extractOnlyActive(self):
+        pr_out = pathFolder.createFolder(self.pr_out + "Cleaned_Data/")
 
-        p_global = pr_out + 'desc_global.csv'
+        # add shortcut
+        p_desc_cleaned = pr_out + "desc_act_cleaned.csv"
+        p_AC50_cleaned = pr_out + "AC50_act_cleaned.csv"
+        if not path.exists(p_desc_cleaned) and not path.exists(p_AC50_cleaned):
+            runExternal.preprocData(self.p_desc, self.p_AC50, pr_out, self.cor_val, self.max_quantile, act=1)
 
+        self.p_desc_cleaned = p_desc_cleaned
+        self.p_AC50_cleaned = p_AC50_cleaned
+
+
+    def combineDesc(self):
+
+        p_global = self.pr_out + 'desc_global.csv'
         if not path.exists(p_global):
-            runExternal.combineAndPredDesc(self.p_desc, self.p_desc_opera, pr_out)
-
-        self.p_desc = pr_out + 'desc_global.csv'
-        self.pr_out = pr_out
-
+            runExternal.combineAndPredDesc(self.p_desc, self.p_desc_opera, self.pr_out)
+        self.p_desc = self.pr_out + 'desc_global.csv'
 
 
     def sumAC50(self):

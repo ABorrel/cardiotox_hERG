@@ -185,8 +185,8 @@ class dataset:
         else:
             print("RUN opera with => ", p_listchem)
 
-
-        return [p_filout_RDKIT, p_filout_OPERA]
+        self.p_desc1D2D = p_filout_RDKIT
+        self.p_desc_opera = p_filout_OPERA
 
 
     def computeDescOPERA(self, pr_desc):
@@ -211,10 +211,7 @@ class dataset:
         print("RUN OPERA COMMAND LINE")
 
         print("ERROR - OPERA desc no computed")
-        return 0
 
-
-        return 
 
 
     def computePNG(self, pr_desc):
