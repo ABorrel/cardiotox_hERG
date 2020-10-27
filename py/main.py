@@ -95,9 +95,9 @@ rate_active = 0.30
 
 # 3.1 using a new defintion of test set at each iteration
 ########################
-#cQSAR = QSAR_modeling.QSAR_modeling(cAnalysis.p_desc_cleaned, p_desc, cAnalysis.p_AC50_cleaned, p_AC50, pr_QSAR, nb_repetition, n_foldCV,rate_active, rate_split)
-#cQSAR.runQSARClassUnderSamplingAllSet(force_run=1)
-#pr_RF_models = cQSAR.extractModels(PR_RESULTS, "RF")
+cQSAR = QSAR_modeling.QSAR_modeling(cAnalysis.p_desc_cleaned, p_desc, cAnalysis.p_AC50_cleaned, p_AC50, pr_QSAR, nb_repetition, n_foldCV,rate_active, rate_split)
+#cQSAR.runQSARClassUnderSamplingAllSet(force_run=0)
+pr_RF_models = cQSAR.extractModels(PR_RESULTS, "RF")
 #pr_LDA_models = cQSAR.extractModels(PR_RESULTS, "LDA")
 
 
@@ -124,18 +124,17 @@ nb_repetition = 10
 # 4.1 prep data
 #################
 # => Prep and combine OPERA and rdkit desc
+COR_VAL = 0.85
+MAX_QUANTILE = 85
+cAnalysis = analysis.analysis(p_AC50, p_desc, p_desc_opera, PR_RESULTS, COR_VAL, MAX_QUANTILE)
+cAnalysis.prepDesc()
 cAnalysis.combineDesc(pr_QSARreg)
 
 # 4.2 run reg model
 ####################
-cQSARreg = QSAR_modeling.QSAR_modeling(cAnalysis.p_desc, p_desc, p_AC50, p_AC50, pr_QSARreg, nb_repetition, n_foldCV, 0, rate_split)
-cQSARreg.runQSARReg(cAnalysis.cor_val, cAnalysis.max_quantile)
-ss
-#cQSAR.runQSARClassUnderSamplingTrain()
-#pr_RF_samplingTrain_models = cQSAR.extractModels(PR_RESULTS, "RF_samplingTrain")
-#pr_LDA_samplingTrain_models = cQSAR.extractModels(PR_RESULTS, "LDA_samplingTrain")
-
-
+#cQSARreg = QSAR_modeling.QSAR_modeling(cAnalysis.p_desc, p_desc, p_AC50, p_AC50, pr_QSARreg, nb_repetition, n_foldCV, 0, rate_split)
+#cQSARreg.runQSARReg(cAnalysis.cor_val, cAnalysis.max_quantile)
+#cQSARreg.mergeRegResults()
 
 
 # 5. Build external test set from ChEMBL
@@ -233,25 +232,25 @@ ss
 #p_aff_ChEMBL = cChEMBL.prep_aff(typeAff="class", cutoff_uM=30.0)
 
 
-## 7.3 run PCA with ChEMBL on PCA tox21
+## 8.3 run PCA with ChEMBL on PCA tox21
 #pr_applyModel = pathFolder.createFolder(pr_ChEMBL_patch_clamp + "predict/")
 #cApplyModel = applyModels.applyModel(cAnalysis.p_desc_cleaned, cAnalysis.p_desc, p_AC50, p_desc_ChEMBL, p_aff_ChEMBL, pr_RF_models, pr_applyModel)
 #cApplyModel.overlapSet()
 #cApplyModel.PCACombine()
 
-## 7.4 apply RF models on it
+## 8.4 apply RF models on it
 #cApplyModel.predict()
 #cApplyModel.mergePrediction()
 #cApplyModel.computeAD()
 #cApplyModel.applyAD()
 
 
-## 7.5. Apply SOM on it
+## 8.5. Apply SOM on it
 #p_SOM = PR_RESULTS + "SOM/SOM_model.RData"
 #cApplyModel.applySOM(p_SOM)
 
 
-## 8. develop test set from pubchem assay -> 588834
+## 9. develop test set from pubchem assay -> 588834
 ## => https://pubchem.ncbi.nlm.nih.gov/bioassay/588834
 ########################################################
 
@@ -280,8 +279,8 @@ ss
 #cApplyModel.applySOM(p_SOM)
 
 
-## 9. Shagun test set -> 588834
-################################
+## 10. Shagun test set -> AID588834 no overlap => including 1014 chem
+#######################################################################
 
 p_dataset = PR_DATA + "Ext_Test_Set_Final_1014Chem.csv"
 p_SMILESComptox = PR_DATA + "CompToxChemicalsDashboard-SMILES.csv"
@@ -289,10 +288,37 @@ pr_TestSet = pathFolder.createFolder(PR_RESULTS + "Ext_Test_Set_Final_1014Chem/"
 c_genericSet = genericTestSet.genericTestSet(p_dataset, pr_TestSet)
 c_genericSet.loadDataset(loadDb=p_SMILESComptox)
 p_desc = c_genericSet.computeDesc()
+c_genericSet.combineDesc()
 p_aff = c_genericSet.setAff(allAff="PUBCHEM_ACTIVITY_OUTCOME")
 
 ## apply model
-cApplyModel = applyModels.applyModel(cAnalysis.p_desc_cleaned, cAnalysis.p_desc, cAnalysis.p_AC50, p_desc, p_aff, pr_RF_models, pr_TestSet)
+cApplyModel = applyModels.applyModel(cAnalysis.p_desc_cleaned, cAnalysis.p_desc, cAnalysis.p_AC50, c_genericSet.p_desc, p_aff, pr_RF_models, pr_TestSet)
+cApplyModel.PCACombine()
+cApplyModel.predict()
+cApplyModel.mergePrediction()
+cApplyModel.computeAD()
+cApplyModel.applyAD()
+
+# SOM
+p_SOM = PR_RESULTS + "SOM/SOM_model.RData"
+cApplyModel.applySOM(p_SOM)
+ss
+
+
+## 11. Shagun test set => including 408 chem extracted from the litterature
+#######################################
+
+p_dataset = PR_DATA + "Ext_Testset_hERG_review_14Oct.csv"
+p_SMILESComptox = PR_DATA + "CompToxChemicalsDashboard-SMILES.csv"
+pr_TestSet = pathFolder.createFolder(PR_RESULTS + "Ext_Test_Set_Final_Litt_408Chem/")
+c_genericSet = genericTestSet.genericTestSet(p_dataset, pr_TestSet)
+c_genericSet.loadDataset(loadDb=p_SMILESComptox)
+c_genericSet.computeDesc()
+c_genericSet.combineDesc()
+p_aff = c_genericSet.setAff(allAff=1)
+
+## apply model
+cApplyModel = applyModels.applyModel(cAnalysis.p_desc_cleaned, cAnalysis.p_desc, cAnalysis.p_AC50, c_genericSet.p_desc, p_aff, pr_RF_models, pr_TestSet)
 cApplyModel.PCACombine()
 cApplyModel.predict()
 cApplyModel.mergePrediction()

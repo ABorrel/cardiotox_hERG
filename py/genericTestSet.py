@@ -1,13 +1,11 @@
 import toolbox
 import pathFolder
 import searchInComptox
+import runExternal
 
 from os import path
-
-# import descriptor computation scripts => precise folder where descriptor are included
-import sys
-sys.path.insert(0, "./../../../development/molecular-descriptors/")
-import Chemical
+from random import shuffle
+import CompDesc
 
 
 
@@ -104,24 +102,35 @@ class genericTestSet:
         self.pr_desc = pr_out
 
         p_filout = pr_out + "desc_1D2D.csv"
-        if path.exists(p_filout):
-            self.p_desc = p_filout
-            return p_filout
+        p_filout_OPERA = pr_out + "desc_OPERA.csv"
+
+        if path.exists(p_filout) and path.getsize(p_filout) > 2000 and path.exists(p_filout_OPERA) and path.getsize(p_filout_OPERA) > 2000:
+            self.p_desc_2D = p_filout
+            self.p_desc_opera = p_filout_OPERA
+            return [self.p_desc_2D, self.p_desc_opera]
 
         # extract descriptor 2D
-        l_desc = Chemical.getLdesc("1D2D")
+        cCompDesc = CompDesc.CompDesc("", "")
+        l_desc = cCompDesc.getLdesc("1D2D")
+        l_desc_OPERA = cCompDesc.getLdesc("OPERA")
 
         # open filout
         filout = open(p_filout, "w")
         filout.write("CASRN\tSMILES\t%s\n"%("\t".join(l_desc)))
 
+        filout_opera = open(p_filout_OPERA, "w")
+        filout_opera.write("CASRN\tSMILES\t%s\n"%("\t".join(l_desc_OPERA)))
+
         l_smi = []
         # compute descriptor
-        for chem in self.d_dataset.keys():
-            CASRN = self.d_dataset[chem]["CASRN"]
+        l_chem = list(self.d_dataset.keys())
+        shuffle(l_chem)
+        for chem in l_chem:
+            try: CASRN = self.d_dataset[chem]["CASRN"]
+            except: CASRN = self.d_dataset[chem]["INPUT"]# case where there is no CASRN
             SMILES = self.d_dataset[chem]["SMILES"]
 
-            cChem = Chemical.Chemical(SMILES, self.pr_desc, p_salts=path.abspath("./Salts.txt"))
+            cChem = CompDesc.CompDesc(SMILES, self.pr_desc, p_salts=path.abspath("./Salts.txt"))
             cChem.prepChem() # prep
             # case error cleaning
             if cChem.err == 1:
@@ -130,6 +139,7 @@ class genericTestSet:
                 continue
             else:
                 l_smi.append(cChem.smi)
+
             cChem.computeAll2D() # compute
             cChem.writeMatrix("2D") # write by chem to save time in case of rerun
             if cChem.err == 1:
@@ -137,10 +147,28 @@ class genericTestSet:
             else:
                 # write direcly descriptor
                 filout.write("%s\t%s\t%s\n"%(CASRN, cChem.smi, "\t".join([str(cChem.all2D[desc]) for desc in l_desc])))
+            
+            # run OPERA
+            try:
+                cChem.computeOPERAFromChem()
+                filout_opera.write("%s\t%s\t%s\n"%(CASRN, cChem.smi, "\t".join([str(cChem.allOPERA[desc]) for desc in l_desc_OPERA])))
+            except:
+                continue
 
         filout.close()
-        self.p_desc = p_filout
-        return p_filout
+        filout_opera.close()
+        self.p_desc_2D = p_filout
+        self.p_desc_opera = p_filout_OPERA
+        return [self.p_desc_2D, self.p_desc_opera]
+
+
+    def combineDesc(self):
+
+        p_global = self.pr_out + 'desc_global.csv'
+
+        if not path.exists(p_global):
+            runExternal.combineAndPredDesc(self.p_desc_2D, self.p_desc_opera, self.pr_out)
+        self.p_desc = p_global
 
 
     def setAff(self, allAff=0):

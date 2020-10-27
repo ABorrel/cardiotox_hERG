@@ -4,11 +4,9 @@ from random import shuffle
 import toolbox
 import pathFolder
 import runExternal
+import CompDesc
 
 # import descriptor computation scripts => precise folder where descriptor are included
-import sys
-sys.path.insert(0, "./../../../development/molecular-descriptors/")
-import Chemical
 
 from PIL import Image, ImageFont, ImageDraw
 font = ImageFont.truetype("./OpenSans-Regular.ttf", size=24)
@@ -131,7 +129,7 @@ class dataset:
         # extract descriptor 2D
         if not path.exists(p_filout_RDKIT):
             flistchem = open(p_listchem, "w")
-            l_desc = Chemical.getLdesc("1D2D")
+            l_desc = CompDesc.getLdesc("1D2D")
 
             # open filout
             filout = open(p_filout_RDKIT, "w")
@@ -141,7 +139,7 @@ class dataset:
             l_smi = []
             for CASRN in self.d_dataset.keys():
                 SMILES = self.d_dataset[CASRN]["SMILES"]
-                cChem = Chemical.Chemical(SMILES, pr_desc, p_salts=path.abspath("./Salts.txt"))
+                cChem = CompDesc.CompDesc(SMILES, pr_desc, p_salts=path.abspath("./Salts.txt"))
                 cChem.prepChem() # prep
                 # case error cleaning
                 if cChem.err == 1:
@@ -232,7 +230,7 @@ class dataset:
                 continue
             else:
                 SMILES = self.d_dataset[CASRN]["SMILES"]
-                cChem = Chemical.Chemical(SMILES, pr_desc)#, p_salts=path.abspath("./Salts.txt"), OS="Windows")
+                cChem = CompDesc.CompDesc(SMILES, pr_desc)#, p_salts=path.abspath("./Salts.txt"), OS="Windows")
                 cChem.prepChem() # prep
                 p_png_inch = cChem.computePNG()
                 if cChem.err == 0:

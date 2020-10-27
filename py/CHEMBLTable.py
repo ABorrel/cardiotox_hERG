@@ -5,11 +5,8 @@ from re import search
 
 import toolbox
 import runExternal
+import CompDesc
 
-# import descriptor computation scripts => precise folder where descriptor are included
-import sys
-sys.path.insert(0, "./../../../development/molecular-descriptors/")
-import Chemical
 
 
 class CHEMBLTable:
@@ -245,7 +242,7 @@ class CHEMBLTable:
             return p_filout
 
         # extract descriptor 2D
-        l_desc = Chemical.getLdesc("1D2D")
+        l_desc = CompDesc.getLdesc("1D2D")# see if work
 
         # open filout
         filout = open(p_filout, "w")
@@ -257,7 +254,7 @@ class CHEMBLTable:
             ChEMBLid = d_chem["Molecule ChEMBL ID"]
             SMILES = d_chem["Smiles"]
 
-            cChem = Chemical.Chemical(SMILES, self.pr_out, p_salts=path.abspath("./Salts.txt"))
+            cChem = CompDesc.CompDesc(SMILES, self.pr_out, p_salts=path.abspath("./Salts.txt"))
             cChem.prepChem() # prep
             # case error cleaning
             if cChem.err == 1:

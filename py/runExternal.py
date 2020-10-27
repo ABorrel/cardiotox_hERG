@@ -3,7 +3,7 @@ import subprocess
 
 
 P_RSCRIPTS = "../R/"
-P_RQSAR = "./../../../development/QSAR-QSPR/"
+P_RQSAR = "/mnt/c/Users/aborr/research/development/QSAR-QSPR/"
 
 R_BIN = "C:\\Program Files\\R\\R-4.0.2\\bin\\Rscript.exe"
 

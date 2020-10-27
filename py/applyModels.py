@@ -7,9 +7,7 @@ import runExternal
 import toolbox
 
 
-import sys
-sys.path.insert(0, "./../../../development/molecular-descriptors/")
-import Chemical
+import CompDesc
 
 class applyModel:
     def __init__(self, p_desc_model, p_desc_global, p_aff_model, p_desc_test, p_aff_test, pr_models, pr_out):
@@ -56,7 +54,8 @@ class applyModel:
             for chemblID in dpred.keys():
                 if not chemblID in list(d_out.keys()):
                     d_out[chemblID] = []
-                d_out[chemblID].append(float(dpred[chemblID]["Pred"]))
+                try:d_out[chemblID].append(float(dpred[chemblID]["Pred"]))
+                except:pass
         
         d_aff = toolbox.loadMatrix(self.p_aff_test, sep = ",")
 
@@ -72,6 +71,8 @@ class applyModel:
         # plot prob vs aff
         runExternal.plotAC50VSProb(p_filout)
 
+
+
         return p_filout
 
     def applySOM(self, p_SOMmodel):
@@ -83,7 +84,7 @@ class applyModel:
 
         pr_out = pathFolder.createFolder(self.pr_out + "AD/")
         
-        p_out = pr_out + "AD_zscore.csv"
+        p_out = pr_out + "AD_Test_zscore.csv"
         if path.exists(p_out):
             self.p_AD = p_out
 
@@ -131,7 +132,7 @@ class applyModel:
         d_inch_model = {}
         for chem in d_desc_model.keys():
             SMILES = d_desc_model[chem]["SMILES"]
-            cChem = Chemical.Chemical(SMILES, "", p_salts="./Salts.txt")
+            cChem = CompDesc.CompDesc(SMILES, "", p_salts="./Salts.txt")
             inch = cChem.generateInchiKey()
             if not inch in list(d_inch_model.keys()):
                 d_inch_model[inch] = d_desc_model[chem]
@@ -157,7 +158,7 @@ class applyModel:
         d_inch_test = {}
         for chem in d_desc_test.keys():
             SMILES = d_desc_test[chem]["SMILES"]
-            cChem = Chemical.Chemical(SMILES, "", p_salts="./Salts.txt")
+            cChem = CompDesc.CompDesc(SMILES, "", p_salts="./Salts.txt")
             inch = cChem.generateInchiKey()
             if not inch in list(d_inch_test.keys()):
                 d_inch_test[inch] = d_desc_test[chem]

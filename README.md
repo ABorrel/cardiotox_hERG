@@ -3,15 +3,14 @@
 ## Dependency
 - Python 3.7.x
     - library RDKIT on docker
-    - classic calculate descriptors
+    - numpy, scipy
 
 - R > 3.6
 
-
 - From personal scripts
 	- QSAR R scripts from github => https://github.com/ABorrel/QSAR-QSPR
-	- Python class used to compute molecular descriptor => https://github.com/ABorrel/molecular-descriptors
 	- Toolbox R => https://github.com/ABorrel/R_toolbox
+	- CompDesc library (pip install -i https://test.pypi.org/simple/ CompDesc)
 
 ## To do
 - ~~Add function to merge QSAR model from undersampling~~
@@ -29,3 +28,4 @@
 - 15-7-20: Add AD computation
 - 7-8-20: fix AD for figure and push clustering
 - 31-8-20: add model regression
+- 05-10-20: change hyperparameter for regression modeling

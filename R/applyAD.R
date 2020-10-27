@@ -47,6 +47,52 @@ MCC = function (tp, tn, fp, fn){
 }
 
 
+includeInADD = function(d, d_AD, cutoff_zscore){
+
+  l_inAD = rownames(d_AD)[which(d_AD$Zscore < cutoff_zscore)]
+
+  l_ID_inAD = intersect(rownames(d), l_inAD)
+
+  # define light d
+  d = d[l_ID_inAD,]
+
+  d[which(d[,"Real"] == 0),"Real"] = NA
+  dact = na.omit(d)
+  dinact = d[which(is.na(d[,3])),]
+
+
+
+  # SUMMARY PREDICTION
+  h = c("NB active", "NB inact", "TP", "FN", "TN", "FP", "Mact prob", "SDact prob", "Minact prob", "SDinact prob", "Acc", "Sp", "Se", "MCC")
+
+  nbact = dim(dact)[1]
+  nbinact = dim(dinact)[1]
+  TP = length(which(dact[,1] >= 0.5))
+  FN = length(which(dact[,1] < 0.5))
+  Mact = mean(dact[,1])
+  SDact = sd(dact[,1])
+
+  TN = length(which(dinact[,1] < 0.5))
+  FP = length(which(dinact[,1] >= 0.5))
+  Minact = mean(dinact[,1])
+  SDinact = sd(dinact[,1])
+
+  Acc = accuracy(TP, TN, FP, TN)
+  Sp = specificity(TN, FP)
+  Se = sensibility(TP, FN)
+  mcc = MCC(TP, TN, FP, FN)
+
+
+
+  cval = c(nbact, nbinact, TP, FN, TN, FP, Mact,SDact, Minact, SDinact, Acc, Sp, Se, mcc)
+  names(cval) = h 
+
+
+
+  return(cval)
+
+}
+
 ################
 #     MAIN     #
 ################
@@ -73,42 +119,18 @@ d = d[,-1]
 # open AD
 d_AD = read.csv(p_AD, sep = ",")
 rownames(d_AD) = d_AD[,1]
-l_inAD = rownames(d_AD)[which(d_AD$AD == 1)]
 
-l_ID_inAD = intersect(rownames(d), l_inAD)
+cval = includeInADD(d, d_AD, 0.75)
+write.csv(cval, file = paste(pr_out, "sum_Pred_075_AD.csv", sep = ""))
 
-# define light d
-d = d[l_ID_inAD,]
+cval = includeInADD(d, d_AD, 1)
+write.csv(cval, file = paste(pr_out, "sum_Pred_1_AD.csv", sep = ""))
 
-d[which(d[,"Real"] == 0),"Real"] = NA
-dact = na.omit(d)
-dinact = d[which(is.na(d[,3])),]
+cval = includeInADD(d, d_AD, 2)
+write.csv(cval, file = paste(pr_out, "sum_Pred_2_AD.csv", sep = ""))
 
+cval = includeInADD(d, d_AD, 4)
+write.csv(cval, file = paste(pr_out, "sum_Pred_4_AD.csv", sep = ""))
 
-# SUMMARY PREDICTION
-h = c("NB active", "NB inact", "TP", "FN", "TN", "FP", "Mact prob", "SDact prob", "Minact prob", "SDinact prob", "Acc", "Sp", "Se", "MCC")
-
-nbact = dim(dact)[1]
-nbinact = dim(dinact)[1]
-TP = length(which(dact[,1] >= 0.5))
-FN = length(which(dact[,1] < 0.5))
-Mact = mean(dact[,1])
-SDact = sd(dact[,1])
-
-TN = length(which(dinact[,1] < 0.5))
-FP = length(which(dinact[,1] >= 0.5))
-Minact = mean(dinact[,1])
-SDinact = sd(dinact[,1])
-
-Acc = accuracy(TP, TN, FP, TN)
-Sp = specificity(TN, FP)
-Se = sensibility(TP, FN)
-mcc = MCC(TP, TN, FP, FN)
-
-
-
-cval = c(nbact, nbinact, TP, FN, TN, FP, Mact,SDact, Minact, SDinact, Acc, Sp, Se, mcc)
-names(cval) = h 
-
-
-write.csv(cval, file = paste(pr_out, "sum_Pred_inAD.csv", sep = ""))
+cval = includeInADD(d, d_AD, 10)
+write.csv(cval, file = paste(pr_out, "sum_Pred_10_AD.csv", sep = ""))

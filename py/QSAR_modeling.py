@@ -76,13 +76,43 @@ class QSAR_modeling:
     def runQSARReg(self, corcoef, maxQuantile):
         for i in range(1, self.repetition+1):
             pr_run = pathFolder.createFolder(self.pr_out + str(i) + "/")
-            print(pr_run)
-            runExternal.prepDataQSARReg(self.p_desc, self.p_AC50, pr_run, corcoef, maxQuantile, self.rate_splitTrainTest,  typeAff="All", logaff=0, nbNA = 10)
-            runExternal.runQSARReg(pr_run + "trainSet.csv", pr_run + "testSet.csv", "0", pr_run, self.n_foldCV)
+            if not path.exists(pr_run + "trainSet.csv"):
+                runExternal.prepDataQSARReg(self.p_desc, self.p_AC50, pr_run, corcoef, maxQuantile, self.rate_splitTrainTest,  typeAff="All", logaff=0, nbNA = 10)
             
-            ddd
+            if not path.exists(pr_run + "perfTest.csv"): # control the perf test file is not present
+                runExternal.runQSARReg(pr_run + "trainSet.csv", pr_run + "testSet.csv", "0", pr_run, self.n_foldCV)
+            
 
-        return 
+    def mergeRegResults(self):
+
+        d_result = {}
+        pr_result = pathFolder.createFolder(self.pr_out + "mergeResults/")
+        l_pr_run = listdir(self.pr_out)
+
+        for pr_run in l_pr_run:
+            if pr_run == "desc_global.csv" or pr_run == "mergeResults":
+                continue
+            else:
+                d_result[pr_run] = {}
+                p_perfTrain = self.pr_out + pr_run + "/perfTrain.csv"
+                p_perfCV = self.pr_out + pr_run + "/perfCV.csv"
+                p_perfTest = self.pr_out + pr_run + "/perfTest.csv"
+
+                d_result[pr_run]["train"] =  toolbox.loadMatrix(p_perfTrain, sep = ",")
+                d_result[pr_run]["test"] =  toolbox.loadMatrix(p_perfTest, sep = ",")
+                d_result[pr_run]["CV"] =  toolbox.loadMatrix(p_perfCV, sep = ",")
+
+        #print(d_result)
+
+        p_filout = pr_result + "results.csv"
+        filout = open(p_filout, "w")
+        for run in d_result.keys():
+            filout.write("Run: %s"%(run))
+            filout.write("ML\tCV\t\t\t\tTrain\t\t\t\tTest\t\t\t\n")
+            filout.write("\tR2\tR0\tMAE\tcor\tR2\tR0\tMAE\tcor\tR2\tR0\tMAE\tcor\n")
+            for ML in d_result[run]["CV"].keys():
+                filout.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"%(ML, d_result[run]["CV"][ML]["R2"], d_result[run]["CV"][ML]["R02"], d_result[run]["CV"][ML]["MAE"], d_result[run]["CV"][ML]["r"], d_result[run]["train"][ML]["R2"], d_result[run]["train"][ML]["R02"], d_result[run]["train"][ML]["MAE"], d_result[run]["train"][ML]["r"], d_result[run]["test"][ML]["R2"], d_result[run]["test"][ML]["R02"], d_result[run]["test"][ML]["MAE"], d_result[run]["test"][ML]["r"]))
+        filout.close()
 
 
     def prepSplitTrainTestSet(self):
@@ -296,11 +326,6 @@ class QSAR_modeling:
 
         # draw histogram for AD and add summary and PCA
         runExternal.mergeADs(p_train, p_test, self.p_desc, pr_AD_all)
-
-
-
-
-
 
 
     def mergeProbaRF(self, p_AC50, pr_prob):
