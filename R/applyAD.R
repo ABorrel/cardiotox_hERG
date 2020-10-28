@@ -77,16 +77,14 @@ includeInADD = function(d, d_AD, cutoff_zscore){
   Minact = mean(dinact[,1])
   SDinact = sd(dinact[,1])
 
-  Acc = accuracy(TP, TN, FP, TN)
+  Acc = accuracy(TP, TN, FP, FN)
   Sp = specificity(TN, FP)
   Se = sensibility(TP, FN)
   mcc = MCC(TP, TN, FP, FN)
 
 
-
   cval = c(nbact, nbinact, TP, FN, TN, FP, Mact,SDact, Minact, SDinact, Acc, Sp, Se, mcc)
   names(cval) = h 
-
 
 
   return(cval)

@@ -35,9 +35,9 @@ class applyModel:
         self.pr_allPredict = pr_out
 
 
-    def predictReg(self):
+    def predictReg(self, ML):
         pr_out = pathFolder.createFolder(self.pr_out + "predict_Reg_model_RF/")
-        runExternal.predictRegDataset(self.p_desc_test, self.p_aff_test, self.p_AD, self.pr_models, pr_out)
+        runExternal.predictRegDataset(self.p_desc_test, self.p_aff_test, self.p_AD, self.pr_models, ML, pr_out)
 
         
     def mergePrediction(self):
@@ -206,20 +206,20 @@ class applyModel:
                 d_AC50_test[chem]["LogAC50"] = -float(d_AC50_test[chem]["LogAC50"])
 
         filout = open(p_filout, "w")
-        filout.write("ID\tSMILES\tLogAC50 model\tLogAC50 test\tAff\tInclude\n")
+        filout.write("ID\tLogAC50 model\tLogAC50 test\tAff\tInclude\n")
+
 
         for chem in d_AC50_test.keys():
-            
             if not chem in list(d_desc_test.keys()): # case SMILES is not define
                 continue
             if chem in list(d_AC50_model.keys()):
                 if d_AC50_model[chem]["Aff"] == "NA":aff = 0
                 else:aff = 1
-                filout.write("%s\t%s\t%s\t%s\t%s\t1\n"%(chem, d_desc_test[chem]["SMILES"] ,d_AC50_model[chem]["Aff"], d_AC50_test[chem]["LogAC50"], aff))
+                filout.write("%s\t%s\t%s\t%s\t1\n"%(chem, d_AC50_model[chem]["Aff"], d_AC50_test[chem]["LogAC50"], aff))
             else:
                 if d_AC50_test[chem]["LogAC50"] == "NA":aff = 0
                 else:aff = 1
-                filout.write("%s\t%s\tNA\t%s\t%s\t0\n"%(chem, d_desc_test[chem]["SMILES"] , d_AC50_test[chem]["LogAC50"], aff))
+                filout.write("%s\tNA\t%s\t%s\t0\n"%(chem, d_AC50_test[chem]["LogAC50"], aff))
         filout.close()
         runExternal.overlapPlot(p_filout)
 
@@ -274,16 +274,15 @@ class applyModel:
 
             d_desc = toolbox.loadMatrix(self.p_desc_test, sep ="\t")
             l_h = list(d_desc_test[list(d_desc_test.keys())[0]].keys())
-            l_h.remove("SMILES")
             l_h.remove("CASRN")
 
             f_desc_out = open(p_desc_out, "w")
-            f_desc_out.write("CASRN\tSMILES\t%s\n"%("\t".join(l_h)))
+            f_desc_out.write("CASRN\t%s\n"%("\t".join(l_h)))
             for chem in d_desc.keys():
                  if not chem in list(d_AC50_model.keys()):
                     if d_AC50_test[chem]["LogAC50"] == "NA":
                         continue
                     else:
-                        f_desc_out.write("%s\t%s\t%s\n"%(chem, d_desc[chem]["SMILES"], "\t".join([d_desc[chem][h] for h in l_h])))
+                        f_desc_out.write("%s\t%s\n"%(chem, "\t".join([d_desc[chem][h] for h in l_h])))
             f_desc_out.close()
             self.p_desc_test = p_desc_out

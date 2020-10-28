@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-source("./../../../development/R_toolbox/testStats.R")
+library(Toolbox)
 
 
 

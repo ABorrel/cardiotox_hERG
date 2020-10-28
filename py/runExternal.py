@@ -159,9 +159,9 @@ def SignifDesc(p_desc, p_AC50, pr_out):
     cmd = "./SignifDesc.R %s %s %s"%(p_desc, p_AC50, pr_out)
     runRCMD(cmd)
 
-def predictRegDataset(p_desc, p_aff, p_AD, p_model, pr_out):
+def predictRegDataset(p_desc, p_aff, p_AD, p_model, ML, pr_out):
 
-    cmd = "./applyQSARRegModel.R %s %s %s %s %s"%(p_desc, p_aff, p_AD, p_model, pr_out)
+    cmd = "./applyQSARRegModel.R %s %s %s %s %s %s"%(p_desc, p_aff, p_AD, p_model, ML, pr_out)
     runRCMD(cmd)
 
 ############

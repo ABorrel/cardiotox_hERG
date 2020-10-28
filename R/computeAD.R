@@ -171,7 +171,6 @@ write.csv(d_zscore_train, file=paste(pr_out, "AD_Train_zscore.csv", sep=""))
 #######################
 # for the external set
 
-print(ddesc2)
 add_coord = predict(res.pca, newdata = ddesc2)
 d_dist_test = computeDistFromCenter(coord_centroid, add_coord, "test")
 d_zscore_test = computeZscore(d_dist_test, M, SD, "test")

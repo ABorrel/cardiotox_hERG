@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-source ("dataManager.R")
+library(Toolbox)
 
 
 ################

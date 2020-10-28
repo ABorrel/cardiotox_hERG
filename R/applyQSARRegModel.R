@@ -1,7 +1,9 @@
 #!/usr/bin/env Rscript
 library (randomForest)
+library(pls)
+library(nnet)
 library(ggplot2)
-source("./../../../development/QSAR-QSPR/performance.R")
+source("../../../../development/QSAR-QSPR/performance.R")
 
 calR2 = function(dreal, dpredict){
   
@@ -49,7 +51,8 @@ p_desc = args[1]
 p_aff = args[2]
 p_AD = args[3]
 p_model = args[4]
-pr_out = args[5]
+ML = args[5]
+pr_out = args[6]
 
 
 #p_desc = "/mnt/c/Users/Aborrel/research/ILS/HERG/results/AID_588834/QSARReg/desc_active_cleaned.csv"
@@ -81,7 +84,19 @@ model = outmodel$model
 
 print(attributes(model))
 
-lpred = predict(model, din)
+if(ML == "PLS" || ML == "PCR"){
+  lpred = predict(model, din, ncomp = model$ncomp)
+  dout = cbind(lpred, d_aff$LogAC50)
+}else if(ML == "NN") {
+  din = na.omit(din)
+  lpred = predict(model, din)
+  lpred = lpred[,1]
+  dout = cbind(lpred, d_aff$LogAC50[rownames(din)])
+}else{
+  lpred = predict(model, din)
+  dout = cbind(lpred, d_aff$LogAC50)
+}
+
 dout = cbind(lpred, d_aff$LogAC50)
 
 colnames(dout) = c("Pred", "Real")
@@ -90,6 +105,7 @@ dout$Pred = as.double(as.character(dout$Pred))
 dout$Real = as.double(as.character(dout$Real))
 dout = cbind(dout, AD)
 dout = na.omit(dout)
+
 #dout = dout[which(dout$AD < 1), ]
 
 write.csv(dout, paste(pr_out, "predicted.csv", sep=""))

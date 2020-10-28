@@ -75,13 +75,16 @@ class QSAR_modeling:
     def runQSARReg(self, corcoef, maxQuantile):
         for i in range(1, self.repetition+1):
             pr_run = pathFolder.createFolder(self.pr_out + str(i) + "/")
-<<<<<<< HEAD
             if not path.exists(pr_run + "trainSet.csv"):
                 runExternal.prepDataQSARReg(self.p_desc, self.p_AC50, pr_run, corcoef, maxQuantile, self.rate_splitTrainTest,  typeAff="All", logaff=0, nbNA = 10)
             
             if not path.exists(pr_run + "perfTest.csv"): # control the perf test file is not present
                 runExternal.runQSARReg(pr_run + "trainSet.csv", pr_run + "testSet.csv", "0", pr_run, self.n_foldCV)
-            
+        self.mergeRegQSARs()
+        return 
+
+
+
 
     def mergeRegResults(self):
 
@@ -112,17 +115,7 @@ class QSAR_modeling:
             filout.write("\tR2\tR0\tMAE\tcor\tR2\tR0\tMAE\tcor\tR2\tR0\tMAE\tcor\n")
             for ML in d_result[run]["CV"].keys():
                 filout.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"%(ML, d_result[run]["CV"][ML]["R2"], d_result[run]["CV"][ML]["R02"], d_result[run]["CV"][ML]["MAE"], d_result[run]["CV"][ML]["r"], d_result[run]["train"][ML]["R2"], d_result[run]["train"][ML]["R02"], d_result[run]["train"][ML]["MAE"], d_result[run]["train"][ML]["r"], d_result[run]["test"][ML]["R2"], d_result[run]["test"][ML]["R02"], d_result[run]["test"][ML]["MAE"], d_result[run]["test"][ML]["r"]))
-        filout.close()
-=======
-            print(pr_run)
-            #if not path.exists(pr_run + "trainSet.csv"):
-            #    runExternal.prepDataQSARReg(self.p_desc, self.p_AC50, pr_run, corcoef, maxQuantile, self.rate_splitTrainTest,  typeAff="All", logaff=0, nbNA = 10)
-            #runExternal.runQSARReg(pr_run + "trainSet.csv", pr_run + "testSet.csv", "0", pr_run, self.n_foldCV)
-        
-        self.mergeRegQSARs()
-        return 
->>>>>>> 18f281780c78867f1fb59026ac9559a6067ff451
-
+       
 
     def prepSplitTrainTestSet(self):
 

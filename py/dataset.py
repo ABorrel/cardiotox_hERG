@@ -119,7 +119,9 @@ class dataset:
         p_filout_RDKIT = pr_desc + "desc_1D2D.csv"
         p_filout_OPERA = pr_desc + "desc_OPERA.csv"
         if path.exists(p_filout_RDKIT) and path.exists(p_filout_OPERA):
-            return [p_filout_RDKIT, p_filout_OPERA]
+            self.p_desc1D2D = p_filout_RDKIT
+            self.p_desc_opera = p_filout_OPERA
+            return [self.p_desc1D2D,  self.p_desc_opera]
 
         # create opera descriptor
         pr_OPERA = pathFolder.createFolder(pr_desc + "OPERA/")

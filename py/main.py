@@ -53,7 +53,7 @@ COR_VAL = 0.90
 MAX_QUANTILE = 90
 
 cAnalysis = analysis.analysis(p_AC50, c_dataset.p_desc1D2D, c_dataset.p_desc_opera, PR_RESULTS, COR_VAL, MAX_QUANTILE)
-cAnalysis.prepDesc() #only consider 1D2D descriptors
+#cAnalysis.prepDesc() #only consider 1D2D descriptors
 
 ## 2.1. histogram AC50 and summary
 #cAnalysis.sumAC50()
@@ -62,7 +62,7 @@ cAnalysis.prepDesc() #only consider 1D2D descriptors
 #cAnalysis.PCA_plot()
 
 ## 2.3 SOM
-size = 15
+#size = 15
 #cAnalysis.generate_SOM(15)
 #cAnalysis.signifDescBySOMCluster()
 #cAnalysis.extract_actBySOMCluster(pr_desc + "PNG/") # have to run !!!!
@@ -123,11 +123,11 @@ nb_repetition = 10
 # 4.1 prep data
 #################
 # => Prep and combine OPERA and rdkit desc
-COR_VAL = 0.85
-MAX_QUANTILE = 85
-cAnalysis = analysis.analysis(p_AC50, p_desc, p_desc_opera, PR_RESULTS, COR_VAL, MAX_QUANTILE)
-cAnalysis.prepDesc()
-cAnalysis.combineDesc(pr_QSARreg)
+#COR_VAL = 0.85
+#MAX_QUANTILE = 85
+#cAnalysis = analysis.analysis(p_AC50, c_dataset.p_desc1D2D, c_dataset.p_desc_opera, PR_RESULTS, COR_VAL, MAX_QUANTILE)
+#cAnalysis.prepDesc()
+#cAnalysis.combineDesc()
 
 # 4.2 run reg model
 ####################
@@ -254,27 +254,28 @@ cAnalysis.combineDesc(pr_QSARreg)
 ########################################################
 
 # path for file for dataset
-p_dataset = PR_DATA + "AID_588834_datatable_all.csv"
-p_mapp = PR_DATA + "AID_588834_ID_mapping.csv"
-p_SMILESComptox = PR_DATA + "CompToxChemicalsDashboard-SMILES.csv"
-pr_TestSet = pathFolder.createFolder(PR_RESULTS + "AID_588834/")
+#p_dataset = PR_DATA + "AID_588834_datatable_all.csv"
+#p_mapp = PR_DATA + "AID_588834_ID_mapping.csv"
+#p_SMILESComptox = PR_DATA + "CompToxChemicalsDashboard-SMILES.csv"
+#pr_TestSet = pathFolder.createFolder(PR_RESULTS + "AID_588834/")
 
 # data from the model
-pr_model_data = pathFolder.createFolder(pr_TestSet + "Data_model/")
-cDataModel = analysis.analysis(p_AC50, c_dataset.p_desc1D2D, c_dataset.p_desc_opera, pr_model_data, COR_VAL, MAX_QUANTILE)
-cDataModel.combineDesc()
-cDataModel.prepDesc()
+#pr_model_data = pathFolder.createFolder(pr_TestSet + "Data_model/")
+#cDataModel = analysis.analysis(p_AC50, c_dataset.p_desc1D2D, c_dataset.p_desc_opera, pr_model_data, COR_VAL, MAX_QUANTILE)
+#cDataModel.combineDesc()
+#cDataModel.prepDesc()
 
 # data from test set processing
-c_genericSet = genericTestSet.genericTestSet(p_dataset, pr_TestSet)
-c_genericSet.loadDataset(loadDb=p_SMILESComptox, p_mapFile=p_mapp)
-c_genericSet.computeDesc()
-# combine OPERA + RDKIT
-c_genericSet.combineDesc()
-c_genericSet.setAff(allAff="PUBCHEM_ACTIVITY_OUTCOME")
+#c_genericSet = genericTestSet.genericTestSet(p_dataset, pr_TestSet)
+#c_genericSet.loadDataset(loadDb=p_SMILESComptox, p_mapFile=p_mapp)
+#c_genericSet.computeDesc()
+## combine OPERA + RDKIT
+#c_genericSet.combineDesc()
+#c_genericSet.setAff(allAff="PUBCHEM_ACTIVITY_OUTCOME")
 
 
-## apply classification models
+## apply classification models ##
+#################################
 #pr_QSAR_classif = pathFolder.createFolder(pr_TestSet + "QSARClass/")
 #cApplyModel = applyModels.applyModel(cDataModel.p_desc_cleaned, cDataModel.p_desc, cDataModel.p_AC50_cleaned, c_genericSet.p_desc, c_genericSet.p_aff, pr_RF_models, pr_QSAR_classif)
 #cApplyModel.overlapSetWithID(rm_overlap=1)
@@ -285,23 +286,19 @@ c_genericSet.setAff(allAff="PUBCHEM_ACTIVITY_OUTCOME")
 #cApplyModel.applyAD()
 
 
-## apply regression model
-p_model_Reg = PR_RESULTS + "QSARreg/7/RFreg/model.RData" # manual selection
-pr_QSAR_reg = pathFolder.createFolder(pr_TestSet + "QSARReg/")
-cApplyModel = applyModels.applyModel(cDataModel.p_desc_cleaned, cDataModel.p_desc, cDataModel.p_AC50_cleaned, c_genericSet.p_desc, c_genericSet.p_aff, p_model_Reg, pr_QSAR_reg)
-cApplyModel.overlapSetWithID(rm_overlap=1, rm_inactive=1)
-cDataModel.extractOnlyActive()
-cApplyModel.computeAD()
-cApplyModel.PCACombine()
-cApplyModel.predictReg()
-cApplyModel.applyAD()
+## apply regression model ##
+############################
 
-dd
+#p_model_Reg = PR_RESULTS + "QSARreg/7/RFreg/model.RData" # manual selection
+#pr_QSAR_reg = pathFolder.createFolder(pr_TestSet + "QSARReg/")
+#cApplyModel = applyModels.applyModel(cDataModel.p_desc_cleaned, cDataModel.p_desc, cDataModel.p_AC50_cleaned, c_genericSet.p_desc, c_genericSet.p_aff, p_model_Reg, pr_QSAR_reg)
+#cApplyModel.overlapSetWithID(rm_overlap=1, rm_inactive=1)
+#cDataModel.extractOnlyActive()
+#cApplyModel.computeAD()
+#cApplyModel.PCACombine()
+#cApplyModel.predictReg()
+#cApplyModel.applyAD()
 
-
-# SOM
-#p_SOM = PR_RESULTS + "SOM/SOM_model.RData"
-#cApplyModel.applySOM(p_SOM)
 
 
 ## 10. Shagun test set -> AID588834 no overlap => including 1014 chem
@@ -314,21 +311,52 @@ c_genericSet = genericTestSet.genericTestSet(p_dataset, pr_TestSet)
 c_genericSet.loadDataset(loadDb=p_SMILESComptox)
 p_desc = c_genericSet.computeDesc()
 c_genericSet.combineDesc()
-p_aff = c_genericSet.setAff(allAff="PUBCHEM_ACTIVITY_OUTCOME")
+c_genericSet.setAff(allAff="PUBCHEM_ACTIVITY_OUTCOME")
 
-## apply model
-cApplyModel = applyModels.applyModel(cAnalysis.p_desc_cleaned, cAnalysis.p_desc, cAnalysis.p_AC50, c_genericSet.p_desc, p_aff, pr_RF_models, pr_TestSet)
-cApplyModel.PCACombine()
-cApplyModel.predict()
-cApplyModel.mergePrediction()
-cApplyModel.computeAD()
-cApplyModel.applyAD()
+## 10.1 apply model classification
+#####
+#cApplyModel = applyModels.applyModel(cAnalysis.p_desc_cleaned, cAnalysis.p_desc, cAnalysis.p_AC50_cleaned, c_genericSet.p_desc, c_genericSet.p_aff, pr_RF_models, pr_TestSet)
+#cApplyModel.PCACombine()
+#cApplyModel.predict()
+#cApplyModel.mergePrediction()
+#cApplyModel.computeAD()
+#cApplyModel.applyAD()
 
-# SOM
-p_SOM = PR_RESULTS + "SOM/SOM_model.RData"
-cApplyModel.applySOM(p_SOM)
-ss
 
+##10.2 apply model regression
+#for i in range(1,11):
+#    p_model_Reg = "%sQSARreg/%s/RFreg/model.RData"%(PR_RESULTS, i) # manual selection
+#    pr_QSAR_reg = pathFolder.createFolder("%sQSAR-RF-Reg%s/"%(pr_TestSet, i))
+#    cApplyModel = applyModels.applyModel(cAnalysis.p_desc_cleaned, cAnalysis.p_desc, cAnalysis.p_AC50_cleaned, c_genericSet.p_desc, c_genericSet.p_aff, p_model_Reg, pr_QSAR_reg)
+#    cApplyModel.overlapSetWithID(rm_overlap=1, rm_inactive=1)
+#    cApplyModel.computeAD()
+#    cApplyModel.predictReg()
+
+#for i in range(1,11):
+#    p_model_Reg = "%sQSARreg/%s/NNreg/model.RData"%(PR_RESULTS, i) # manual selection
+#    pr_QSAR_reg = pathFolder.createFolder("%sQSAR-NN-Reg%s/"%(pr_TestSet, i))
+#    cApplyModel = applyModels.applyModel(cAnalysis.p_desc_cleaned, cAnalysis.p_desc, cAnalysis.p_AC50_cleaned, c_genericSet.p_desc, c_genericSet.p_aff, p_model_Reg, pr_QSAR_reg)
+#    cApplyModel.overlapSetWithID(rm_overlap=1, rm_inactive=1)
+#    cApplyModel.computeAD()
+#    cApplyModel.predictReg("NN")
+
+for i in range(1,11):
+    p_model_Reg = "%sQSARreg/%s/PCRreg/model.RData"%(PR_RESULTS, i) # manual selection
+    pr_QSAR_reg = pathFolder.createFolder("%sQSAR-PCR-Reg%s/"%(pr_TestSet, i))
+    cApplyModel = applyModels.applyModel(cAnalysis.p_desc_cleaned, cAnalysis.p_desc, cAnalysis.p_AC50_cleaned, c_genericSet.p_desc, c_genericSet.p_aff, p_model_Reg, pr_QSAR_reg)
+    cApplyModel.overlapSetWithID(rm_overlap=1, rm_inactive=1)
+    cApplyModel.computeAD()
+    cApplyModel.predictReg("PCR")
+
+#for i in range(1,11):
+#    p_model_Reg = "%sQSARreg/%s/PLSreg/model.RData"%(PR_RESULTS, i) # manual selection
+#    pr_QSAR_reg = pathFolder.createFolder("%sQSAR-PLS-Reg%s/"%(pr_TestSet, i))
+#    cApplyModel = applyModels.applyModel(cAnalysis.p_desc_cleaned, cAnalysis.p_desc, cAnalysis.p_AC50_cleaned, c_genericSet.p_desc, c_genericSet.p_aff, p_model_Reg, pr_QSAR_reg)
+#    cApplyModel.overlapSetWithID(rm_overlap=1, rm_inactive=1)
+#    cApplyModel.computeAD()
+#    cApplyModel.predictReg("PLS")
+
+ddd
 
 ## 11. Shagun test set => including 408 chem extracted from the litterature
 #######################################
@@ -337,7 +365,7 @@ p_dataset = PR_DATA + "Ext_Testset_hERG_review_14Oct.csv"
 p_SMILESComptox = PR_DATA + "CompToxChemicalsDashboard-SMILES.csv"
 pr_TestSet = pathFolder.createFolder(PR_RESULTS + "Ext_Test_Set_Final_Litt_408Chem/")
 c_genericSet = genericTestSet.genericTestSet(p_dataset, pr_TestSet)
-c_genericSet.loadDataset(loadDb=p_SMILESComptox)
+c_genericSet.loadDataset()
 c_genericSet.computeDesc()
 c_genericSet.combineDesc()
 p_aff = c_genericSet.setAff(allAff=1)
@@ -349,7 +377,3 @@ cApplyModel.predict()
 cApplyModel.mergePrediction()
 cApplyModel.computeAD()
 cApplyModel.applyAD()
-
-# SOM
-p_SOM = PR_RESULTS + "SOM/SOM_model.RData"
-cApplyModel.applySOM(p_SOM)
