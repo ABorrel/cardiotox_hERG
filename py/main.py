@@ -304,14 +304,14 @@ nb_repetition = 10
 ## 10. Shagun test set -> AID588834 no overlap => including 1014 chem
 #######################################################################
 
-p_dataset = PR_DATA + "Ext_Test_Set_Final_1014Chem.csv"
-p_SMILESComptox = PR_DATA + "CompToxChemicalsDashboard-SMILES.csv"
-pr_TestSet = pathFolder.createFolder(PR_RESULTS + "Ext_Test_Set_Final_1014Chem/")
-c_genericSet = genericTestSet.genericTestSet(p_dataset, pr_TestSet)
-c_genericSet.loadDataset(loadDb=p_SMILESComptox)
-p_desc = c_genericSet.computeDesc()
-c_genericSet.combineDesc()
-c_genericSet.setAff(allAff="PUBCHEM_ACTIVITY_OUTCOME")
+#p_dataset = PR_DATA + "Ext_Test_Set_Final_1014Chem.csv"
+#p_SMILESComptox = PR_DATA + "CompToxChemicalsDashboard-SMILES.csv"
+#pr_TestSet = pathFolder.createFolder(PR_RESULTS + "Ext_Test_Set_Final_1014Chem/")
+#c_genericSet = genericTestSet.genericTestSet(p_dataset, pr_TestSet)
+#c_genericSet.loadDataset(loadDb=p_SMILESComptox)
+#p_desc = c_genericSet.computeDesc()
+#c_genericSet.combineDesc()
+#c_genericSet.setAff(allAff="PUBCHEM_ACTIVITY_OUTCOME")
 
 ## 10.1 apply model classification
 #####
@@ -340,13 +340,13 @@ c_genericSet.setAff(allAff="PUBCHEM_ACTIVITY_OUTCOME")
 #    cApplyModel.computeAD()
 #    cApplyModel.predictReg("NN")
 
-for i in range(1,11):
-    p_model_Reg = "%sQSARreg/%s/PCRreg/model.RData"%(PR_RESULTS, i) # manual selection
-    pr_QSAR_reg = pathFolder.createFolder("%sQSAR-PCR-Reg%s/"%(pr_TestSet, i))
-    cApplyModel = applyModels.applyModel(cAnalysis.p_desc_cleaned, cAnalysis.p_desc, cAnalysis.p_AC50_cleaned, c_genericSet.p_desc, c_genericSet.p_aff, p_model_Reg, pr_QSAR_reg)
-    cApplyModel.overlapSetWithID(rm_overlap=1, rm_inactive=1)
-    cApplyModel.computeAD()
-    cApplyModel.predictReg("PCR")
+#for i in range(1,11):
+#    p_model_Reg = "%sQSARreg/%s/PCRreg/model.RData"%(PR_RESULTS, i) # manual selection
+#    pr_QSAR_reg = pathFolder.createFolder("%sQSAR-PCR-Reg%s/"%(pr_TestSet, i))
+#    cApplyModel = applyModels.applyModel(cAnalysis.p_desc_cleaned, cAnalysis.p_desc, cAnalysis.p_AC50_cleaned, c_genericSet.p_desc, c_genericSet.p_aff, p_model_Reg, pr_QSAR_reg)
+#    cApplyModel.overlapSetWithID(rm_overlap=1, rm_inactive=1)
+#    cApplyModel.computeAD()
+#    cApplyModel.predictReg("PCR")
 
 #for i in range(1,11):
 #    p_model_Reg = "%sQSARreg/%s/PLSreg/model.RData"%(PR_RESULTS, i) # manual selection
@@ -356,7 +356,7 @@ for i in range(1,11):
 #    cApplyModel.computeAD()
 #    cApplyModel.predictReg("PLS")
 
-ddd
+
 
 ## 11. Shagun test set => including 408 chem extracted from the litterature
 #######################################
@@ -368,12 +368,13 @@ c_genericSet = genericTestSet.genericTestSet(p_dataset, pr_TestSet)
 c_genericSet.loadDataset()
 c_genericSet.computeDesc()
 c_genericSet.combineDesc()
-p_aff = c_genericSet.setAff(allAff=1)
+c_genericSet.setAff(allAff=1)
 
 ## apply model
-cApplyModel = applyModels.applyModel(cAnalysis.p_desc_cleaned, cAnalysis.p_desc, cAnalysis.p_AC50, c_genericSet.p_desc, p_aff, pr_RF_models, pr_TestSet)
+cApplyModel = applyModels.applyModel(cAnalysis.p_desc_cleaned, cAnalysis.p_desc, cAnalysis.p_AC50_cleaned, c_genericSet.p_desc, c_genericSet.p_aff, pr_RF_models, pr_TestSet)
 cApplyModel.PCACombine()
 cApplyModel.predict()
 cApplyModel.mergePrediction()
 cApplyModel.computeAD()
 cApplyModel.applyAD()
+ss

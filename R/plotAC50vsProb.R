@@ -94,14 +94,18 @@ dhist[,3] = lact
 mu <- ddply(dhist, "Real", summarise, grp.mean=mean(Mpred))
 
 
-ggplot(dhist, aes(x=Mpred, color=Real, fill=Real)) +
-  #geom_histogram(aes(y=..density..), position="identity", alpha=0.15)+
+
+d = na.omit(d)
+print(d)
+
+ggplot(d, aes(x=Mpred, color=Real, fill=Real)) +
+  geom_histogram(aes(y=..density..), position="identity", alpha=0.15)+
   geom_density(alpha=0.3)+
-  geom_vline(data=mu, aes(xintercept=grp.mean, color=Real),
-             linetype=c("dashed", "solid"))+
+  #geom_vline(data=mu, aes(xintercept=grp.mean, color=Real),
+  #           linetype=c("dashed", "solid"))+
   #xlim(0,120)+
   theme(text = element_text(size=19))+
-  scale_fill_manual(values=c("#eb9999", "#290000"), labels = c("active", "inactive"))+
+  #scale_fill_manual(values=c("#eb9999", "#290000"), labels = c("active", "inactive"))+
   #scale_color_manual(values=c("#eb9999", "#290000", "#d21919", "#a40000"), labels = c("hek293 cell based", "hek2$
   labs(title="",x="Prob", y = "Density")
 
