@@ -77,7 +77,6 @@ rownames(dAC50) = dAC50[,1]
 dAC50 = dAC50[,-1]
 
 lID = intersect(rownames(dAC50), rownames(ddesc))
-print(lID)
 
 ddesc = ddesc[lID,]
 dAC50 = dAC50[lID,]

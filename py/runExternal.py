@@ -55,7 +55,6 @@ def pngtopdf(ppng):
         cmd = "img2pdf.exe " + ppng + " -o " + ppng[:-3] + "pdf"
     else:
         cmd = "convert -quality 100 -density 50 " + ppng + " " + ppng[:-3] + "pdf"
-    print (cmd)
     system(cmd)
     return ppng[:-3] + "pdf"
 
@@ -65,7 +64,7 @@ def mergepdfs(lpdfs, pout):
         cmd = "pdfunite.exe " + " ".join(lpdfs) + " " + pout
     else:
         cmd = "pdfunite " + " ".join(lpdfs) + " " + pout
-    print (cmd)
+    #print (cmd)
     system(cmd)
 
 

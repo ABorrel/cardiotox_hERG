@@ -61,9 +61,9 @@ pdesc = args[1]
 pAC50 = args[2]
 pr_out = args[3]
 
-pdesc = "../../results/DESC/desc_OPERA.csv"
-pAC50 = "./../../data/AC50_7403.txt"
-pr_out = "./../../results/SignifDesc/OPERA_"
+#pdesc = "../../results/DESC/desc_OPERA.csv"
+#pAC50 = "./../../data/AC50_7403.txt"
+#pr_out = "./../../results/SignifDesc/OPERA_"
 
 # AC50
 dAC50 = read.csv(pAC50, sep=",", header = TRUE)

@@ -8,11 +8,172 @@ import QSAR_modeling
 import hergml
 
 from os import path
+
+
+class main:
+    def __init__(self, pr_root, pr_data, name_dataset, pr_results):
+        self.pr_root = pr_root
+        self.pr_data = pr_data
+        self.pr_results = pr_results
+        self.name_dataset = name_dataset
+        self.pr_desc = pathFolder.createFolder(pr_results + "DESC/")
+    
+    def setup_NCATS(self, p_NCATS_smi, p_NCAST_AC50, p_class_chemical):
+        self.p_smi = p_NCATS_smi
+        self.p_AC50 = p_NCAST_AC50
+        self.pr_dataset = pathFolder.createFolder(self.pr_results + "dataset_" + self.name_dataset + "/")
+        self.p_class_chemical = p_class_chemical
+
+    def load_datasetNCAST(self):
+        # 1.1 load dataset
+        c_dataset = dataset.dataset(self.p_smi, self.p_AC50, self.pr_dataset)
+        c_dataset.prep_dataset()
+
+        self.c_dataset = c_dataset
+    
+    def classe_chemical_dataset(self):
+        self.c_dataset.classChem(self.p_class_chemical)
+
+    def compute_desc(self):
+        l_p_desc = self.c_dataset.computeDesc(self.pr_desc)
+        self.c_dataset.computePNG(self.pr_desc)
+        self.l_p_desc = l_p_desc
+
+    def rankActive(self):
+        self.c_dataset.rankActiveChem(self.pr_desc + "PNG/")
+
+    def setup_descAnalysis(self, cor_desc, quantile_desc):
+        self.cor_desc = cor_desc
+        self.quantile_desc = quantile_desc
+        pr_out = pathFolder.createFolder(self.pr_results + "analysis_" + self.name_dataset + "/")
+        self.c_analysis = analysis.analysis(self.p_AC50, self.l_p_desc[0], self.l_p_desc[1], pr_out, self.cor_desc, self.quantile_desc)
+        self.c_analysis.combineDesc()
+        self.c_analysis.prepDesc()
+        self.c_analysis.sumAC50()
+        self.c_analysis.signifDescActInact()
+
+    def run_structural_PCA(self):
+        self.c_analysis.PCA_plot()
+
+    def run_structural_SOM(self, SOM_size):
+        self.c_analysis.generate_SOM(SOM_size)
+        self.c_analysis.signifDescBySOMCluster()
+        self.c_analysis.extract_actBySOMCluster(self.pr_desc + "PNG/") # have to run !!!!
+        self.c_analysis.applySOMtoChemClassification(self.p_class_chemical, self.pr_desc + "PNG/")
+
+    def run_structural_Hclust(self):
+        self.c_analysis.HClust_plot()
+
+
+    def prep_QSARClass(self, cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active):
+        self.cor_desc = cor_desc
+        self.quantile_desc = quantile_desc        
+        self.nb_repetition = nb_repetition
+        self.n_foldCV = n_foldCV
+        self.rate_split = rate_split
+        self.rate_active = rate_active
+
+        pr_out = pathFolder.createFolder("%sQSAR_%s__%s-%s-%s-%s-%s-%s/"%(self.pr_results, self.name_dataset, self.cor_desc, self.quantile_desc, self.nb_repetition, self.n_foldCV, self.rate_split, self.rate_active))
+        self.c_analysis = analysis.analysis(self.p_AC50, self.l_p_desc[0], self.l_p_desc[1], pr_out, self.cor_desc, self.quantile_desc)
+        self.c_analysis.combineDesc()
+        self.c_analysis.prepDesc()
+
+    def run_QSARClassif(self, sampling):
+
+        if sampling = "global":
+            pr_out = pathFolder.createFolder(self.c_analysis.pr_out + "sampleGlobalSet/")
+            self.cQSAR = QSAR_modeling.QSAR_modeling(self.c_analysis.p_desc_cleaned, self.l_p_desc[0], self.c_analysis.p_AC50_cleaned, self.p_AC50, pr_out, self.nb_repetition, self.n_foldCV, self.rate_active, self.rate_split)
+            self.cQSAR.runQSARClassUnderSamplingAllSet(force_run=0)
+            
+            self.cQSAR.pr_RF_models = self.cQSAR.extractModels("%sRF_%s__globalsampling__%s-%s-%s-%s-%s-%s/"%(self.pr_results, self.name_dataset, self.cor_desc, self.quantile_desc, self.nb_repetition, self.n_foldCV, self.rate_split, self.rate_active), "RF")
+            self.cQSAR.pr_LDA_models = self.cQSAR.extractModels("%sLDA_%s__globalsampling__%s-%s-%s-%s-%s-%s/"%(self.pr_results, self.name_dataset, self.cor_desc, self.quantile_desc, self.nb_repetition, self.n_foldCV, self.rate_split, self.rate_active), "LDA")
+
+        else:
+            pr_out = pathFolder.createFolder(self.c_analysis.pr_out + "sampleTraningSet/")
+            self.cQSAR = QSAR_modeling.QSAR_modeling(self.c_analysis.p_desc_cleaned, self.l_p_desc[0], self.c_analysis.p_AC50_cleaned, self.p_AC50, pr_out, self.nb_repetition, self.n_foldCV, self.rate_active, self.rate_split)
+            self.cQSAR.runQSARClassUnderSamplingTrain()
+            
+            self.cQSAR.pr_RF_models = self.cQSAR.extractModels("%sRF_%s__trainnigsampling__%s-%s-%s-%s-%s-%s/"%(self.pr_results, self.name_dataset, self.cor_desc, self.quantile_desc, self.nb_repetition, self.n_foldCV, self.rate_split, self.rate_active), "RF")
+            self.cQSAR.pr_LDA_models = self.cQSAR.extractModels("%sLDA_%s__trainnigsampling__%s-%s-%s-%s-%s-%s/"%(self.pr_results, self.name_dataset, self.cor_desc, self.quantile_desc, self.nb_repetition, self.n_foldCV, self.rate_split, self.rate_active), "LDA")
+
+
+
+
+class NCAST_assays:
+    def __init__(self, p_smi, p_aff_origin, p_classification,  pr_root, pr_data, pr_results):
+        self.p_smi = p_smi
+        self.p_aff_origin = p_aff_origin
+        self.p_classification = p_classification
+        
+        self.pr_root = pr_root
+        self.pr_data = pr_data
+        self.pr_results = pr_results
+
+    def prep_dataset(self):
+        self.cMain = main(self.pr_root, self.pr_data, "NCAST", self.pr_results)
+        self.cMain.setup_NCATS(self.p_smi, self.p_aff_origin, self.p_classification)
+        self.cMain.load_datasetNCAST()
+        self.cMain.classe_chemical_dataset()
+    
+        #compute desc
+        self.cMain.compute_desc()
+        #rank active
+        self.cMain.rankActive()
+
+    def analysis_nopred(self, cor_val, max_quantile, som_size):
+        self.cor_val = cor_val
+        self.max_quantile = max_quantile
+        self.som_size = som_size
+        
+        self.cMain.setup_descAnalysis(self.cor_val, self.max_quantile)
+        self.cMain.run_structural_PCA()
+        self.cMain.run_structural_Hclust()
+        self.cMain.run_structural_SOM(self.som_size)
+
+
+    def QSARClassif_builder(self, cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active):
+
+        self.cMain.prep_QSARClass(cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active)
+        self.cMain.run_QSARClassif("training")
+
+
+
 # Define folder
 ################
 PR_ROOT = path.abspath("../../") + "/"
 PR_DATA = PR_ROOT + "data/"
 PR_RESULTS = pathFolder.createFolder(PR_ROOT + "results/")
+
+
+# NCAST DATASET
+#################
+p_smi_NCAST = PR_DATA + "list_chemicals-2020-06-09-09-11-41.csv"
+p_AC50_NCAST = PR_DATA + "AC50_7403.txt"
+# chemical class
+p_classification_interpred = PR_DATA + "class_from_interferences.csv"
+p_classification_shagun = PR_DATA + "hERG_Active_Annotated_listRefChem_July1.csv"
+# parameter
+COR_VAL = 0.90
+MAX_QUANTILE = 90
+SOM_size = 15
+
+cNCAST = NCAST_assays(p_smi_NCAST, p_AC50_NCAST, p_classification_interpred,  PR_ROOT, PR_DATA, PR_RESULTS)
+cNCAST.prep_dataset()
+#cNCAST.analysis_nopred(COR_VAL, MAX_QUANTILE, SOM_size)
+
+#QSAR
+nb_repetition = 10
+n_foldCV = 10
+rate_split = 0.15
+rate_active = 0.30
+cNCAST.QSARClassif_builder(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
+
+sss
+
+
+
+
+
 
 # MAIN
 #######
@@ -36,7 +197,6 @@ p_classification = PR_DATA + "class_from_interferences.csv"
 
 #####p_classification = PR_DATA + "hERG_Active_Annotated_listRefChem_July1.csv"
 #####c_dataset.classActive(p_classification)
-
 
 # 1.3 compute desc
 #pr_desc = pathFolder.createFolder(PR_RESULTS + "DESC/")
@@ -91,6 +251,9 @@ MAX_QUANTILE = 90
 #cAnalysis.signifDescActInact()
 
 
+
+
+
 ## 3. QSAR modeling - classification
 #######
 pr_QSAR = pathFolder.createFolder(PR_RESULTS + "QSARclass/")
@@ -123,6 +286,13 @@ rate_active = 0.30
 #cQSAR.runQSARClassUnderSamplingTrain()
 #pr_RF_samplingTrain_models = cQSAR.extractModels(PR_RESULTS, "RF_samplingTrain")
 #pr_LDA_samplingTrain_models = cQSAR.extractModels(PR_RESULTS, "LDA_samplingTrain")
+
+
+
+
+
+
+
 
 
 # 4 QSAR modeling regression

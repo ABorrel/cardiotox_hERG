@@ -60,6 +60,9 @@ class dataset:
         Return histogram active by chemical class
         """
 
+        
+ 
+
         if not "d_dataset" in self.__dict__:
             self.prep_dataset()
         
@@ -95,7 +98,8 @@ class dataset:
         filout.close()
 
         # make hist
-        runExternal.barplotClass(p_filout)
+        if not path.exists(p_filout + "_barplot.png"):
+            runExternal.barplotClass(p_filout)
 
         # for all
         p_filout = self.pr_out + "class_" + str(p_classification.split("/")[-1][0:-4])
@@ -110,14 +114,14 @@ class dataset:
         filout.close()
 
         # make hist
-        runExternal.barplotClass(p_filout)
-
+        if not path.exists(p_filout + "_barplot.png"):
+            runExternal.barplotClass(p_filout)
         self.d_class = d_out_class_all
 
     def computeDesc(self, pr_desc):
 
-        p_filout_RDKIT = pr_desc + "desc_1D2D.csv"
-        p_filout_OPERA = pr_desc + "desc_OPERA.csv"
+        p_filout_RDKIT = self.pr_out + "desc_1D2D.csv"
+        p_filout_OPERA = self.pr_out + "desc_OPERA.csv"
         if path.exists(p_filout_RDKIT) and path.exists(p_filout_OPERA):
             self.p_desc1D2D = p_filout_RDKIT
             self.p_desc_opera = p_filout_OPERA
@@ -131,7 +135,8 @@ class dataset:
         # extract descriptor 2D
         if not path.exists(p_filout_RDKIT):
             flistchem = open(p_listchem, "w")
-            l_desc = CompDesc.getLdesc("1D2D")
+            cChem = CompDesc.CompDesc("", pr_desc)
+            l_desc = cChem.getLdesc("1D2D")
 
             # open filout
             filout = open(p_filout_RDKIT, "w")
@@ -141,7 +146,7 @@ class dataset:
             l_smi = []
             for CASRN in self.d_dataset.keys():
                 SMILES = self.d_dataset[CASRN]["SMILES"]
-                cChem = CompDesc.CompDesc(SMILES, pr_desc, p_salts=path.abspath("./Salts.txt"))
+                cChem = CompDesc.CompDesc(SMILES, pr_desc)
                 cChem.prepChem() # prep
                 # case error cleaning
                 if cChem.err == 1:
@@ -152,7 +157,7 @@ class dataset:
                     continue
                 else:
                     # write direcly descriptor
-                    filout.write("%s\t%s\t%s\n"%(CASRN, cChem.smi, "\t".join([str(cChem.all2D[desc]) for desc in l_desc])))
+                    filout.write("%s\t%s\t%s\n"%(CASRN, cChem.smi, "\t".join(["NA" if not desc in list(cChem.all2D.keys()) else str(cChem.all2D[desc])  for desc in l_desc])))
                     l_smi.append(cChem.smi)
             filout.close()
             flistchem.write("\n".join(l_smi))
@@ -236,6 +241,11 @@ class dataset:
 
         pr_out = pathFolder.createFolder(self.pr_out + "ranking/")
         
+        p_filout = pr_out + "chem_rank.pdf"
+        if path.exists(p_filout):
+            return 
+
+
         l_aff = []
         d_temp = {}
         for CASRN in self.d_dataset.keys():
@@ -252,8 +262,6 @@ class dataset:
 
         l_aff.sort(reverse=True)
         
-        print(l_aff)
-
         lw = []
         l_ppng = []
         nb_page = 0
@@ -330,7 +338,7 @@ class dataset:
             lpdf.append(ppdf)
 
         # merge pdf sheet
-        runExternal.mergepdfs(lpdf, pr_out + "chem_rank.pdf")
+        runExternal.mergepdfs(lpdf, p_filout)
 
     def computeDescForNNComparison(self, pr_desc, pr_out):
 

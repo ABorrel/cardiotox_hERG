@@ -83,9 +83,11 @@ class analysis:
 
         pr_out = pathFolder.createFolder(self.pr_out + "SignifDesc/")
         # for rdkit
-        runExternal.SignifDesc(self.p_desc, self.p_AC50, pr_out + "Rdkit_")
+        if not path.exists(pr_out + "Rdkit_desc_signif.csv"):
+            runExternal.SignifDesc(self.p_desc, self.p_AC50, pr_out + "Rdkit_")
         # for OPERA
-        runExternal.SignifDesc(self.p_desc_opera, self.p_AC50, pr_out + "OPERA_")
+        if not path.exists(pr_out + "OPERA_desc_signif.csv"):
+            runExternal.SignifDesc(self.p_desc_opera, self.p_AC50, pr_out + "OPERA_")
 
 
 
@@ -93,7 +95,7 @@ class analysis:
 
         pr_out = pathFolder.createFolder(self.pr_out + "SOM/")
         p_model = pr_out + "SOM_model.RData"
-        if not path.exists:
+        if not path.exists(p_model):
             runExternal.SOM(self.p_desc_cleaned, self.p_AC50_cleaned, pr_out, grid_size)
 
 
@@ -131,9 +133,9 @@ class analysis:
                     l_classif.append(classChem)
 
         # need to apply the model for each class and redifine a p_desc file based only on active chemical
-        f_desc = open(self.p_desc, "r")
-        l_chemdesc = f_desc.readlines()
-        f_desc.close()
+        d_desc = toolbox.loadMatrix(self.p_desc)
+        l_desc = list(d_desc[list(d_desc.keys())[0]].keys())
+        l_desc.remove("CASRN")
 
         d_AC50 = toolbox.loadMatrix(self.p_AC50_cleaned, sep = ",")
 
@@ -141,32 +143,23 @@ class analysis:
             pr_out_sub = pathFolder.createFolder(pr_out + chemClass.replace(" ", "_").replace("(", "-").replace(")", "") + "/")
             p_fdesc = pr_out_sub + "desc.csv"
             f_desc_sp = open(p_fdesc, "w")
-            f_desc_sp.write(l_chemdesc[0])
+            f_desc_sp.write("CASRN\t" + "\t".join(l_desc) + "\n")
 
-            c_chem = 0
             l_chem = []
             for chem in d_classification.keys():
                 if not chem in list(d_AC50.keys()):
                     continue
                 if d_AC50[chem]["Aff"] == "NA":
                     continue
-                if search(chemClass, d_classification[chem]["Classes"]):
-                    for chemdesc in l_chemdesc:
-                        if search("^"+d_classification[chem]["CASRN"] + "\t", chemdesc):
-                            if not d_classification[chem]["CASRN"] in l_chem:
-                                c_chem = c_chem  + 1
-                                #print(chemClass, chemdesc[0:10], d_classification[chem]["CASRN"], d_classification[chem]["Classes"])
-                                f_desc_sp.write(chemdesc)
-                                l_chem.append(d_classification[chem]["CASRN"])
-                            break
+                if search(chemClass, d_classification[chem]["Classes"]) and not chem in l_chem:
+                    f_desc_sp.write("%s\t%s\n"%(chem, "\t".join([d_desc[chem][desc] for desc in l_desc])))
+                    l_chem.append(d_classification[chem]["CASRN"])
             f_desc_sp.close()
-            if c_chem > 1:
-                runExternal.extractClusterSOM(p_fdesc, self.pr_out + "SOM/SOM_model.RData", pr_out_sub)
 
+            if len(l_chem) > 0:
+                runExternal.extractClusterSOM(p_fdesc, self.pr_out + "SOM/SOM_model.RData", pr_out_sub)
             else:
                 rmtree(pr_out_sub)
-
-        return 
 
 
     def signifDescBySOMCluster(self):
