@@ -6,7 +6,7 @@ import runExternal
 from os import path
 from random import shuffle
 import CompDesc
-
+import rdkit
 
 
 class genericTestSet:
@@ -104,8 +104,6 @@ class genericTestSet:
         self.d_dataset = toolbox.loadMatrix(p_dataset_preproc)
         self.p_dataset_preproc = p_dataset_preproc
 
-
-
     def computeDesc(self):
 
         if not "d_dataset" in self.__dict__:
@@ -171,9 +169,13 @@ class genericTestSet:
         filout_opera.close()
         self.p_desc_2D = p_filout_1D2D
         self.p_desc_opera = p_filout_OPERA
+
+        # do with KNIME descriptor
+        cChem.convertDesc2DtoKnimeDesc()
+        
+        cChem.writeMatrix()
+
         return [self.p_desc_2D, self.p_desc_opera]
-
-
 
     def combineDesc(self):
 
@@ -181,7 +183,6 @@ class genericTestSet:
         if not path.exists(p_global):
             runExternal.combineAndPredDesc(self.p_desc_2D, self.p_desc_opera, self.pr_out)
         self.p_desc = p_global
-
 
     def setAff(self, allAff=0):
         """
@@ -222,3 +223,34 @@ class genericTestSet:
             filout.close()
 
         self.p_aff = p_aff
+
+    def computeDescForNNComparison(self, pr_desc, pr_out):
+
+        l_desc = ["SlogP","SMR","LabuteASA","TPSA","AMW","ExactMW","NumLipinskiHBA","NumLipinskiHBD","NumRotatableBonds","NumHBD","NumHBA","NumAmideBonds","NumHeteroAtoms","NumHeavyAtoms","NumAtoms","NumStereocenters","NumUnspecifiedStereocenters","NumRings","NumAromaticRings","NumSaturatedRings","NumAliphaticRings","NumAromaticHeterocycles","NumSaturatedHeterocycles","NumAliphaticHeterocycles","NumAromaticCarbocycles","NumSaturatedCarbocycles","NumAliphaticCarbocycles","FractionCSP3","Chi0v","Chi1v","Chi2v","Chi3v","Chi4v","Chi1n","Chi2n","Chi3n","Chi4n","HallKierAlpha","kappa1","kappa2","kappa3","slogp_VSA1","slogp_VSA2","slogp_VSA3","slogp_VSA4","slogp_VSA5","slogp_VSA6","slogp_VSA7","slogp_VSA8","slogp_VSA9","slogp_VSA10","slogp_VSA11","slogp_VSA12","smr_VSA1","smr_VSA2","smr_VSA3","smr_VSA4","smr_VSA5","smr_VSA6","smr_VSA7","smr_VSA8","smr_VSA9","smr_VSA10","peoe_VSA1","peoe_VSA2","peoe_VSA3","peoe_VSA4","peoe_VSA5","peoe_VSA6","peoe_VSA7","peoe_VSA8","peoe_VSA9","peoe_VSA10","peoe_VSA11","peoe_VSA12","peoe_VSA13","peoe_VSA14","MQN1","MQN2","MQN3","MQN4","MQN5","MQN6","MQN7","MQN8","MQN9","MQN10","MQN11","MQN12","MQN13","MQN14","MQN15","MQN16","MQN17","MQN18","MQN19","MQN20","MQN21","MQN22","MQN23","MQN24","MQN25","MQN26","MQN27","MQN28","MQN29","MQN30","MQN31","MQN32","MQN33","MQN34","MQN35","MQN36","MQN37","MQN38","MQN39","MQN40","MQN41","MQN42"] 
+        # open filout
+        p_filout = pr_out + "chemicals_knime_desc.csv"
+        filout = open(p_filout, "w")
+        filout.write("smiles,%s,%s\n"%(",".join(l_desc), ",".join(["Bit %i"%(i+1) for i in range(0, 1024)])))
+
+        # compute descriptor
+        for CASRN in list(self.d_dataset.keys()):
+            SMILES = self.d_dataset[CASRN]["SMILES"]
+
+            # define class from CompDESC
+            cChem = CompDesc.CompDesc(SMILES, pr_desc)
+            cChem.prepChem()
+                
+            # compute desc
+            cChem.update = 1 # to recompute MQNs
+            cChem.computeAll2D()
+            if cChem.err == 1:
+                continue
+            
+            cChem.convertDesc2DtoKnimeDesc()
+
+            l_FpMorgan = rdkit.Chem.AllChem.GetMorganFingerprintAsBitVect(cChem.mol, radius=2, nBits=1024)
+            filout.write("%s,%s,%s\n"%(SMILES, ",".join([str(cChem.all2D[desc]) for desc in l_desc]), ",".join([str(l_FpMorgan[i]) for i in range(0,1024)])))
+        filout.close()
+
+        return p_filout
+

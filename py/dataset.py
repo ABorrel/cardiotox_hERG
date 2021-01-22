@@ -1,5 +1,8 @@
 from os import path, rename
 from random import shuffle
+import rdkit
+from rdkit import Chem
+from re import search
 
 import toolbox
 import pathFolder
@@ -17,7 +20,6 @@ class dataset:
         self.p_AC50 = p_AC50
         self.pr_out = pr_out
     
-
     def prep_dataset(self):
 
         # define output
@@ -52,7 +54,6 @@ class dataset:
             filout.write("%s\n"%("\t".join([d_out[CASRN][h] for h in l_header])))
         filout.close()
         self.d_dataset = d_out
-
 
     def classChem(self, p_classification):
         """
@@ -112,7 +113,6 @@ class dataset:
         runExternal.barplotClass(p_filout)
 
         self.d_class = d_out_class_all
-
 
     def computeDesc(self, pr_desc):
 
@@ -190,7 +190,6 @@ class dataset:
         self.p_desc1D2D = p_filout_RDKIT
         self.p_desc_opera = p_filout_OPERA
 
-
     def computeDescOPERA(self, pr_desc):
 
         p_filout = self.pr_desc + "desc_OPERA.csv"
@@ -214,8 +213,6 @@ class dataset:
 
         print("ERROR - OPERA desc no computed")
 
-
-
     def computePNG(self, pr_desc):
 
         pr_png = pathFolder.createFolder(pr_desc + "PNG/")
@@ -234,7 +231,6 @@ class dataset:
                 p_png_inch = cChem.computePNG()
                 if cChem.err == 0:
                     rename(p_png_inch, p_png)
-
 
     def rankActiveChem(self, pr_PNG):
 
@@ -335,3 +331,72 @@ class dataset:
 
         # merge pdf sheet
         runExternal.mergepdfs(lpdf, pr_out + "chem_rank.pdf")
+
+    def computeDescForNNComparison(self, pr_desc, pr_out):
+
+
+        l_desc = ["SlogP","SMR","LabuteASA","TPSA","AMW","ExactMW","NumLipinskiHBA","NumLipinskiHBD","NumRotatableBonds","NumHBD","NumHBA","NumAmideBonds","NumHeteroAtoms","NumHeavyAtoms","NumAtoms","NumStereocenters","NumUnspecifiedStereocenters","NumRings","NumAromaticRings","NumSaturatedRings","NumAliphaticRings","NumAromaticHeterocycles","NumSaturatedHeterocycles","NumAliphaticHeterocycles","NumAromaticCarbocycles","NumSaturatedCarbocycles","NumAliphaticCarbocycles","FractionCSP3","Chi0v","Chi1v","Chi2v","Chi3v","Chi4v","Chi1n","Chi2n","Chi3n","Chi4n","HallKierAlpha","kappa1","kappa2","kappa3","slogp_VSA1","slogp_VSA2","slogp_VSA3","slogp_VSA4","slogp_VSA5","slogp_VSA6","slogp_VSA7","slogp_VSA8","slogp_VSA9","slogp_VSA10","slogp_VSA11","slogp_VSA12","smr_VSA1","smr_VSA2","smr_VSA3","smr_VSA4","smr_VSA5","smr_VSA6","smr_VSA7","smr_VSA8","smr_VSA9","smr_VSA10","peoe_VSA1","peoe_VSA2","peoe_VSA3","peoe_VSA4","peoe_VSA5","peoe_VSA6","peoe_VSA7","peoe_VSA8","peoe_VSA9","peoe_VSA10","peoe_VSA11","peoe_VSA12","peoe_VSA13","peoe_VSA14","MQN1","MQN2","MQN3","MQN4","MQN5","MQN6","MQN7","MQN8","MQN9","MQN10","MQN11","MQN12","MQN13","MQN14","MQN15","MQN16","MQN17","MQN18","MQN19","MQN20","MQN21","MQN22","MQN23","MQN24","MQN25","MQN26","MQN27","MQN28","MQN29","MQN30","MQN31","MQN32","MQN33","MQN34","MQN35","MQN36","MQN37","MQN38","MQN39","MQN40","MQN41","MQN42"] 
+        # open filout
+        p_filout = pr_out + "chemicals_desc.csv"
+        filout = open(p_filout, "w")
+        filout.write("smiles,%s,%s\n"%(",".join(l_desc), ",".join(["Bit %i"%(i+1) for i in range(0, 1024)])))
+
+        # compute descriptor
+        for CASRN in list(self.d_dataset.keys()):
+            SMILES = self.d_dataset[CASRN]["SMILES"]
+
+            # define class from CompDESC
+            cChem = CompDesc.CompDesc(SMILES, pr_desc)
+            cChem.prepChem()
+                
+            # compute desc
+            cChem.update = 1 # to recompute MQNs
+            cChem.computeAll2D()
+            if cChem.err == 1:
+                continue
+
+            l_out = []
+            d_desc_out = {}
+            for desc in l_desc:
+                if desc in list(cChem.all2D.keys()):
+                    d_desc_out[desc] = cChem.all2D[desc]
+                else:
+                    if search("peoe_", desc):
+                        d_desc_out[desc] = cChem.all2D[desc.upper()]
+                    elif search("slogp_", desc):
+                        d_desc_out[desc] = cChem.all2D["SlogP_" + desc.split("_")[-1]]
+                    elif search("smr_", desc):
+                        d_desc_out[desc] = cChem.all2D[desc.upper()]
+                    elif search("kappa", desc):
+                        d_desc_out[desc] = cChem.all2D["s%s"%(desc)]
+                    elif search("Chi.v", desc):
+                        d_desc_out[desc] = cChem.all2D["Chi%s%s"%(desc[4], desc[3])]  
+                    elif search("Chi.n", desc):
+                        d_desc_out[desc] = cChem.all2D["Chiv%s"%(desc[3])] 
+                    elif desc == 'ExactMW':
+                        d_desc_out[desc] = cChem.all2D["ExactMolWt"] 
+                    elif desc == 'NumAtoms':
+                        d_desc_out[desc] = cChem.all2D["NumAllatoms"]
+                    elif desc == 'NumHeteroAtoms':
+                        d_desc_out[desc] = cChem.all2D["NumHeteroatoms"]
+                    elif desc == 'NumHeavyAtoms':
+                        d_desc_out[desc] = cChem.all2D["HeavyAtomCount"]
+                    elif desc == 'NumRings':
+                        d_desc_out[desc] = cChem.all2D["RingCount"]
+                    elif desc == 'NumHBD':
+                        d_desc_out[desc] = cChem.all2D["NumHDonors"]
+                    elif desc == 'NumHBA':
+                        d_desc_out[desc] = cChem.all2D["NumHAcceptors"]
+                    elif desc == 'SlogP':
+                        d_desc_out[desc] = cChem.all2D["MolLogP"]
+                    elif desc == 'SMR':
+                        d_desc_out[desc] = cChem.all2D["MolMR"]
+                    elif desc == 'AMW':
+                        d_desc_out[desc] = cChem.all2D["MolWt"]
+                    else:
+                        l_out.append(desc)
+                
+            l_FpMorgan = rdkit.Chem.AllChem.GetMorganFingerprintAsBitVect(cChem.mol, radius=2, nBits=1024)
+            filout.write("%s,%s,%s\n"%(SMILES, ",".join([str(d_desc_out[desc]) for desc in l_desc]), ",".join([str(l_FpMorgan[i]) for i in range(0,1024)])))
+        filout.close()
+

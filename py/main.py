@@ -5,6 +5,7 @@ import dataset
 import genericTestSet
 import pathFolder
 import QSAR_modeling
+import hergml
 
 from os import path
 # Define folder
@@ -25,25 +26,36 @@ p_AC50 = PR_DATA + "AC50_7403.txt"
 pr_dataset = pathFolder.createFolder(PR_RESULTS + "dataset/")
 
 # 1.1 load dataset
-c_dataset = dataset.dataset(p_smi, p_AC50, pr_dataset)
-c_dataset.prep_dataset()
+#c_dataset = dataset.dataset(p_smi, p_AC50, pr_dataset)
+#c_dataset.prep_dataset()
 
 # 1.2 chemical classification
 # classification from Interferences
 p_classification = PR_DATA + "class_from_interferences.csv"
-c_dataset.classChem(p_classification)
+#c_dataset.classChem(p_classification)
 
 #####p_classification = PR_DATA + "hERG_Active_Annotated_listRefChem_July1.csv"
 #####c_dataset.classActive(p_classification)
 
 
 # 1.3 compute desc
-pr_desc = pathFolder.createFolder(PR_RESULTS + "DESC/")
-l_p_desc = c_dataset.computeDesc(pr_desc)
+#pr_desc = pathFolder.createFolder(PR_RESULTS + "DESC/")
+#l_p_desc = c_dataset.computeDesc(pr_desc)
 #c_dataset.computePNG(pr_desc)
 
 # 1.4 rank active chemical and save in a PDF
 #c_dataset.rankActiveChem(pr_desc + "PNG/")
+
+# 1.5 Build rdkit descriptor for comparison NN -> herg-ml
+pr_desc_comparison = pathFolder.createFolder(PR_RESULTS + "DESC/DESC_comparison/")
+#c_dataset.computeDescForNNComparison(pr_desc, pr_desc_comparison)
+
+p_pred_herg_ml = PR_ROOT + "comparison_study/pred/list_chemicals-2020-06-09-09-11-41_pred.csv"
+pr_comparison = PR_ROOT + "comparison_study/pred/"
+p_test_set = PR_RESULTS + "QSARclass/1/test.csv"
+#c_comparison = hergml.hergml(p_smi, p_pred_herg_ml, p_AC50, pr_comparison)
+#c_comparison.computePerfAllSet()
+#c_comparison.computePerfTestSet(p_test_set)
 
 
 # 2. analysis => using only rdkit descriptors
@@ -52,7 +64,7 @@ l_p_desc = c_dataset.computeDesc(pr_desc)
 COR_VAL = 0.90
 MAX_QUANTILE = 90
 
-cAnalysis = analysis.analysis(p_AC50, c_dataset.p_desc1D2D, c_dataset.p_desc_opera, PR_RESULTS, COR_VAL, MAX_QUANTILE)
+#cAnalysis = analysis.analysis(p_AC50, c_dataset.p_desc1D2D, c_dataset.p_desc_opera, PR_RESULTS, COR_VAL, MAX_QUANTILE)
 #cAnalysis.prepDesc() #only consider 1D2D descriptors
 
 ## 2.1. histogram AC50 and summary
@@ -87,16 +99,16 @@ n_foldCV = 10
 rate_split = 0.15
 rate_active = 0.30
 # => Prep and combine OPERA and rdkit desc
-cAnalysis.pr_out = pr_QSAR # need to redefine the output directory here
-cAnalysis.combineDesc()
-cAnalysis.prepDesc()
+#cAnalysis.pr_out = pr_QSAR # need to redefine the output directory here
+#cAnalysis.combineDesc()
+#cAnalysis.prepDesc()
 
 
 # 3.1 using a new defintion of test set at each iteration
 ########################
-cQSAR = QSAR_modeling.QSAR_modeling(cAnalysis.p_desc_cleaned, c_dataset.p_desc1D2D, cAnalysis.p_AC50_cleaned, p_AC50, pr_QSAR, nb_repetition, n_foldCV,rate_active, rate_split)
+#cQSAR = QSAR_modeling.QSAR_modeling(cAnalysis.p_desc_cleaned, c_dataset.p_desc1D2D, cAnalysis.p_AC50_cleaned, p_AC50, pr_QSAR, nb_repetition, n_foldCV,rate_active, rate_split)
 #cQSAR.runQSARClassUnderSamplingAllSet(force_run=0)
-pr_RF_models = cQSAR.extractModels(PR_RESULTS, "RF")
+#pr_RF_models = cQSAR.extractModels(PR_RESULTS, "RF")
 #pr_LDA_models = cQSAR.extractModels(PR_RESULTS, "LDA")
 
 
@@ -356,6 +368,13 @@ nb_repetition = 10
 #    cApplyModel.computeAD()
 #    cApplyModel.predictReg("PLS")
 
+##10.3 comparison with herg-ml
+##################
+#p_desc = c_genericSet.computeDescForNNComparison("", pr_TestSet) ## need to execute the py report
+#p_pred_herg_ml = pr_TestSet + "pred_herg-ml/chemicals_knime_desc_1014Chem_set_pred.csv"
+#pr_comparison = pr_TestSet + "pred_herg-ml/"
+#c_comparison = hergml.hergml(c_genericSet.d_dataset, p_pred_herg_ml, c_genericSet.p_aff, pr_comparison)
+#c_comparison.computePerfAllSet()
 
 
 ## 11. Shagun test set => including 408 chem extracted from the litterature
@@ -370,11 +389,21 @@ c_genericSet.computeDesc()
 c_genericSet.combineDesc()
 c_genericSet.setAff(allAff=1)
 
-## apply model
-cApplyModel = applyModels.applyModel(cAnalysis.p_desc_cleaned, cAnalysis.p_desc, cAnalysis.p_AC50_cleaned, c_genericSet.p_desc, c_genericSet.p_aff, pr_RF_models, pr_TestSet)
-cApplyModel.PCACombine()
-cApplyModel.predict()
-cApplyModel.mergePrediction()
-cApplyModel.computeAD()
-cApplyModel.applyAD()
-ss
+##11.2 apply model
+##################
+#cApplyModel = applyModels.applyModel(cAnalysis.p_desc_cleaned, cAnalysis.p_desc, cAnalysis.p_AC50_cleaned, c_genericSet.p_desc, c_genericSet.p_aff, pr_RF_models, pr_TestSet)
+#cApplyModel.PCACombine()
+#cApplyModel.predict()
+#cApplyModel.mergePrediction()
+#cApplyModel.computeAD()
+#cApplyModel.applyAD()
+
+
+##11.3 comparison with herg-ml
+##################
+#p_desc = c_genericSet.computeDescForNNComparison("", pr_TestSet) ## need to execute the py report
+
+p_pred_herg_ml = pr_TestSet + "pred_herg-ml/chemicals_knime_desc_408Chem_set_pred.csv"
+pr_comparison = pr_TestSet + "pred_herg-ml/"
+c_comparison = hergml.hergml(c_genericSet.d_dataset, p_pred_herg_ml, "1", pr_comparison)
+c_comparison.computePerfAllSet()

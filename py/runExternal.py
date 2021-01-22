@@ -164,6 +164,11 @@ def predictRegDataset(p_desc, p_aff, p_AD, p_model, ML, pr_out):
     cmd = "./applyQSARRegModel.R %s %s %s %s %s %s"%(p_desc, p_aff, p_AD, p_model, ML, pr_out)
     runRCMD(cmd)
 
+def computePerf(p_filin):
+
+    cmd = "./computePerf.R %s > %s_perf.txt"%(p_filin, p_filin)
+    runRCMD(cmd)
+
 ############
 # Function for QSAR
 
