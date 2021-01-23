@@ -55,6 +55,7 @@ class CHEMBLTable:
         p_filout = self.pr_out + "ChEMBL_cleaned.csv"
         if path.exists(p_filout):
             self.l_work = toolbox.loadMatrixToList(p_filout, sep="\t")
+            self.p_dataset_cleaned = p_filout
         else:
             if not "l_work" in dir(self):
                 self.parseCHEMBLFile()
@@ -62,8 +63,8 @@ class CHEMBLTable:
             self.get_standard_type(l_standard_type)
             self.get_standard_relation(l_standard_relation)
             self.filterDuplicates()
-
             self.writeTable()
+            self.p_dataset_cleaned = p_filout
 
     def filterOnDescription(self, search_str):
         
@@ -83,8 +84,6 @@ class CHEMBLTable:
             else:
                 i = i + 1
             
-
-
     def get_standard_relation(self, l_relation):
         """Keep only value with a strict standard relation"""
 
@@ -330,3 +329,55 @@ class CHEMBLTable:
 
             return p_aff_cleaned
 
+    def correlation_aff(self, p_dataset_to_compare, pr_comparison, pr_root_results):
+
+        
+        l_smiles_chembl = []
+        d_chem_chembl = toolbox.loadMatrix(self.p_dataset_cleaned)
+        for chem in d_chem_chembl.keys():
+            smi = d_chem_chembl[chem]["Smiles"]
+            c_ChemDec = CompDesc.CompDesc(smi, pr_root_results + "DESC/")
+            c_ChemDec.prepChem()
+            if c_ChemDec.err == 1:
+                d_chem_chembl[chem]["SMILES_CLEAN"] = "NA"
+            else:
+                d_chem_chembl[chem]["SMILES_CLEAN"] = c_ChemDec.smi
+                l_smiles_chembl.append(c_ChemDec.smi)
+
+        l_smiles_to_compare = []
+        d_chem_dataset_to_compare = toolbox.loadMatrix(p_dataset_to_compare)
+        for chem_to_compare in d_chem_dataset_to_compare.keys():
+            smi = d_chem_dataset_to_compare[chem_to_compare]["SMILES"]
+            c_ChemDec = CompDesc.CompDesc(smi, pr_root_results + "DESC/")
+            c_ChemDec.prepChem()
+            if c_ChemDec.err == 1:
+                d_chem_dataset_to_compare[chem_to_compare]["SMILES_CLEAN"] = "NA"
+            else:
+                d_chem_dataset_to_compare[chem_to_compare]["SMILES_CLEAN"] = c_ChemDec.smi
+                l_smiles_to_compare.append(c_ChemDec.smi)
+
+        l_smi_inter = list(set.intersection(set(l_smiles_chembl), set(l_smiles_to_compare)))
+
+        p_fcor = pr_comparison + "comparison.csv"
+        fcor = open(p_fcor, "w")
+        fcor.write("CASRN\tCHEMBL\tAff_CHEMBL\tAff_NCAST\n")
+        for smi_inter in l_smi_inter:
+            for chem_CHEMBL in d_chem_chembl.keys():
+                if d_chem_chembl[chem_CHEMBL]["SMILES_CLEAN"] == smi_inter:
+                    CHEMBLID = d_chem_chembl[chem_CHEMBL]["Molecule ChEMBL ID"]
+                    aff_chembl = d_chem_chembl[chem_CHEMBL]["pChEMBL Value"]
+                    break
+            
+            for chem_to_compare in d_chem_dataset_to_compare.keys():
+                if d_chem_dataset_to_compare[chem_to_compare]["SMILES_CLEAN"] == smi_inter:
+                    CASRN = d_chem_dataset_to_compare[chem_to_compare]["CASRN"]
+                    aff_NCAST = d_chem_dataset_to_compare[chem_to_compare]["log10(AC50)"]
+                    break
+            
+            fcor.write("%s\t%s\t%s\t%s\n"%(CASRN, CHEMBLID, aff_chembl, aff_NCAST))
+        
+        fcor.close()
+            
+
+
+        return 

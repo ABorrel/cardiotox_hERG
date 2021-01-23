@@ -80,7 +80,7 @@ class main:
 
     def run_QSARClassif(self, sampling):
 
-        if sampling = "global":
+        if sampling == "global":
             pr_out = pathFolder.createFolder(self.c_analysis.pr_out + "sampleGlobalSet/")
             self.cQSAR = QSAR_modeling.QSAR_modeling(self.c_analysis.p_desc_cleaned, self.l_p_desc[0], self.c_analysis.p_AC50_cleaned, self.p_AC50, pr_out, self.nb_repetition, self.n_foldCV, self.rate_active, self.rate_split)
             self.cQSAR.runQSARClassUnderSamplingAllSet(force_run=0)
@@ -95,9 +95,6 @@ class main:
             
             self.cQSAR.pr_RF_models = self.cQSAR.extractModels("%sRF_%s__trainnigsampling__%s-%s-%s-%s-%s-%s/"%(self.pr_results, self.name_dataset, self.cor_desc, self.quantile_desc, self.nb_repetition, self.n_foldCV, self.rate_split, self.rate_active), "RF")
             self.cQSAR.pr_LDA_models = self.cQSAR.extractModels("%sLDA_%s__trainnigsampling__%s-%s-%s-%s-%s-%s/"%(self.pr_results, self.name_dataset, self.cor_desc, self.quantile_desc, self.nb_repetition, self.n_foldCV, self.rate_split, self.rate_active), "LDA")
-
-
-
 
 class NCAST_assays:
     def __init__(self, p_smi, p_aff_origin, p_classification,  pr_root, pr_data, pr_results):
@@ -137,6 +134,47 @@ class NCAST_assays:
         self.cMain.run_QSARClassif("training")
 
 
+    def comparison_hergml(self, p_pred_herg_ml, p_test_set):
+        
+        pr_comparison_hergml = pathFolder.createFolder(self.pr_results + "comparison_hergml_" + self.name_dataset + "/")
+        self.cMain.c_dataset.computeDescForNNComparison(self.pr_desc, pr_comparison_hergml)
+
+        self.c_comparison_hergml = hergml.hergml(self.p_smi, p_pred_herg_ml, self.p_aff_origin, pr_comparison_hergml)
+        self.c_comparison_hergml.computePerfAllSet()
+        self.c_comparison_hergml.computePerfTestSet(p_test_set)
+
+class CHEMBL_set:
+    def __init__(self, p_chembl_results, name_dataset, pr_results):
+        self.p_chembl_results = p_chembl_results
+        self.name_dataset = name_dataset
+        self.pr_results = pr_results
+    
+    def prep_dataset(self, l_standard_type, l_standard_relation):
+        pr_dataset = pathFolder.createFolder(self.pr_results + "dataset_" + self.name_dataset + "/")
+        self.pr_dataset = pr_dataset
+        self.cCHEMBL = CHEMBLTable.CHEMBLTable(self.p_chembl_results, pr_dataset)
+        self.cCHEMBL.parseCHEMBLFile()
+        self.cCHEMBL.cleanDataset(l_standard_type=["IC50", "Ki"], l_standard_relation=["'='"])
+    
+    def correlation_dataset(self, p_dataset):
+        pr_comparison = pathFolder.createFolder(self.pr_results + "comparison_CHEMBL_NCAST/")
+        self.cCHEMBL.correlation_aff(p_dataset, pr_comparison, self.pr_results)
+
+
+    
+#P_CHEMBL = PR_DATA + "CHEMBL27-target_chembl240.csv"
+#pr_ChEMBL = pathFolder.createFolder(PR_RESULTS + "ChEMBL/")
+
+## 5.1 Prep dataset
+#cChEMBL = CHEMBLTable.CHEMBLTable(P_CHEMBL, pr_ChEMBL)
+#cChEMBL.parseCHEMBLFile()
+#cChEMBL.cleanDataset(l_standard_type=["IC50", "Ki"], l_standard_relation=["'='"])
+
+## 5.2 run descriptor set
+#p_desc_ChEMBL = cChEMBL.computeDesc()
+#p_aff_ChEMBL = cChEMBL.cleanAff()
+
+
 
 # Define folder
 ################
@@ -145,8 +183,10 @@ PR_DATA = PR_ROOT + "data/"
 PR_RESULTS = pathFolder.createFolder(PR_ROOT + "results/")
 
 
+##########
 # NCAST DATASET
-#################
+##################
+######################
 p_smi_NCAST = PR_DATA + "list_chemicals-2020-06-09-09-11-41.csv"
 p_AC50_NCAST = PR_DATA + "AC50_7403.txt"
 # chemical class
@@ -157,8 +197,8 @@ COR_VAL = 0.90
 MAX_QUANTILE = 90
 SOM_size = 15
 
-cNCAST = NCAST_assays(p_smi_NCAST, p_AC50_NCAST, p_classification_interpred,  PR_ROOT, PR_DATA, PR_RESULTS)
-cNCAST.prep_dataset()
+#cNCAST = NCAST_assays(p_smi_NCAST, p_AC50_NCAST, p_classification_interpred,  PR_ROOT, PR_DATA, PR_RESULTS)
+#cNCAST.prep_dataset()
 #cNCAST.analysis_nopred(COR_VAL, MAX_QUANTILE, SOM_size)
 
 #QSAR
@@ -166,126 +206,30 @@ nb_repetition = 10
 n_foldCV = 10
 rate_split = 0.15
 rate_active = 0.30
-cNCAST.QSARClassif_builder(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
+#cNCAST.QSARClassif_builder(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
 
+# comparison with herg-ml models
+p_pred_herg_ml = PR_ROOT + "comparison_study/pred/list_chemicals-2020-06-09-09-11-41_pred.csv"
+p_test_set = PR_RESULTS + "QSARclass/1/test.csv"
+#cNCAST.comparison_hergml(p_pred_herg_ml, p_test_set)
+
+
+
+############
+# BUILD CHEMBL DATASET
+########################
+############################
+p_CHEMBL_raw = PR_DATA + "chembl27/CHEMBL240.csv"
+l_standard_type=["IC50", "Ki", "EC50"]
+l_standard_relation=["'='"]
+
+c_CHEMBL_set = CHEMBL_set(p_CHEMBL_raw, "CHEMBL27", PR_RESULTS)
+c_CHEMBL_set.prep_dataset(l_standard_type, l_standard_relation)
+
+p_NCAST_dataset = PR_RESULTS + "dataset_NCAST/dataset_prep.csv"
+c_CHEMBL_set.correlation_dataset(p_NCAST_dataset)
 sss
 
-
-
-
-
-
-# MAIN
-#######
-
-# 1. process dataset
-#####
-
-# file with smi and AC50
-p_smi = PR_DATA + "list_chemicals-2020-06-09-09-11-41.csv"
-p_AC50 = PR_DATA + "AC50_7403.txt"
-pr_dataset = pathFolder.createFolder(PR_RESULTS + "dataset/")
-
-# 1.1 load dataset
-#c_dataset = dataset.dataset(p_smi, p_AC50, pr_dataset)
-#c_dataset.prep_dataset()
-
-# 1.2 chemical classification
-# classification from Interferences
-p_classification = PR_DATA + "class_from_interferences.csv"
-#c_dataset.classChem(p_classification)
-
-#####p_classification = PR_DATA + "hERG_Active_Annotated_listRefChem_July1.csv"
-#####c_dataset.classActive(p_classification)
-
-# 1.3 compute desc
-#pr_desc = pathFolder.createFolder(PR_RESULTS + "DESC/")
-#l_p_desc = c_dataset.computeDesc(pr_desc)
-#c_dataset.computePNG(pr_desc)
-
-# 1.4 rank active chemical and save in a PDF
-#c_dataset.rankActiveChem(pr_desc + "PNG/")
-
-# 1.5 Build rdkit descriptor for comparison NN -> herg-ml
-pr_desc_comparison = pathFolder.createFolder(PR_RESULTS + "DESC/DESC_comparison/")
-#c_dataset.computeDescForNNComparison(pr_desc, pr_desc_comparison)
-
-p_pred_herg_ml = PR_ROOT + "comparison_study/pred/list_chemicals-2020-06-09-09-11-41_pred.csv"
-pr_comparison = PR_ROOT + "comparison_study/pred/"
-p_test_set = PR_RESULTS + "QSARclass/1/test.csv"
-#c_comparison = hergml.hergml(p_smi, p_pred_herg_ml, p_AC50, pr_comparison)
-#c_comparison.computePerfAllSet()
-#c_comparison.computePerfTestSet(p_test_set)
-
-
-# 2. analysis => using only rdkit descriptors
-#####
-
-COR_VAL = 0.90
-MAX_QUANTILE = 90
-
-#cAnalysis = analysis.analysis(p_AC50, c_dataset.p_desc1D2D, c_dataset.p_desc_opera, PR_RESULTS, COR_VAL, MAX_QUANTILE)
-#cAnalysis.prepDesc() #only consider 1D2D descriptors
-
-## 2.1. histogram AC50 and summary
-#cAnalysis.sumAC50()
-
-## 2.2 PCA
-#cAnalysis.PCA_plot()
-
-## 2.3 SOM
-#size = 15
-#cAnalysis.generate_SOM(15)
-#cAnalysis.signifDescBySOMCluster()
-#cAnalysis.extract_actBySOMCluster(pr_desc + "PNG/") # have to run !!!!
-#p_classification = PR_DATA + "class_from_interferences.csv"
-#cAnalysis.applySOMtoChemClassification(p_classification, pr_desc + "PNG/")
-
-#p_classification = PR_DATA + "hERG_Active_Annotated_listRefChem_July1.csv"
-#cAnalysis.applySOMtoChemClassification(p_classification, pr_desc + "PNG/", filter_active=0)
-
-## 2.4 Hclust
-#cAnalysis.HClust_plot()
-
-## 2.5 desc Significance active vs not active
-#cAnalysis.signifDescActInact()
-
-
-
-
-
-## 3. QSAR modeling - classification
-#######
-pr_QSAR = pathFolder.createFolder(PR_RESULTS + "QSARclass/")
-nb_repetition = 10
-n_foldCV = 10
-rate_split = 0.15
-rate_active = 0.30
-# => Prep and combine OPERA and rdkit desc
-#cAnalysis.pr_out = pr_QSAR # need to redefine the output directory here
-#cAnalysis.combineDesc()
-#cAnalysis.prepDesc()
-
-
-# 3.1 using a new defintion of test set at each iteration
-########################
-#cQSAR = QSAR_modeling.QSAR_modeling(cAnalysis.p_desc_cleaned, c_dataset.p_desc1D2D, cAnalysis.p_AC50_cleaned, p_AC50, pr_QSAR, nb_repetition, n_foldCV,rate_active, rate_split)
-#cQSAR.runQSARClassUnderSamplingAllSet(force_run=0)
-#pr_RF_models = cQSAR.extractModels(PR_RESULTS, "RF")
-#pr_LDA_models = cQSAR.extractModels(PR_RESULTS, "LDA")
-
-
-# 3.2 using a unique test set 
-################################
-#pr_QSAR = pathFolder.createFolder(PR_RESULTS + "QSAR_samplingTrain/")
-#nb_repetition = 10
-#n_foldCV = 10
-#rate_split = 0.15
-#rate_active = 0.30
-#cQSAR = QSAR_modeling.QSAR_modeling(cAnalysis.p_desc_cleaned, p_desc, cAnalysis.p_AC50_cleaned, p_AC50, pr_QSAR, nb_repetition, n_foldCV,rate_active, rate_split)
-#cQSAR.runQSARClassUnderSamplingTrain()
-#pr_RF_samplingTrain_models = cQSAR.extractModels(PR_RESULTS, "RF_samplingTrain")
-#pr_LDA_samplingTrain_models = cQSAR.extractModels(PR_RESULTS, "LDA_samplingTrain")
 
 
 
