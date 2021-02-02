@@ -6,6 +6,7 @@ import genericTestSet
 import pathFolder
 import QSAR_modeling
 import hergml
+import DNN
 
 from os import path
 
@@ -64,7 +65,6 @@ class main:
     def run_structural_Hclust(self):
         self.c_analysis.HClust_plot()
 
-
     def prep_QSARClass(self, cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active):
         self.cor_desc = cor_desc
         self.quantile_desc = quantile_desc        
@@ -96,6 +96,7 @@ class main:
             self.cQSAR.pr_RF_models = self.cQSAR.extractModels("%sRF_%s__trainnigsampling__%s-%s-%s-%s-%s-%s/"%(self.pr_results, self.name_dataset, self.cor_desc, self.quantile_desc, self.nb_repetition, self.n_foldCV, self.rate_split, self.rate_active), "RF")
             self.cQSAR.pr_LDA_models = self.cQSAR.extractModels("%sLDA_%s__trainnigsampling__%s-%s-%s-%s-%s-%s/"%(self.pr_results, self.name_dataset, self.cor_desc, self.quantile_desc, self.nb_repetition, self.n_foldCV, self.rate_split, self.rate_active), "LDA")
 
+
 class NCAST_assays:
     def __init__(self, p_smi, p_aff_origin, p_classification,  pr_root, pr_data, pr_results):
         self.p_smi = p_smi
@@ -115,7 +116,7 @@ class NCAST_assays:
         #compute desc
         self.cMain.compute_desc()
         #rank active
-        self.cMain.rankActive()
+        #self.cMain.rankActive()
 
     def analysis_nopred(self, cor_val, max_quantile, som_size):
         self.cor_val = cor_val
@@ -134,6 +135,22 @@ class NCAST_assays:
         self.cMain.run_QSARClassif("training")
 
 
+    def DNN_builder(self, cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active):
+
+        # prep as classiq ML
+        self.cMain.prep_QSARClass(cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active)
+
+        pr_DNN = pathFolder.createFolder(self.cMain.c_analysis.pr_out + "DNN_model/")
+
+        #self, pr_out, p_desc, p_aff,  p_desc_clean, p_aff_clean, nb_repetition, n_foldCV, rate_active, rate_splitTrainTest
+
+        self.c_DNN = DNN.DNN(pr_DNN, self.cMain.c_analysis.p_desc, self.cMain.c_analysis.p_AC50, self.cMain.c_analysis.p_desc_cleaned, self.cMain.c_analysis.p_AC50_cleaned, nb_repetition, n_foldCV, rate_active, rate_split)
+        self.c_DNN.prepDataset()
+        self.c_DNN.buildDNN(["mse"])
+        
+        #c_DNN.test()
+
+
     def comparison_hergml(self, p_pred_herg_ml, p_test_set):
         
         pr_comparison_hergml = pathFolder.createFolder(self.pr_results + "comparison_hergml_" + self.name_dataset + "/")
@@ -143,37 +160,38 @@ class NCAST_assays:
         self.c_comparison_hergml.computePerfAllSet()
         self.c_comparison_hergml.computePerfTestSet(p_test_set)
 
+
 class CHEMBL_set:
     def __init__(self, p_chembl_results, name_dataset, pr_results):
         self.p_chembl_results = p_chembl_results
         self.name_dataset = name_dataset
         self.pr_results = pr_results
+        self.pr_desc = pathFolder.createFolder(pr_results + "DESC/")
     
     def prep_dataset(self, l_standard_type, l_standard_relation):
         pr_dataset = pathFolder.createFolder(self.pr_results + "dataset_" + self.name_dataset + "/")
         self.pr_dataset = pr_dataset
         self.cCHEMBL = CHEMBLTable.CHEMBLTable(self.p_chembl_results, pr_dataset)
         self.cCHEMBL.parseCHEMBLFile()
-        self.cCHEMBL.cleanDataset(l_standard_type=["IC50", "Ki"], l_standard_relation=["'='"])
+        self.cCHEMBL.cleanDataset(l_standard_type=["IC50", "Ki", "EC50"], l_standard_relation=["'='"], assay_type_favorised = "patch clamp")
     
+    def prep_descset(self):
+
+        self.cCHEMBL.computeDesc(self.pr_desc)
+        #self.cCHEMBL.computeOPERADesc(self.pr_desc)
+        p_aff_ChEMBL = self.cCHEMBL.prep_aff(typeAff="", cutoff_uM=[1,10])
+
+        return 
+
     def correlation_dataset(self, p_dataset):
         pr_comparison = pathFolder.createFolder(self.pr_results + "comparison_CHEMBL_NCAST/")
         self.cCHEMBL.correlation_aff(p_dataset, pr_comparison, self.pr_results)
 
+        ## 5.2 run descriptor set
 
-    
-#P_CHEMBL = PR_DATA + "CHEMBL27-target_chembl240.csv"
-#pr_ChEMBL = pathFolder.createFolder(PR_RESULTS + "ChEMBL/")
+    def merge_dataset(self, p_dataset):
 
-## 5.1 Prep dataset
-#cChEMBL = CHEMBLTable.CHEMBLTable(P_CHEMBL, pr_ChEMBL)
-#cChEMBL.parseCHEMBLFile()
-#cChEMBL.cleanDataset(l_standard_type=["IC50", "Ki"], l_standard_relation=["'='"])
-
-## 5.2 run descriptor set
-#p_desc_ChEMBL = cChEMBL.computeDesc()
-#p_aff_ChEMBL = cChEMBL.cleanAff()
-
+        to do
 
 
 # Define folder
@@ -207,6 +225,8 @@ n_foldCV = 10
 rate_split = 0.15
 rate_active = 0.30
 #cNCAST.QSARClassif_builder(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
+#cNCAST.DNN_builder(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
+
 
 # comparison with herg-ml models
 p_pred_herg_ml = PR_ROOT + "comparison_study/pred/list_chemicals-2020-06-09-09-11-41_pred.csv"
@@ -225,18 +245,12 @@ l_standard_relation=["'='"]
 
 c_CHEMBL_set = CHEMBL_set(p_CHEMBL_raw, "CHEMBL27", PR_RESULTS)
 c_CHEMBL_set.prep_dataset(l_standard_type, l_standard_relation)
+c_CHEMBL_set.prep_descset()
 
-p_NCAST_dataset = PR_RESULTS + "dataset_NCAST/dataset_prep.csv"
-c_CHEMBL_set.correlation_dataset(p_NCAST_dataset)
-sss
+#p_NCAST_dataset = PR_RESULTS + "dataset_NCAST/dataset_prep.csv"
+#c_CHEMBL_set.correlation_dataset(p_NCAST_dataset)
 
-
-
-
-
-
-
-
+ss
 
 
 # 4 QSAR modeling regression

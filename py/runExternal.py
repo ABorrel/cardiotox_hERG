@@ -5,7 +5,8 @@ import subprocess
 P_RSCRIPTS = "../R/"
 P_RQSAR = "/mnt/c/Users/aborr/research/development/QSAR-QSPR/"
 
-R_BIN = "C:\\Program Files\\R\\R-4.0.2\\bin\\Rscript.exe"
+R_BIN = "C:/Program Files/R/R-4.0.3/bin/Rscript.exe"
+P_RQSAR = "c:/Users/aborr/research/development/QSAR-QSPR/"
 
 ######
 # Main functions
@@ -27,14 +28,12 @@ def runRCMD(cmd, out = 0):
         system(cmd)
     chdir(workdir)
     
-
-
 def runRQSARModeling(cmd):
 
     workdir = getcwd()
     chdir(P_RQSAR)
     if name == "nt":
-        cmd = cmd.replace("/", "\\")
+        #cmd = cmd.replace("/", "\\")
         l_elem = cmd.split(" ")
         cmd_line = [R_BIN] + l_elem
         print(cmd_line)
@@ -166,6 +165,10 @@ def predictRegDataset(p_desc, p_aff, p_AD, p_model, ML, pr_out):
 def computePerf(p_filin):
 
     cmd = "./computePerf.R %s > %s_perf.txt"%(p_filin, p_filin)
+    runRCMD(cmd)
+
+def corplotAff(p_filin):
+    cmd = "./corplot.R %s"%(p_filin)
     runRCMD(cmd)
 
 ############

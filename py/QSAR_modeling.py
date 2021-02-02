@@ -21,13 +21,10 @@ class QSAR_modeling:
         self.rate_active = rate_active
         self.rate_splitTrainTest = rate_splitTrainTest
 
-
     def runQSARClassUnderSamplingAllSet(self, force_run = 0):
 
         # check applicability model
         pr_AD = pathFolder.createFolder(self.pr_out + "AD/")
-        
-
         for i in range(1, self.repetition + 1):###### need to be change
             pr_run = self.pr_out + str(i) + "/"
             #rmtree(pr_run)############################################################################### to remove
@@ -46,8 +43,6 @@ class QSAR_modeling:
 
         # merge results
         self.mergeQSARs()
-
-
 
     def runQSARClassUnderSamplingTrain(self):
 
@@ -83,9 +78,6 @@ class QSAR_modeling:
         self.mergeRegQSARs()
         return 
 
-
-
-
     def mergeRegResults(self):
 
         d_result = {}
@@ -114,8 +106,7 @@ class QSAR_modeling:
             filout.write("ML\tCV\t\t\t\tTrain\t\t\t\tTest\t\t\t\n")
             filout.write("\tR2\tR0\tMAE\tcor\tR2\tR0\tMAE\tcor\tR2\tR0\tMAE\tcor\n")
             for ML in d_result[run]["CV"].keys():
-                filout.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"%(ML, d_result[run]["CV"][ML]["R2"], d_result[run]["CV"][ML]["R02"], d_result[run]["CV"][ML]["MAE"], d_result[run]["CV"][ML]["r"], d_result[run]["train"][ML]["R2"], d_result[run]["train"][ML]["R02"], d_result[run]["train"][ML]["MAE"], d_result[run]["train"][ML]["r"], d_result[run]["test"][ML]["R2"], d_result[run]["test"][ML]["R02"], d_result[run]["test"][ML]["MAE"], d_result[run]["test"][ML]["r"]))
-       
+                filout.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"%(ML, d_result[run]["CV"][ML]["R2"], d_result[run]["CV"][ML]["R02"], d_result[run]["CV"][ML]["MAE"], d_result[run]["CV"][ML]["r"], d_result[run]["train"][ML]["R2"], d_result[run]["train"][ML]["R02"], d_result[run]["train"][ML]["MAE"], d_result[run]["train"][ML]["r"], d_result[run]["test"][ML]["R2"], d_result[run]["test"][ML]["R02"], d_result[run]["test"][ML]["MAE"], d_result[run]["test"][ML]["r"]))   
 
     def prepSplitTrainTestSet(self):
 
@@ -141,7 +132,6 @@ class QSAR_modeling:
         self.p_test = p_test
 
         remove(self.pr_out + "train.csv")
-
 
     def prepTrainSetforUnderSampling(self, pr_run, splitRatio=""):
 
@@ -180,7 +170,6 @@ class QSAR_modeling:
             runExternal.SplitTrainTest(pr_run + "desc_Class.csv", pr_run, self.rate_splitTrainTest)
             self.p_train = p_train
             self.p_test = p_test
-
     
     def buildQSAR(self, pr_run, force_run = 0):
 
@@ -197,7 +186,6 @@ class QSAR_modeling:
                 runExternal.runRQSAR(self.p_train, self.p_test, self.n_foldCV, pr_run)
         else:
             runExternal.runRQSAR(self.p_train, self.p_test, self.n_foldCV, pr_run)
-
     
     def mergeRegQSARs(self):
 
@@ -261,9 +249,6 @@ class QSAR_modeling:
                 filout.write("%s\t%s\t\t%s\t%s\t\t%s\t%s\n"%(ML, "\t".join([d_result["CV"][ML][c][i] for c in l_criteria]), ML, "\t".join([d_result["train"][ML][c][i] for c in l_criteria]), ML, "\t".join([d_result["test"][ML][c][i] for c in l_criteria])))
             i = i + 1
         filout.close()                
-
-
-
 
     def mergeQSARs(self):
 
@@ -393,7 +378,6 @@ class QSAR_modeling:
 
         # draw histogram for AD and add summary and PCA
         runExternal.mergeADs(p_train, p_test, self.p_desc, pr_AD_all)
-
 
     def mergeProbaRF(self, p_AC50, pr_prob):
         # need to change R scripts for 

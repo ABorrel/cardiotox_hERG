@@ -45,14 +45,12 @@ class analysis:
         self.p_desc_cleaned = p_desc_cleaned
         self.p_AC50_cleaned = p_AC50_cleaned
 
-
     def combineDesc(self):
 
         p_global = self.pr_out + 'desc_global.csv'
         if not path.exists(p_global):
             runExternal.combineAndPredDesc(self.p_desc, self.p_desc_opera, self.pr_out)
         self.p_desc = self.pr_out + 'desc_global.csv'
-
 
     def sumAC50(self):
         pr_out = pathFolder.createFolder(self.pr_out + "Summary_AC50/")
@@ -73,7 +71,6 @@ class analysis:
         # histogram AC50        
         runExternal.histAC50(self.p_AC50_cleaned, pr_out)
 
-
     def PCA_plot(self):
 
         pr_out = pathFolder.createFolder(self.pr_out + "PCA/")
@@ -89,15 +86,12 @@ class analysis:
         if not path.exists(pr_out + "OPERA_desc_signif.csv"):
             runExternal.SignifDesc(self.p_desc_opera, self.p_AC50, pr_out + "OPERA_")
 
-
-
     def generate_SOM(self, grid_size):
 
         pr_out = pathFolder.createFolder(self.pr_out + "SOM/")
         p_model = pr_out + "SOM_model.RData"
         if not path.exists(p_model):
             runExternal.SOM(self.p_desc_cleaned, self.p_AC50_cleaned, pr_out, grid_size)
-
 
     def extract_actBySOMCluster(self, pr_png):
 
@@ -115,7 +109,6 @@ class analysis:
 
             try:copyfile(pr_png + CASRN + ".png", pr_cluster + CASRN + ".png")
             except: pass
-
 
     def applySOMtoChemClassification(self, p_classification, pr_png):
 
@@ -161,7 +154,6 @@ class analysis:
             else:
                 rmtree(pr_out_sub)
 
-
     def signifDescBySOMCluster(self):
 
         # check if SOM is computed
@@ -172,7 +164,6 @@ class analysis:
         
         pr_out = pathFolder.createFolder(self.pr_out + "SOM/DescriptorSignif/")
         runExternal.descSignifByCluster(self.p_desc_cleaned, p_cluster, pr_out)
-
 
     def HClust_plot(self):
 
