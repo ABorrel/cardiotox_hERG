@@ -358,7 +358,8 @@ class CHEMBLTable:
 
         p_filout = self.pr_out + "desc_OPERA.csv"
         if path.exists(p_filout):
-           return p_filout
+            self.p_descOPERA = p_filout
+            return p_filout
 
         # write list of SMILES for OPERA
         pr_OPERA = pathFolder.createFolder(self.pr_desc + "OPERA/")
@@ -394,6 +395,8 @@ class CHEMBLTable:
             i = i + 1
         fopera.close()
 
+        self.p_descOPERA = p_filout
+
         return p_filout
 
     def prep_aff(self, typeAff="pAff", cutoff_uM=30000):
@@ -402,6 +405,7 @@ class CHEMBLTable:
             p_aff_cleaned = "%saff_%s_%s.csv"%(self.pr_out, typeAff, "-".join([str(i) for i in cutoff_uM]))
         else:
             p_aff_cleaned = "%saff_%s_%s.csv"%(self.pr_out, typeAff, cutoff_uM)
+        
         if path.exists(p_aff_cleaned):
             self.p_aff_clean = p_aff_cleaned
             return 
@@ -422,7 +426,7 @@ class CHEMBLTable:
         
         else:
             f_aff_cleaned = open(p_aff_cleaned, "w")
-            f_aff_cleaned.write("\"ChEMBLID\",\"Aff-uM\",\"Aff\"\n")
+            f_aff_cleaned.write("\"ChEMBLID\",\"Aff-uM\",\"Aff\",\"pAff\"\n")
             n_act = 0
             n_inact = 0
             nb_remove = 0
@@ -431,6 +435,7 @@ class CHEMBLTable:
                 ChEMBL_ID = d_chem["Molecule ChEMBL ID"]
                 val_aff =  d_chem["Standard Value"]
                 unit = d_chem["Standard Units"]
+                pAff = d_chem["pChEMBL Value"]
                     
                 l_val_converted = toolbox.convertUnit([val_aff], [unit])
                 val_converted = l_val_converted[0]
@@ -438,19 +443,19 @@ class CHEMBLTable:
                 
                 if type(cutoff_uM) == list:
                     if val_converted <= cutoff_uM[0]:
-                        f_aff_cleaned.write("\"%s\",\"%s\",0\n"%(ChEMBL_ID, val_converted))
+                        f_aff_cleaned.write("\"%s\",\"%s\",0,%s\n"%(ChEMBL_ID, val_converted, pAff))
                         n_act = n_act + 1
                     elif val_converted >= cutoff_uM[1]:
-                        f_aff_cleaned.write("\"%s\",\"%s\",1\n"%(ChEMBL_ID, val_converted))
+                        f_aff_cleaned.write("\"%s\",\"%s\",1,%s\n"%(ChEMBL_ID, val_converted, pAff))
                         n_inact = n_inact + 1
                     else:
                         nb_remove = nb_remove + 1
                 else:
                     if val_converted <= cutoff_uM:
-                        f_aff_cleaned.write("\"%s\",\"%s\",1\n"%(ChEMBL_ID, val_converted))
+                        f_aff_cleaned.write("\"%s\",\"%s\",1,%s\n"%(ChEMBL_ID, val_converted, pAff))
                         n_inact = n_inact + 1
                     else:
-                        f_aff_cleaned.write("\"%s\",\"%s\",0\n"%(ChEMBL_ID, val_converted))
+                        f_aff_cleaned.write("\"%s\",\"%s\",0,%s\n"%(ChEMBL_ID, val_converted, pAff))
                         n_act = n_act + 1
             f_aff_cleaned.close()
 
@@ -462,7 +467,6 @@ class CHEMBLTable:
 
     def correlation_aff(self, p_dataset_to_compare, pr_comparison, pr_root_results):
 
-        
         l_smiles_chembl = []
         d_chem_chembl = toolbox.loadMatrix(self.p_dataset_cleaned)
         for chem in d_chem_chembl.keys():
@@ -503,7 +507,7 @@ class CHEMBLTable:
             for chem_to_compare in d_chem_dataset_to_compare.keys():
                 if d_chem_dataset_to_compare[chem_to_compare]["SMILES_CLEAN"] == smi_inter:
                     CASRN = d_chem_dataset_to_compare[chem_to_compare]["CASRN"]
-                    aff_NCAST = d_chem_dataset_to_compare[chem_to_compare]["log10(AC50)"]
+                    aff_NCAST = d_chem_dataset_to_compare[chem_to_compare]["-log10(AC50)"]
                     break
             
             if search("patch clamp", assays):
@@ -516,3 +520,85 @@ class CHEMBLTable:
 
 
         return 
+    
+    def mergeDataset(self, p_aff_to_merge, p_desc_to_merge, pr_out):
+        
+        p_filout = pr_out + "aff_merged.csv"
+        if path.exists(p_filout):
+            self.p_merge_sets = p_filout
+            return
+        
+        d_tomerge_aff = toolbox.loadMatrix(p_aff_to_merge)
+        d_tomerge_desc = toolbox.loadMatrix(p_desc_to_merge)
+
+        d_chembl_desc = toolbox.loadMatrix(self.p_desc1D2D)
+        d_chembl_aff = toolbox.loadMatrix(self.p_aff_clean, sep = ",")
+
+        d_out = {}
+        d_duplicate = {}
+        for chem_tomerge in d_tomerge_aff.keys():
+            try:SMILES = d_tomerge_desc[chem_tomerge]["SMILES"]
+            except:pass
+            d_out[SMILES] = {}
+            d_out[SMILES]["CASRN"] = chem_tomerge
+            d_out[SMILES]["CHEMBL"] = "-"
+            d_out[SMILES]["pAff-CHEMBL"] = "-"
+            d_out[SMILES]["aff-CHEMBL"] = "-"
+            d_out[SMILES]["pAff-CASRN"] = str(d_tomerge_aff[chem_tomerge]["-log10(AC50)"])
+            d_out[SMILES]["aff-CASRN"] = str(d_tomerge_aff[chem_tomerge]["Aff"])
+
+        
+        for chem_chembl in d_chembl_aff.keys():
+            SMILES = d_chembl_desc[chem_chembl]["SMILES"]
+            if not SMILES in list(d_out.keys()):
+                d_out[SMILES] = {}
+                d_out[SMILES]["CASRN"] = "-"
+                d_out[SMILES]["aff-CASRN"] = "-"
+                d_out[SMILES]["pAff-CASRN"] = "-"
+            d_out[SMILES]["CHEMBL"] = chem_chembl
+            d_out[SMILES]["pAff-CHEMBL"] = str(d_chembl_aff[chem_chembl]["pAff"])
+            d_out[SMILES]["aff-CHEMBL"] = str(d_chembl_aff[chem_chembl]["Aff"])
+        
+        filout = open(p_filout, "w")
+        filout.write("ID\tSMILES\tCASRN\tCHEMBLID\tpaff-add\tpaff-chembl\taff-add\taff-chembl\tAff\n")
+
+        id = 1
+        for SMILES in d_out.keys():
+            if d_out[SMILES]["aff-CASRN"] != "-":
+                Aff = d_out[SMILES]["aff-CASRN"]
+            else:
+                Aff = d_out[SMILES]["aff-CHEMBL"]
+            d_out[SMILES]["Aff"] = Aff
+            filout.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n"%(id, SMILES, d_out[SMILES]["CASRN"], d_out[SMILES]["CHEMBL"], d_out[SMILES]["pAff-CASRN"], d_out[SMILES]["pAff-CHEMBL"], d_out[SMILES]["aff-CASRN"], d_out[SMILES]["aff-CHEMBL"], Aff))
+            id = id + 1
+        filout.close()
+        self.p_merge_sets = p_filout
+
+        # write summary
+        nb_chem = len(list(d_out.keys()))
+        nb_active = 0
+        nb_chembl = 0
+        nb_add = 0
+        nb_inactive = 0
+        nb_overlap = 0
+
+
+        for smiles in d_out.keys():
+            if d_out[smiles]["Aff"] == "0":
+                nb_inactive = nb_inactive + 1
+            if d_out[smiles]["Aff"] == "1":
+                nb_active = nb_active + 1
+            if d_out[smiles]["CASRN"] != "-" and d_out[smiles]["CHEMBL"] != "-":
+                nb_overlap = nb_overlap + 1
+            if d_out[smiles]["CASRN"] != "-":
+                nb_add = nb_add + 1
+            if d_out[smiles]["CHEMBL"] != "-":
+                nb_chembl = nb_chembl + 1   
+
+        p_filout = pr_out + "merge_dataset.sum"
+        filout = open(p_filout, "w")
+        filout.write("Nb chemicals: %s\nNb chemicals in NCAST: %s\nNb chemicals in CHEMBL: %s\nNb overlap: %s\nNb active chemical: %s\nNb inactive chemical: %s\n"%(nb_chem, nb_add, nb_chembl, nb_overlap, nb_active, nb_inactive))   
+        filout.close()     
+
+        self.p_merge_sets = pr_out + "aff_merged.csv"
+            

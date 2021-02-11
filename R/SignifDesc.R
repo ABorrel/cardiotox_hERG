@@ -6,11 +6,14 @@ computeTableSignif = function(ddesc, dAC50, pr_out){
   
   lact = rownames(dAC50[which(!is.na(dAC50[,2])),])
   linact = rownames(dAC50[which(is.na(dAC50[,2])),])
-    
+  
+  if(length(linact) == 0){
+    lact = rownames(dAC50[which(dAC50[,2] == 1),])
+    linact = rownames(dAC50[which(dAC50[,2] == 0),])
+  }
+
   dout = data.frame()
   for(j in seq(1, dim(ddesc)[2])){
-    print(j)
-    print(colnames(ddesc)[j])
     dact = ddesc[lact,j]
     dact = na.omit(dact)
     dinact = ddesc[linact,j]

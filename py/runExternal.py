@@ -3,10 +3,10 @@ import subprocess
 
 
 P_RSCRIPTS = "../R/"
-P_RQSAR = "/mnt/c/Users/aborr/research/development/QSAR-QSPR/"
+P_RQSAR_linux = "/mnt/c/Users/aborr/research/development/QSAR-QSPR/"
 
 R_BIN = "C:/Program Files/R/R-4.0.3/bin/Rscript.exe"
-P_RQSAR = "c:/Users/aborr/research/development/QSAR-QSPR/"
+P_RQSAR_window = "c:/Users/aborr/research/development/QSAR-QSPR/"
 
 ######
 # Main functions
@@ -31,8 +31,9 @@ def runRCMD(cmd, out = 0):
 def runRQSARModeling(cmd):
 
     workdir = getcwd()
-    chdir(P_RQSAR)
+    
     if name == "nt":
+        chdir(P_RQSAR_window)
         #cmd = cmd.replace("/", "\\")
         l_elem = cmd.split(" ")
         cmd_line = [R_BIN] + l_elem
@@ -42,6 +43,7 @@ def runRQSARModeling(cmd):
         p.wait()
         print(err)
     else:
+        chdir(P_RQSAR_linux)
         print(cmd)
         system(cmd)
     chdir(workdir)

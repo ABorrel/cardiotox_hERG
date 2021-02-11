@@ -7,6 +7,7 @@ import pathFolder
 import QSAR_modeling
 import hergml
 import DNN
+import toolbox
 
 from os import path
 
@@ -25,10 +26,13 @@ class main:
         self.pr_dataset = pathFolder.createFolder(self.pr_results + "dataset_" + self.name_dataset + "/")
         self.p_class_chemical = p_class_chemical
 
-    def load_datasetNCAST(self):
+    def load_datasetNCAST(self, cutoff_aff = 30):
+        """
+        cutoff in uM
+        """
         # 1.1 load dataset
         c_dataset = dataset.dataset(self.p_smi, self.p_AC50, self.pr_dataset)
-        c_dataset.prep_dataset()
+        c_dataset.prep_dataset(cutoff_aff)
 
         self.c_dataset = c_dataset
     
@@ -60,7 +64,8 @@ class main:
         self.c_analysis.generate_SOM(SOM_size)
         self.c_analysis.signifDescBySOMCluster()
         self.c_analysis.extract_actBySOMCluster(self.pr_desc + "PNG/") # have to run !!!!
-        self.c_analysis.applySOMtoChemClassification(self.p_class_chemical, self.pr_desc + "PNG/")
+        if "p_class_chemical" in self.__dict__:
+            self.c_analysis.applySOMtoChemClassification(self.p_class_chemical, self.pr_desc + "PNG/")
 
     def run_structural_Hclust(self):
         self.c_analysis.HClust_plot()
@@ -96,13 +101,17 @@ class main:
             self.cQSAR.pr_RF_models = self.cQSAR.extractModels("%sRF_%s__trainnigsampling__%s-%s-%s-%s-%s-%s/"%(self.pr_results, self.name_dataset, self.cor_desc, self.quantile_desc, self.nb_repetition, self.n_foldCV, self.rate_split, self.rate_active), "RF")
             self.cQSAR.pr_LDA_models = self.cQSAR.extractModels("%sLDA_%s__trainnigsampling__%s-%s-%s-%s-%s-%s/"%(self.pr_results, self.name_dataset, self.cor_desc, self.quantile_desc, self.nb_repetition, self.n_foldCV, self.rate_split, self.rate_active), "LDA")
 
+    def run_QSARDNNClassif(self):
+
+        c_DNN = DNN()
 
 class NCAST_assays:
-    def __init__(self, p_smi, p_aff_origin, p_classification,  pr_root, pr_data, pr_results):
+    def __init__(self, p_smi, p_aff_origin, p_classification, cutoff_aff, pr_root, pr_data, pr_results):
         self.p_smi = p_smi
         self.p_aff_origin = p_aff_origin
         self.p_classification = p_classification
-        
+        self.cutoff_aff = cutoff_aff
+
         self.pr_root = pr_root
         self.pr_data = pr_data
         self.pr_results = pr_results
@@ -110,7 +119,7 @@ class NCAST_assays:
     def prep_dataset(self):
         self.cMain = main(self.pr_root, self.pr_data, "NCAST", self.pr_results)
         self.cMain.setup_NCATS(self.p_smi, self.p_aff_origin, self.p_classification)
-        self.cMain.load_datasetNCAST()
+        self.cMain.load_datasetNCAST(self.cutoff_aff)
         self.cMain.classe_chemical_dataset()
     
         #compute desc
@@ -146,7 +155,7 @@ class NCAST_assays:
 
         self.c_DNN = DNN.DNN(pr_DNN, self.cMain.c_analysis.p_desc, self.cMain.c_analysis.p_AC50, self.cMain.c_analysis.p_desc_cleaned, self.cMain.c_analysis.p_AC50_cleaned, nb_repetition, n_foldCV, rate_active, rate_split)
         self.c_DNN.prepDataset()
-        self.c_DNN.buildDNN(["mse"])
+        self.c_DNN.GridOptimizeDNN()
         
         #c_DNN.test()
 
@@ -178,7 +187,7 @@ class CHEMBL_set:
     def prep_descset(self):
 
         self.cCHEMBL.computeDesc(self.pr_desc)
-        #self.cCHEMBL.computeOPERADesc(self.pr_desc)
+        self.cCHEMBL.computeOPERADesc(self.pr_desc)
         p_aff_ChEMBL = self.cCHEMBL.prep_aff(typeAff="", cutoff_uM=[1,10])
 
         return 
@@ -187,12 +196,146 @@ class CHEMBL_set:
         pr_comparison = pathFolder.createFolder(self.pr_results + "comparison_CHEMBL_NCAST/")
         self.cCHEMBL.correlation_aff(p_dataset, pr_comparison, self.pr_results)
 
-        ## 5.2 run descriptor set
 
-    def merge_dataset(self, p_dataset):
+    def merge_dataset(self, p_aff_clean_toadd, p_desc1D2D_toadd, name_dataset):
+        pr_out = pathFolder.createFolder(self.pr_results + name_dataset + "/")
+        self.cCHEMBL.mergeDataset(p_aff_clean_toadd, p_desc1D2D_toadd, pr_out)
 
-        to do
+        self.pr_merge_sets = pr_out
 
+class NCAST_CHEMBL_set:
+    def __init__(self, p_dataset, pr_results, pr_root):
+        self.p_dataset = p_dataset
+        self.pr_root = pr_root
+        self.pr_results = pr_results
+
+    def set_up_for_analysis(self, l_pdesc1D2D, l_pdescOPERA):
+
+        p_desc1D2D_out = self.pr_results + "desc1D2D.csv"
+        p_descOPERA_out = self.pr_results + "descOPERA.csv"
+        p_aff = self.pr_results + "aff.csv"
+
+        if path.exists(p_desc1D2D_out) and path.exists(p_descOPERA_out) and path.exists(p_aff) :
+            self.p_desc1D2D = p_desc1D2D_out
+            self.p_descOPERA = p_descOPERA_out
+            self.p_aff = p_aff
+            self.cMain = main(self.pr_root, "", "NCAST_CHEMBL", self.pr_results)
+            self.cMain.p_AC50 = self.p_aff
+            self.cMain.l_p_desc = [self.p_desc1D2D, self.p_descOPERA]
+
+        d_chem_dataset = toolbox.loadMatrix(self.p_dataset, sep = "\t")
+
+        # rewrote for formating in analysis
+        f_aff = open(p_aff, "w")
+        f_aff.write("CASRN\tAff\n")
+        for chem in d_chem_dataset.keys():
+            if d_chem_dataset[chem]["CASRN"] != "-":
+                ID = d_chem_dataset[chem]["CASRN"]
+            else:
+                ID = d_chem_dataset[chem]["CHEMBLID"]
+            
+            if d_chem_dataset[chem]["Aff"] == "0":
+                aff = "NA"
+            else:
+                if d_chem_dataset[chem]["paff-add"] != "-":
+                    aff = d_chem_dataset[chem]["paff-add"]
+                else:
+                    aff = d_chem_dataset[chem]["paff-chembl"]
+            f_aff.write("%s\t%s\n"%(ID, aff))
+        f_aff.close()
+
+        # load OPERA descriptors
+        d_opera = {}
+        for p_descOPERA in l_pdescOPERA:
+            d_temp = toolbox.loadMatrix(p_descOPERA, sep = ",")
+            d_opera.update(d_temp)
+        
+        l_header_opera = list(d_opera[list(d_opera.keys())[0]].keys())
+        try:l_header_opera.remove("CASRN")
+        except:pass
+        try:l_header_opera.remove("CHEMBLID")
+        except:pass
+
+        f_descOPERA = open(p_descOPERA_out, "w")
+        f_descOPERA.write("CASRN," + ",".join(l_header_opera) + "\n")
+        for chem in d_chem_dataset.keys():
+            try:
+                CASRN = d_chem_dataset[chem]["CASRN"]
+                f_descOPERA.write("%s,%s\n"%(CASRN, ",".join([str(d_opera[CASRN][h]) for h in l_header_opera])))
+                continue
+            except:pass
+            try:
+                CHEMBL  = d_chem_dataset[chem]["CHEMBLID"]
+                f_descOPERA.write("%s,%s\n"%(CHEMBL, ",".join([str(d_opera[CHEMBL][h]) for h in l_header_opera])))
+            except: pass
+        f_descOPERA.close()
+
+
+        # load RDKIT descriptor
+        d_desc1D2D = {}
+        for p_desc1D2D in l_pdesc1D2D:
+            d_temp = toolbox.loadMatrix(p_desc1D2D)
+            d_desc1D2D.update(d_temp)
+
+        l_header_1D2D = list(d_desc1D2D[list(d_desc1D2D.keys())[0]].keys())
+        try:l_header_1D2D.remove("CASRN")
+        except:pass
+        try:l_header_1D2D.remove("CHEMBLID")
+        except:pass
+        l_header_1D2D.remove("SMILES")
+
+        f_desc1D2D = open(p_desc1D2D_out, "w")
+        f_desc1D2D.write("CASRN\tSMILES\t" + "\t".join(l_header_1D2D) + "\n")
+        for chem in d_chem_dataset.keys():
+            try:
+                CASRN = d_chem_dataset[chem]["CASRN"]
+                f_desc1D2D.write("%s\t%s\t%s\n"%(CASRN, d_desc1D2D[CASRN]["SMILES"], "\t".join([str(d_desc1D2D[CASRN][h]) for h in l_header_1D2D])))
+                continue
+            except:pass
+            try:
+                CHEMBL  = d_chem_dataset[chem]["CHEMBLID"]
+                f_desc1D2D.write("%s\t%s\t%s\n"%(CHEMBL, d_desc1D2D[CHEMBL]["SMILES"], "\t".join([str(d_desc1D2D[CHEMBL][h]) for h in l_header_1D2D])))
+                continue
+            except:
+                pass
+        
+        f_desc1D2D.close()
+
+        self.p_desc1D2D = p_desc1D2D_out
+        self.p_descOPERA = p_descOPERA_out
+        self.p_aff = p_aff
+
+        # set up main
+        self.cMain = main(self.pr_root, "", "NCAST_CHEMBL", self.pr_results)
+        self.cMain.p_AC50 = self.p_aff
+        self.cMain.l_p_desc = [self.p_desc1D2D, self.p_descOPERA]
+
+    def analyseDataset(self, cor_desc, quantile_desc, som_size):
+
+        self.cMain.setup_descAnalysis(cor_desc, quantile_desc)
+        
+        self.cMain.run_structural_PCA()
+        self.cMain.run_structural_Hclust()
+        self.cMain.run_structural_SOM(som_size)
+
+    def QSARClassif_builder(self, cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active):
+
+        self.cMain.prep_QSARClass(cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active)
+        self.cMain.run_QSARClassif("training")
+
+
+    def QSARClassif_DNN(self, cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active):
+        
+        # prep as classiq ML
+        self.cMain.prep_QSARClass(cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active)
+
+        pr_DNN = pathFolder.createFolder(self.cMain.c_analysis.pr_out + "DNN_model/")
+
+        #self, pr_out, p_desc, p_aff,  p_desc_clean, p_aff_clean, nb_repetition, n_foldCV, rate_active, rate_splitTrainTest
+
+        self.c_DNN = DNN.DNN(pr_DNN, self.cMain.c_analysis.p_desc, self.cMain.c_analysis.p_AC50, self.cMain.c_analysis.p_desc_cleaned, self.cMain.c_analysis.p_AC50_cleaned, nb_repetition, n_foldCV, rate_active, rate_split)
+        self.c_DNN.prepDataset()
+        self.c_DNN.GridOptimizeDNN()
 
 # Define folder
 ################
@@ -214,19 +357,19 @@ p_classification_shagun = PR_DATA + "hERG_Active_Annotated_listRefChem_July1.csv
 COR_VAL = 0.90
 MAX_QUANTILE = 90
 SOM_size = 15
+cutoff_aff = 30 #uM
 
-#cNCAST = NCAST_assays(p_smi_NCAST, p_AC50_NCAST, p_classification_interpred,  PR_ROOT, PR_DATA, PR_RESULTS)
-#cNCAST.prep_dataset()
+cNCAST = NCAST_assays(p_smi_NCAST, p_AC50_NCAST, p_classification_interpred, cutoff_aff, PR_ROOT, PR_DATA, PR_RESULTS)
+cNCAST.prep_dataset()
 #cNCAST.analysis_nopred(COR_VAL, MAX_QUANTILE, SOM_size)
 
 #QSAR
-nb_repetition = 10
+nb_repetition = 5
 n_foldCV = 10
 rate_split = 0.15
 rate_active = 0.30
 #cNCAST.QSARClassif_builder(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
 #cNCAST.DNN_builder(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
-
 
 # comparison with herg-ml models
 p_pred_herg_ml = PR_ROOT + "comparison_study/pred/list_chemicals-2020-06-09-09-11-41_pred.csv"
@@ -247,10 +390,62 @@ c_CHEMBL_set = CHEMBL_set(p_CHEMBL_raw, "CHEMBL27", PR_RESULTS)
 c_CHEMBL_set.prep_dataset(l_standard_type, l_standard_relation)
 c_CHEMBL_set.prep_descset()
 
-#p_NCAST_dataset = PR_RESULTS + "dataset_NCAST/dataset_prep.csv"
-#c_CHEMBL_set.correlation_dataset(p_NCAST_dataset)
 
+######
+# MERGE dataset CHEMBL + NCAST
+##############
+
+p_NCAST_aff = PR_RESULTS + "dataset_NCAST/dataset_prep.csv"
+p_NCAST_desc = PR_RESULTS + "dataset_NCAST/desc_1D2D.csv"
+c_CHEMBL_set.merge_dataset(p_NCAST_aff, p_NCAST_desc, "NCAST_CHEMBL")
+#c_CHEMBL_set.correlation_dataset(p_NCAST_aff)
+
+####
+# Build analysis on merged sets
+#############
+rate_active = 0
+
+c_NCAST_CHEMBL_set = NCAST_CHEMBL_set(c_CHEMBL_set.cCHEMBL.p_merge_sets, c_CHEMBL_set.pr_merge_sets, PR_RESULTS)
+c_NCAST_CHEMBL_set.set_up_for_analysis([c_CHEMBL_set.cCHEMBL.p_desc1D2D, cNCAST.cMain.l_p_desc[0]], [c_CHEMBL_set.cCHEMBL.p_descOPERA, cNCAST.cMain.l_p_desc[1]])
+#c_NCAST_CHEMBL_set.analyseDataset(COR_VAL, MAX_QUANTILE, SOM_size)
+#c_NCAST_CHEMBL_set.QSARClassif_builder(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
+c_NCAST_CHEMBL_set.QSARClassif_DNN(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
 ss
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#################
+###  TO DEL 
 
 
 # 4 QSAR modeling regression

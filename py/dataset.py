@@ -3,6 +3,7 @@ from random import shuffle
 import rdkit
 from rdkit import Chem
 from re import search
+from math import pow
 
 import toolbox
 import pathFolder
@@ -20,7 +21,7 @@ class dataset:
         self.p_AC50 = p_AC50
         self.pr_out = pr_out
     
-    def prep_dataset(self):
+    def prep_dataset(self, cutoff_aff):
 
         # define output
         p_filout = self.pr_out + "dataset_prep.csv"
@@ -36,7 +37,15 @@ class dataset:
         for CASRN in d_AC50.keys():
             d_temp = {}
             d_temp["CASRN"] = CASRN
-            d_temp["log10(AC50)"] = d_AC50[CASRN]["LogAC50"]
+            d_temp["-log10(AC50)"] = d_AC50[CASRN]["LogAC50"]
+            if d_AC50[CASRN]["LogAC50"] == "NA":
+                d_temp["Aff"] = 0
+            else:
+                val_uM = pow(10, -float(d_AC50[CASRN]["LogAC50"])) * pow(10,6) 
+                if val_uM < cutoff_aff:
+                    d_temp["Aff"] = 1
+                else:
+                    d_temp["Aff"] = 0
 
             # load on the tox21 chem library
             for DTXID in d_chem.keys():
@@ -47,11 +56,11 @@ class dataset:
                     break
         
         # write the dataset
-        l_header = ["CASRN", "SMILES", "PREFERRED_NAME", "log10(AC50)"]
+        l_header = ["CASRN", "SMILES", "PREFERRED_NAME", "-log10(AC50)", "Aff"]
         filout = open(p_filout, "w")
         filout.write("\t".join(l_header) + "\n")
         for CASRN in d_out.keys():
-            filout.write("%s\n"%("\t".join([d_out[CASRN][h] for h in l_header])))
+            filout.write("%s\n"%("\t".join([str(d_out[CASRN][h]) for h in l_header])))
         filout.close()
         self.d_dataset = d_out
 
@@ -60,14 +69,10 @@ class dataset:
         Return histogram active by chemical class
         """
 
-        
- 
-
         if not "d_dataset" in self.__dict__:
             self.prep_dataset()
         
         d_classification = toolbox.loadMatrix(p_classification, sep = ",")
-
 
         # for active chem
         d_out_class_active = {}
@@ -79,7 +84,7 @@ class dataset:
             if l_class_chem == "NA":
                 l_class_chem = "No defined"
 
-            if self.d_dataset[CASRN]["log10(AC50)"] != "NA":
+            if self.d_dataset[CASRN]["-log10(AC50)"] != "NA":
                 d_out_class_active[CASRN] = l_class_chem
 
             d_out_class_all[CASRN] = l_class_chem
@@ -127,14 +132,8 @@ class dataset:
             self.p_desc_opera = p_filout_OPERA
             return [self.p_desc1D2D,  self.p_desc_opera]
 
-        # create opera descriptor
-        pr_OPERA = pathFolder.createFolder(pr_desc + "OPERA/")
-        p_listchem = pr_OPERA + "listChem.smi"
-        
-
         # extract descriptor 2D
         if not path.exists(p_filout_RDKIT):
-            flistchem = open(p_listchem, "w")
             cChem = CompDesc.CompDesc("", pr_desc)
             l_desc = cChem.getLdesc("1D2D")
 
@@ -160,37 +159,6 @@ class dataset:
                     filout.write("%s\t%s\t%s\n"%(CASRN, cChem.smi, "\t".join(["NA" if not desc in list(cChem.all2D.keys()) else str(cChem.all2D[desc])  for desc in l_desc])))
                     l_smi.append(cChem.smi)
             filout.close()
-            flistchem.write("\n".join(l_smi))
-            flistchem.close()
-
-        #############
-        # RUN OPERA #
-        # need to add name in OPERA
-        if path.exists(pr_OPERA + "desc_OPERA.csv"):
-            l_chem_opera = toolbox.loadMatrixToList(pr_OPERA + "desc_OPERA.csv", sep=",")
-            l_chem_rdkit = toolbox.loadMatrixToList(p_filout_RDKIT, sep = "\t")
-            print(len(l_chem_rdkit))
-            print(len(l_chem_opera))
-            l_header_opera = list(l_chem_opera[0].keys())
-            l_header_opera.remove("MoleculeID")
-            i = 0
-            imax = len(l_chem_opera)
-            while i < imax:
-                i_rdkit = int(l_chem_opera[i]["MoleculeID"].split("_")[-1]) - 1
-                casrn = l_chem_rdkit[i_rdkit]["CASRN"]
-                l_chem_opera[i]["CASRN"] = casrn
-                i = i + 1
-            
-            # write 
-            fopera = open(p_filout_OPERA, "w")
-            fopera.write("CASRN,%s\n"%(",".join(l_header_opera)))
-            for chem in l_chem_opera:
-                fopera.write("%s,%s\n"%(chem["CASRN"], ",".join([str(chem[h]) for h in l_header_opera])))
-
-            fopera.close()
-
-        else:
-            print("RUN opera with => ", p_listchem)
 
         self.p_desc1D2D = p_filout_RDKIT
         self.p_desc_opera = p_filout_OPERA
@@ -249,7 +217,7 @@ class dataset:
         l_aff = []
         d_temp = {}
         for CASRN in self.d_dataset.keys():
-            aff = self.d_dataset[CASRN]["log10(AC50)"]
+            aff = self.d_dataset[CASRN]["-log10(AC50)"]
             name = self.d_dataset[CASRN]["PREFERRED_NAME"]
             if aff == "NA":
                 continue

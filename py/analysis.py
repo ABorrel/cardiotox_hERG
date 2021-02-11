@@ -65,7 +65,7 @@ class analysis:
         
         p_filout = pr_out + "summary.txt"
         filout = open(p_filout, "w")
-        filout.write("Nb chemicals: %s\nNb active: %s\nPercentage active: %s\nAverage log10(AC50): %s +\- %s"%(nb_chem, len(l_AC50), round((len(l_AC50)/nb_chem)*100, 2), round(mean(l_AC50),2), round(stdev(l_AC50),2)))
+        filout.write("Nb chemicals: %s\nNb active: %s\nPercentage active: %s\nAverage -log10(AC50): %s +\- %s"%(nb_chem, len(l_AC50), round((len(l_AC50)/nb_chem)*100, 2), round(mean(l_AC50),2), round(stdev(l_AC50),2)))
         filout.close()
 
         # histogram AC50        

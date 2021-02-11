@@ -27,7 +27,7 @@ ggplot(dAC50, aes(x=Aff)) +
   theme(text = element_text(size=19))+
   geom_vline(aes(xintercept=mu),
              linetype=c("dashed"))+
-  scale_color_manual(values=c("#cde2ff"), labels = c("log(AC50)")) + 
-  labs(title="",x="log(AC50) (uM)", y = "Density")
+  scale_color_manual(values=c("#cde2ff"), labels = c("-log(AC50)")) + 
+  labs(title="",x="-log(AC50) (uM)", y = "Density")
 
 ggsave(paste(pr_out, "hist_AC50.png", sep = ""),  width = 8, height = 7, dpi = 300, bg="transparent")
