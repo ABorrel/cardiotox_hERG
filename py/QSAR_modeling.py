@@ -125,13 +125,7 @@ class QSAR_modeling:
         # rename train in global train
         rename(self.pr_out + "train.csv", self.pr_out + "trainGlobal.csv")
         self.p_trainGlobal = p_train
-
-        # extract Test set with ratio active vs inactive
-        runExternal.prepDataQSAR(self.p_desc, self.p_AC50, self.rate_active, self.pr_out)
-        runExternal.SplitTrainTest(self.pr_out + "desc_Class.csv", self.pr_out, self.rate_splitTrainTest)
         self.p_test = p_test
-
-        remove(self.pr_out + "train.csv")
 
     def prepTrainSetforUnderSampling(self, pr_run, splitRatio=""):
 
@@ -349,6 +343,10 @@ class QSAR_modeling:
             p_Zscore_train = pr_AD_all + pr_run + "/AD_Train_zscore.csv"
             p_Zscore_test = pr_AD_all + pr_run + "/AD_Test_zscore.csv"
             
+            if not path.exists(p_Zscore_train) and not path.exists(p_Zscore_test):
+                p_Zscore_train = pr_AD_all + "AD_Train_zscore.csv"
+                p_Zscore_test = pr_AD_all + "AD_Test_zscore.csv"
+                
             d_train = toolbox.loadMatrix(p_Zscore_train, sep = ",")
             d_test = toolbox.loadMatrix(p_Zscore_test, sep = ",")
 
@@ -360,6 +358,9 @@ class QSAR_modeling:
                 if not chem_test in list(d_Zscore_test.keys()):
                     d_Zscore_test[chem_test] = d_test[chem_test]["Zscore"]
         
+        if d_Zscore_test == {}:
+            return 
+
         # write zscore
         p_train = pr_out + "Zscores_train.csv"
         ftrain = open(p_train, "w")
@@ -392,13 +393,14 @@ class QSAR_modeling:
         d_AC50 = toolbox.loadMatrix(p_AC50)
 
         for pr_run in l_pr_run:
-            if search("Merge", pr_run) or search("AD", pr_run) or search("Cleaned", pr_run) or search("desc_global.csv", pr_run):
+            if search("Merge", pr_run) or search("AD", pr_run) or search("Cleaned", pr_run) or search("desc_global.csv", pr_run) or search(".csv", pr_run):
                 continue
 
             d_prob[pr_run] = {}
 
             # CV
             p_CV = self.pr_out + pr_run + "/RFclass/PerfRFClassCV10.txt"
+            print(p_CV)
             d_CV = toolbox.loadMatrix(p_CV, sep = "\t")
             d_prob[pr_run]["CV"] = d_CV
 
@@ -419,7 +421,7 @@ class QSAR_modeling:
         d_av["test"] = {}
 
         for run in l_pr_run:
-            if search("Merge", run) or search("AD", run) or search("Cleaned", run) or search("desc_global.csv", run):
+            if search("Merge", run) or search("AD", run) or search("Cleaned", run) or search("desc", run) or search("csv", run):
                 continue
 
             # CV
@@ -445,8 +447,6 @@ class QSAR_modeling:
                     d_av["test"][chem]["LogAC50"] = d_AC50[chem]["LogAC50"] 
                     d_av["test"][chem]["predicted"] = []
                 d_av["test"][chem]["predicted"].append(float(d_prob[run]["test"][chem]["x"]))
-
-
 
 
             
@@ -490,7 +490,7 @@ class QSAR_modeling:
 
         l_pr_run = listdir(self.pr_out)
         for run in l_pr_run:
-            if search("Merge", run) or search("AD", run) or search("Cleaned", run) or search("desc_global.csv", run):
+            if search("Merge", run) or search("AD", run) or search("Cleaned", run) or search("desc", run) or search("csv", run):
                 continue
 
             if not run in list(d_importance.keys()):

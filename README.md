@@ -17,6 +17,7 @@
 - ~~SOM add descriptors significance~~ 
 - Build external dataset on chembl for active chemicals on herg
 - merge AD scripts with the QSAR-QSPR scripts
+- split the main script by dataset
 
 
 ## Update

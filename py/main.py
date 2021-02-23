@@ -18,7 +18,7 @@ class main:
         self.pr_data = pr_data
         self.pr_results = pr_results
         self.name_dataset = name_dataset
-        self.pr_desc = pathFolder.createFolder(pr_results + "DESC/")
+        self.pr_desc = pathFolder.createFolder(pr_root + "results/DESC/")
     
     def setup_NCATS(self, p_NCATS_smi, p_NCAST_AC50, p_class_chemical):
         self.p_smi = p_NCATS_smi
@@ -83,6 +83,26 @@ class main:
         self.c_analysis.combineDesc()
         self.c_analysis.prepDesc()
 
+    def prep_QSARReg(self, cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active):
+        self.cor_desc = cor_desc
+        self.quantile_desc = quantile_desc        
+        self.nb_repetition = nb_repetition
+        self.n_foldCV = n_foldCV
+        self.rate_split = rate_split
+        self.rate_active = rate_active
+
+        pr_out = pathFolder.createFolder("%sQSARReg_%s__%s-%s-%s-%s-%s-%s/"%(self.pr_results, self.name_dataset, self.cor_desc, self.quantile_desc, self.nb_repetition, self.n_foldCV, self.rate_split, self.rate_active))
+        self.c_analysis = analysis.analysis(self.p_AC50, self.l_p_desc[0], self.l_p_desc[1], pr_out, self.cor_desc, self.quantile_desc)
+        self.c_analysis.combineDesc()
+        self.c_analysis.prepDesc()
+
+
+    def run_QSARReg(self):
+
+        self.cQSARReg = QSAR_modeling.QSAR_modeling(self.c_analysis.p_desc_cleaned, self.l_p_desc[0], self.c_analysis.p_AC50_cleaned, self.p_AC50, self.c_analysis.pr_out, self.nb_repetition, self.n_foldCV, self.rate_active, self.rate_split)
+        self.cQSARReg.runQSARReg(self.c_analysis.cor_val, self.c_analysis.max_quantile)
+        self.cQSARReg.mergeRegResults()
+
     def run_QSARClassif(self, sampling):
 
         if sampling == "global":
@@ -90,16 +110,25 @@ class main:
             self.cQSAR = QSAR_modeling.QSAR_modeling(self.c_analysis.p_desc_cleaned, self.l_p_desc[0], self.c_analysis.p_AC50_cleaned, self.p_AC50, pr_out, self.nb_repetition, self.n_foldCV, self.rate_active, self.rate_split)
             self.cQSAR.runQSARClassUnderSamplingAllSet(force_run=0)
             
-            self.cQSAR.pr_RF_models = self.cQSAR.extractModels("%sRF_%s__globalsampling__%s-%s-%s-%s-%s-%s/"%(self.pr_results, self.name_dataset, self.cor_desc, self.quantile_desc, self.nb_repetition, self.n_foldCV, self.rate_split, self.rate_active), "RF")
-            self.cQSAR.pr_LDA_models = self.cQSAR.extractModels("%sLDA_%s__globalsampling__%s-%s-%s-%s-%s-%s/"%(self.pr_results, self.name_dataset, self.cor_desc, self.quantile_desc, self.nb_repetition, self.n_foldCV, self.rate_split, self.rate_active), "LDA")
+            self.cQSAR.pr_RF_models = self.cQSAR.extractModels("%sRF_%s__globalsampling__%s-%s-%s-%s-%s-%s/"%(pr_out, self.name_dataset, self.cor_desc, self.quantile_desc, self.nb_repetition, self.n_foldCV, self.rate_split, self.rate_active), "RF")
+            self.cQSAR.pr_LDA_models = self.cQSAR.extractModels("%sLDA_%s__globalsampling__%s-%s-%s-%s-%s-%s/"%(pr_out, self.name_dataset, self.cor_desc, self.quantile_desc, self.nb_repetition, self.n_foldCV, self.rate_split, self.rate_active), "LDA")
 
-        else:
+        elif sampling == "training" and self.rate_active != 0:
             pr_out = pathFolder.createFolder(self.c_analysis.pr_out + "sampleTraningSet/")
             self.cQSAR = QSAR_modeling.QSAR_modeling(self.c_analysis.p_desc_cleaned, self.l_p_desc[0], self.c_analysis.p_AC50_cleaned, self.p_AC50, pr_out, self.nb_repetition, self.n_foldCV, self.rate_active, self.rate_split)
             self.cQSAR.runQSARClassUnderSamplingTrain()
             
-            self.cQSAR.pr_RF_models = self.cQSAR.extractModels("%sRF_%s__trainnigsampling__%s-%s-%s-%s-%s-%s/"%(self.pr_results, self.name_dataset, self.cor_desc, self.quantile_desc, self.nb_repetition, self.n_foldCV, self.rate_split, self.rate_active), "RF")
-            self.cQSAR.pr_LDA_models = self.cQSAR.extractModels("%sLDA_%s__trainnigsampling__%s-%s-%s-%s-%s-%s/"%(self.pr_results, self.name_dataset, self.cor_desc, self.quantile_desc, self.nb_repetition, self.n_foldCV, self.rate_split, self.rate_active), "LDA")
+            self.cQSAR.pr_RF_models = self.cQSAR.extractModels("%sRF_%s__trainnigsampling__%s-%s-%s-%s-%s-%s/"%(pr_out, self.name_dataset, self.cor_desc, self.quantile_desc, self.nb_repetition, self.n_foldCV, self.rate_split, self.rate_active), "RF")
+            self.cQSAR.pr_LDA_models = self.cQSAR.extractModels("%sLDA_%s__trainnigsampling__%s-%s-%s-%s-%s-%s/"%(pr_out, self.name_dataset, self.cor_desc, self.quantile_desc, self.nb_repetition, self.n_foldCV, self.rate_split, self.rate_active), "LDA")
+
+        elif self.rate_active == 0:
+            pr_out = pathFolder.createFolder(self.c_analysis.pr_out + "noSampling/")
+            self.cQSAR = QSAR_modeling.QSAR_modeling(self.c_analysis.p_desc_cleaned, self.l_p_desc[0], self.c_analysis.p_AC50_cleaned, self.p_AC50, pr_out, self.nb_repetition, self.n_foldCV, 0, self.rate_split)
+            self.cQSAR.runQSARClassUnderSamplingAllSet(force_run=0)
+            
+            self.cQSAR.pr_RF_models = self.cQSAR.extractModels("%sRF_%s__nosampling__%s-%s-%s-%s-%s-%s/"%(pr_out, self.name_dataset, self.cor_desc, self.quantile_desc, self.nb_repetition, self.n_foldCV, self.rate_split, self.rate_active), "RF")
+            self.cQSAR.pr_LDA_models = self.cQSAR.extractModels("%sLDA_%s__nosampling__%s-%s-%s-%s-%s-%s/"%(pr_out, self.name_dataset, self.cor_desc, self.quantile_desc, self.nb_repetition, self.n_foldCV, self.rate_split, self.rate_active), "LDA")
+
 
     def run_QSARDNNClassif(self):
 
@@ -114,7 +143,7 @@ class NCAST_assays:
 
         self.pr_root = pr_root
         self.pr_data = pr_data
-        self.pr_results = pr_results
+        self.pr_results = pathFolder.createFolder(pr_results + "NCAST/")
 
     def prep_dataset(self):
         self.cMain = main(self.pr_root, self.pr_data, "NCAST", self.pr_results)
@@ -137,28 +166,28 @@ class NCAST_assays:
         self.cMain.run_structural_Hclust()
         self.cMain.run_structural_SOM(self.som_size)
 
-
     def QSARClassif_builder(self, cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active):
 
         self.cMain.prep_QSARClass(cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active)
         self.cMain.run_QSARClassif("training")
 
+    def QSARReg_builder(self, cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active):
+
+        self.cMain.prep_QSARReg(cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active)
+        self.cMain.run_QSARReg()
 
     def DNN_builder(self, cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active):
 
         # prep as classiq ML
         self.cMain.prep_QSARClass(cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active)
-
         pr_DNN = pathFolder.createFolder(self.cMain.c_analysis.pr_out + "DNN_model/")
-
-        #self, pr_out, p_desc, p_aff,  p_desc_clean, p_aff_clean, nb_repetition, n_foldCV, rate_active, rate_splitTrainTest
-
         self.c_DNN = DNN.DNN(pr_DNN, self.cMain.c_analysis.p_desc, self.cMain.c_analysis.p_AC50, self.cMain.c_analysis.p_desc_cleaned, self.cMain.c_analysis.p_AC50_cleaned, nb_repetition, n_foldCV, rate_active, rate_split)
         self.c_DNN.prepDataset()
-        self.c_DNN.GridOptimizeDNN()
-        
-        #c_DNN.test()
 
+        self.c_DNN.GridOptimizeDNN("MCC_train")
+        self.c_DNN.evaluateModel()
+        self.c_DNN.CrossValidation(n_foldCV)
+        self.c_DNN.combineResults()
 
     def comparison_hergml(self, p_pred_herg_ml, p_test_set):
         
@@ -195,7 +224,6 @@ class CHEMBL_set:
     def correlation_dataset(self, p_dataset):
         pr_comparison = pathFolder.createFolder(self.pr_results + "comparison_CHEMBL_NCAST/")
         self.cCHEMBL.correlation_aff(p_dataset, pr_comparison, self.pr_results)
-
 
     def merge_dataset(self, p_aff_clean_toadd, p_desc1D2D_toadd, name_dataset):
         pr_out = pathFolder.createFolder(self.pr_results + name_dataset + "/")
@@ -323,7 +351,6 @@ class NCAST_CHEMBL_set:
         self.cMain.prep_QSARClass(cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active)
         self.cMain.run_QSARClassif("training")
 
-
     def QSARClassif_DNN(self, cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active):
         
         # prep as classiq ML
@@ -335,7 +362,18 @@ class NCAST_CHEMBL_set:
 
         self.c_DNN = DNN.DNN(pr_DNN, self.cMain.c_analysis.p_desc, self.cMain.c_analysis.p_AC50, self.cMain.c_analysis.p_desc_cleaned, self.cMain.c_analysis.p_AC50_cleaned, nb_repetition, n_foldCV, rate_active, rate_split)
         self.c_DNN.prepDataset()
-        self.c_DNN.GridOptimizeDNN()
+
+        self.c_DNN.GridOptimizeDNN("MCC_train")
+        self.c_DNN.evaluateModel()
+        self.c_DNN.CrossValidation(n_foldCV)
+        self.c_DNN.combineResults()
+
+    def QSARReg_builder(self, cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active):
+
+        self.cMain.prep_QSARReg(cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active)
+        self.cMain.run_QSARReg()
+
+
 
 # Define folder
 ################
@@ -363,13 +401,27 @@ cNCAST = NCAST_assays(p_smi_NCAST, p_AC50_NCAST, p_classification_interpred, cut
 cNCAST.prep_dataset()
 #cNCAST.analysis_nopred(COR_VAL, MAX_QUANTILE, SOM_size)
 
-#QSAR
+#QSAR - classification
+#######################
 nb_repetition = 5
 n_foldCV = 10
 rate_split = 0.15
 rate_active = 0.30
 #cNCAST.QSARClassif_builder(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
-#cNCAST.DNN_builder(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
+
+rate_active = 0# no undersampling
+cNCAST.QSARClassif_builder(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
+
+
+#QSAR - regression
+#######################
+rate_active = 0
+cNCAST.QSARReg_builder(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
+
+#QSAR - DNN
+#######################
+cNCAST.DNN_builder(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
+dd
 
 # comparison with herg-ml models
 p_pred_herg_ml = PR_ROOT + "comparison_study/pred/list_chemicals-2020-06-09-09-11-41_pred.csv"
@@ -408,14 +460,9 @@ rate_active = 0
 c_NCAST_CHEMBL_set = NCAST_CHEMBL_set(c_CHEMBL_set.cCHEMBL.p_merge_sets, c_CHEMBL_set.pr_merge_sets, PR_RESULTS)
 c_NCAST_CHEMBL_set.set_up_for_analysis([c_CHEMBL_set.cCHEMBL.p_desc1D2D, cNCAST.cMain.l_p_desc[0]], [c_CHEMBL_set.cCHEMBL.p_descOPERA, cNCAST.cMain.l_p_desc[1]])
 #c_NCAST_CHEMBL_set.analyseDataset(COR_VAL, MAX_QUANTILE, SOM_size)
-#c_NCAST_CHEMBL_set.QSARClassif_builder(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
+c_NCAST_CHEMBL_set.QSARClassif_builder(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
+c_NCAST_CHEMBL_set.QSARReg_builder(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
 c_NCAST_CHEMBL_set.QSARClassif_DNN(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
-ss
-
-
-
-
-
 
 
 

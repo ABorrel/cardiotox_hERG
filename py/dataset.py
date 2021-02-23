@@ -161,30 +161,61 @@ class dataset:
             filout.close()
 
         self.p_desc1D2D = p_filout_RDKIT
-        self.p_desc_opera = p_filout_OPERA
+
+        if not path.exists(p_filout_OPERA):
+            self.p_desc_opera = self.computeDescOPERA(pr_desc)
+        else:
+            self.p_desc_opera = p_filout_OPERA
 
     def computeDescOPERA(self, pr_desc):
 
-        p_filout = self.pr_desc + "desc_OPERA.csv"
+        if not "pr_desc" in self.__dict__:
+            self.pr_desc = pr_desc
+
+        p_filout = self.pr_out + "desc_OPERA.csv"
         if path.exists(p_filout):
+            self.p_descOPERA = p_filout
             return p_filout
 
+        # define LDESCOPERA
+        L_OPERA_DESC = CompDesc.CompDesc("", "").getLdesc("OPERA")
+
         # write list of SMILES for OPERA
-        pr_OPERA = pathFolder.createFolder(pr_desc + "OPERA/")
+        pr_OPERA = pathFolder.createFolder(self.pr_desc + "OPERA/", clean=1)
         p_lSMI = pr_OPERA + "listChem.smi"
         flSMI = open(p_lSMI, "w")
         l_w = []
         for CASRN in self.d_dataset.keys():
-            SMILES = self.d_dataset[CASRN]["SMILES"]
-            if SMILES != "--":
-                l_w.append(self.d_dataset[CASRN]["SMILES"])
+            SMILES =  self.d_dataset[CASRN]["SMILES"]
+            l_w.append(SMILES)
         
         flSMI.write("\n".join(l_w))
         flSMI.close()
 
-        print("RUN OPERA COMMAND LINE")
+        p_desc_opera = pr_OPERA + "desc_opera_run.csv"
+        cCompDesc = CompDesc.CompDesc(p_lSMI, pr_OPERA, update=1)
+        cCompDesc.computeOperaFromListSMI(p_desc_opera)
 
-        print("ERROR - OPERA desc no computed")
+        l_chem = list(self.d_dataset.keys())
+        l_ddesc_run = toolbox.loadMatrixToList(p_desc_opera, sep = ",")
+
+        fopera = open(p_filout, "w")
+        fopera.write("CASRN,%s\n"%(",".join(L_OPERA_DESC)))
+
+        i = 0
+        imax = len(l_chem) 
+        while i < imax:
+            CASRN = l_chem[i]
+            for ddesc_run in l_ddesc_run:
+                if ddesc_run["MoleculeID"] == "Molecule_%i"%(i+1):
+                    fopera.write("%s,%s\n"%(CASRN, ",".join(ddesc_run[desc] for desc in L_OPERA_DESC)))
+                    break
+            i = i + 1
+        fopera.close()
+
+        self.p_desc_opera = p_filout
+
+        return p_filout
 
     def computePNG(self, pr_desc):
 
