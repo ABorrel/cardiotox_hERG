@@ -1,4 +1,4 @@
-from os import path
+from os import path, listdir
 from statistics import mean, stdev
 from shutil import copyfile, rmtree
 from re import search
@@ -54,6 +54,9 @@ class analysis:
 
     def sumAC50(self):
         pr_out = pathFolder.createFolder(self.pr_out + "Summary_AC50/")
+        l_files = listdir(pr_out)
+        if len(l_files) != 0:
+            return 
 
         d_AC50 = toolbox.loadMatrix(self.p_AC50_cleaned, sep=",")
 
@@ -74,11 +77,17 @@ class analysis:
     def PCA_plot(self):
 
         pr_out = pathFolder.createFolder(self.pr_out + "PCA/")
+        l_files = listdir(pr_out)
+        if len(l_files) != 0:
+            return 
         runExternal.PCA(self.p_desc_cleaned, self.p_AC50_cleaned, pr_out)
 
     def signifDescActInact(self):
 
         pr_out = pathFolder.createFolder(self.pr_out + "SignifDesc/")
+        l_files = listdir(pr_out)
+        if len(l_files) != 0:
+            return 
         # for rdkit
         if not path.exists(pr_out + "Rdkit_desc_signif.csv"):
             runExternal.SignifDesc(self.p_desc, self.p_AC50, pr_out + "Rdkit_")
@@ -100,6 +109,9 @@ class analysis:
             return "Error"
 
         pr_out = pathFolder.createFolder(self.pr_out + "SOM/Active_by_cluster/")
+        l_files = listdir(pr_out)
+        if len(l_files) != 0:
+            return 
 
         dcluster = toolbox.loadMatrix(p_cluster, sep = ",")
         for CASRN in dcluster.keys():
@@ -115,6 +127,9 @@ class analysis:
         # define exist folder
         name_folder = p_classification.split("/")[-1][:-4]
         pr_out = pathFolder.createFolder(self.pr_out + "SOM/" + name_folder + "/")
+        l_files = listdir(pr_out)
+        if len(l_files) != 0:
+            return 
 
         d_classification = toolbox.loadMatrix(p_classification, sep = ",")
         l_classif = []
@@ -163,11 +178,17 @@ class analysis:
             return 
         
         pr_out = pathFolder.createFolder(self.pr_out + "SOM/DescriptorSignif/")
+        l_files = listdir(pr_out)
+        if len(l_files) != 0:
+            return 
         runExternal.descSignifByCluster(self.p_desc_cleaned, p_cluster, pr_out)
 
     def HClust_plot(self):
 
         pr_out = pathFolder.createFolder(self.pr_out + "HClust/")
+        l_files = listdir(pr_out)
+        if len(l_files) != 0:
+            return 
         runExternal.HClust(self.p_desc_cleaned, self.p_AC50_cleaned, pr_out)
 
 

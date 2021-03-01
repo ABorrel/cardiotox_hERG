@@ -311,7 +311,17 @@ class DNN:
         self.d_perf["CV"]["Se"] = np.mean(d_CV["recall"])
         self.d_perf["CV"]["Sp"] = (self.d_perf["CV"]["b-Acc"] * 2) - self.d_perf["CV"]["Se"]
   
+    def predictDNN(self, p_model, p_test):
+        # descriptor test set 
+        with open(p_test) as f:
+            #determining number of columns from the first line of text
+            n_cols = len(f.readline().split(","))
+        dataset_test = loadtxt(p_test, delimiter=",",usecols=arange(1, n_cols-1), skiprows=1)
 
+        model = keras.models.load_model(p_model)
+        y_pred = model.predict(dataset_test)
+
+        return y_pred
 
 
 #########

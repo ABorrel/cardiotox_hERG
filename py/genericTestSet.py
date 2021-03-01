@@ -10,10 +10,18 @@ import rdkit
 
 
 class genericTestSet:
-    def __init__(self, p_dataset, pr_out, sep = ","):
+    def __init__(self, p_dataset, pr_out, pr_result, sep = ","):
         self.p_dataset = p_dataset
         self.pr_out = pr_out
+        self.pr_results = pr_result
         self.sep = ","
+
+    def main(self, allAff):
+
+        self.loadDataset()
+        self.computeDesc(self.pr_results + "DESC/")
+        self.combineDesc()
+        self.setAff(allAff=allAff)
 
     def loadDataset(self, loadDb="0", p_mapFile=""):
 
@@ -24,164 +32,164 @@ class genericTestSet:
             return 
 
         d_dataset = toolbox.loadMatrix(self.p_dataset, sep = self.sep)
-        self.d_dataset = d_dataset
 
-        l_h = list(self.d_dataset[list(self.d_dataset.keys())[0]].keys())
-        #l_h.append("CARSN")
-        #l_h.append("SMILES")
-
+        # load CHEMBL mapping in case of CHEMBL SET
         if p_mapFile != "": # from pubchem
             d_map = toolbox.loadMatrix(p_mapFile, sep = ",")
-            for ID_sample in d_map.keys():
-                PUBCHEM_SID = d_map[ID_sample]["PUBCHEM_SID"]
-                CASRN = d_map[ID_sample]["CAS"]
 
-                for chem in self.d_dataset.keys():
-                    if self.d_dataset[chem]["PUBCHEM_SID"] == PUBCHEM_SID:
-                        self.d_dataset[chem]["CASRN"] = CASRN
-                        break
-
-
-        if loadDb == 1:
-            # load SMILES from comptox
-            if not "SMILES" in l_h:
-                for chem in d_dataset.keys():
-                    if not "CASRN" in list(d_dataset[chem].keys()):
-                        continue
-                    CASRN = d_dataset[chem]["CASRN"]
-                    CASRN = CASRN.split("|")[0]
-                    print("CASRN:", CASRN, "LOAD chem")
-                    c_search = searchInComptox.loadComptox(CASRN)
-                    c_search.searchInDB()
-                    if c_search.err != 1:
-                        self.d_dataset[chem]["SMILES"] = c_search.SMILES
-                    else:
-                        self.d_dataset[chem]["SMILES"] = "--"
-
-                    print("Load done:", self.d_dataset[chem]["SMILES"])
-
-
-        elif path.exists(loadDb):# case of batch search
+        # load mapping CASRN
+        if path.exists(loadDb) and loadDb != 1:# case of batch search
             d_database = toolbox.loadMatrix(loadDb, sep = ",")
-            for chem in self.d_dataset.keys():
-                #if not "CASRN" in list(d_dataset[chem].keys()) or self.d_dataset[chem]["CASRN"] == "":
-                #    continue
-                try:CASRN = self.d_dataset[chem]["CASRN"]
-                except:CASRN = self.d_dataset[chem]["INPUT"]
-                if CASRN == "":
-                    continue
-                if CASRN in list(d_database.keys()):
-                    self.d_dataset[chem]["SMILES"] = d_database[CASRN]["SMILES"]
-                else:
-                    self.d_dataset[chem]["SMILES"] = "--"
 
-        else:
-            if not "SMILES" in l_h:
-                for chem in self.d_dataset.keys():
-                    try:CASRN = self.d_dataset[chem]["CASRN"]
-                    except:CASRN = self.d_dataset[chem]["INPUT"]
-                    if CASRN == "":
-                        continue
-                    CASRN = CASRN.split("|")[0]
-                    self.d_dataset[chem]["CASRN"] = CASRN
-                    self.d_dataset[chem]["SMILES"] = "--"
-
+        l_h = list(d_dataset[list(d_dataset.keys())[0]].keys())
+        try:l_h.remove("CASRN")
+        except:pass
+        try:l_h.remove("SMILES")
+        except:pass
 
         f_dataset_cleanned = open(p_dataset_preproc, "w")
         f_dataset_cleanned.write("CASRN\tSMILES\t" + "\t".join(l_h) + "\n")
-        for chem in self.d_dataset.keys():
-            if "CASRN" in list(self.d_dataset[chem].keys()):
-                CASRN = self.d_dataset[chem]["CASRN"]
+
+        for chem in d_dataset.keys():
+            if "CASRN" in list(d_dataset[chem].keys()):
+                CASRN = d_dataset[chem]["CASRN"]
             else:
-                try:CASRN = self.d_dataset[chem]["INPUT"]
-                except: continue
-                if CASRN == "":
-                    continue
+                if "INPUT" in list(d_dataset[chem].keys()):
+                    CASRN = d_dataset[chem]["INPUT"]
+                elif "PUBCHEM_SID" in list(d_dataset[chem].keys()):
+                    PUBCHEM_SID = d_dataset[chem]["PUBCHEM_SID"]
+                    flag=0
+                    for ID_sample in d_map.keys():
+                        PUBCHEM_SID_map = d_map[ID_sample]["PUBCHEM_SID"]
+                        if PUBCHEM_SID == PUBCHEM_SID_map:
+                            CASRN = d_map[ID_sample]["CAS"]
+                            flag = 1
+                            break
+                    if flag == 0:
+                        continue
                 else:
-                    f_dataset_cleanned.write("%s\t%s\t%s\n"%(CASRN, self.d_dataset[chem]["SMILES"], "\t".join([self.d_dataset[chem][h] for h in l_h])))
+                    continue
+            
+            if "SMILES" in list(d_dataset[chem].keys()):
+                SMILES = d_dataset[chem]["SMILES"]
+            else:
+                if loadDb == 1:
+                    c_search = searchInComptox.loadComptox(CASRN)
+                    c_search.searchInDB()
+                    if c_search.err != 1:
+                        SMILES = c_search.SMILES
+                    else:
+                        SMILES = "--"
+
+                elif path.exists(loadDb):# case of batch search
+                    try:SMILES = d_database[CASRN]["SMILES"]
+                    except:SMILES = "--"
+
+            print(SMILES)
+
+            f_dataset_cleanned.write("%s\t%s\t%s\n"%(CASRN, SMILES, "\t".join([d_dataset[chem][h] for h in l_h])))
         f_dataset_cleanned.close()
 
         self.d_dataset = toolbox.loadMatrix(p_dataset_preproc)
         self.p_dataset_preproc = p_dataset_preproc
 
-    def computeDesc(self):
+    def computeDesc(self, pr_desc):
 
-        if not "d_dataset" in self.__dict__:
-            self.loadDataset()
-
-        pr_out = pathFolder.createFolder(self.pr_out + "DESC/")
-        self.pr_desc = pr_out
-
-        p_filout_1D2D = pr_out + "desc_1D2D.csv"
-        p_filout_OPERA = pr_out + "desc_OPERA.csv"
-
-        if path.exists(p_filout_1D2D) and path.getsize(p_filout_1D2D) > 2000 and path.exists(p_filout_OPERA) and path.getsize(p_filout_OPERA) > 2000:
-            self.p_desc_2D = p_filout_1D2D
+        p_filout_RDKIT = self.pr_out + "desc_1D2D.csv"
+        p_filout_OPERA = self.pr_out + "desc_OPERA.csv"
+        if path.exists(p_filout_RDKIT) and path.exists(p_filout_OPERA):
+            self.p_desc1D2D = p_filout_RDKIT
             self.p_desc_opera = p_filout_OPERA
-            return [self.p_desc_2D, self.p_desc_opera]
+            return 
 
+        # extract descriptor 2D
+        if not path.exists(p_filout_RDKIT):
+            cChem = CompDesc.CompDesc("", pr_desc)
+            l_desc = cChem.getLdesc("1D2D")
 
-        cCompDesc = CompDesc.CompDesc("", "")
-        l_desc = cCompDesc.getLdesc("1D2D")
-        l_desc_OPERA = cCompDesc.getLdesc("OPERA")
+            # open filout
+            filout = open(p_filout_RDKIT, "w")
+            filout.write("CASRN\tSMILES\t%s\n"%("\t".join(l_desc)))
 
+            # compute descriptor
+            l_smi = []
+            for CASRN in self.d_dataset.keys():
+                SMILES = self.d_dataset[CASRN]["SMILES"]
+                cChem = CompDesc.CompDesc(SMILES, pr_desc)
+                cChem.prepChem() # prep
+                # case error cleaning
+                if cChem.err == 1:
+                    continue
+                cChem.computeAll2D() # compute
+                cChem.writeMatrix("2D") # write by chem to save time in case of rerun
+                if cChem.err == 1:
+                    continue
+                else:
+                    # write direcly descriptor
+                    filout.write("%s\t%s\t%s\n"%(CASRN, cChem.smi, "\t".join(["NA" if not desc in list(cChem.all2D.keys()) else str(cChem.all2D[desc])  for desc in l_desc])))
+                    l_smi.append(cChem.smi)
+            filout.close()
 
-        # open filout	       
-        filout = open(p_filout_1D2D, "w")	
-        filout.write("CASRN\tSMILES\t%s\n"%("\t".join(l_desc)))
+        self.p_desc1D2D = p_filout_RDKIT
 
-        filout_opera = open(p_filout_OPERA, "w")
-        filout_opera.write("CASRN\tSMILES\t%s\n"%("\t".join(l_desc_OPERA)))
+        if not path.exists(p_filout_OPERA):
+            self.computeDescOPERA(pr_desc)
+        else:
+            self.p_desc_opera = p_filout_OPERA
 
+    def computeDescOPERA(self, pr_desc):
 
-        l_smi = []
+        if not "pr_desc" in self.__dict__:
+            self.pr_desc = pr_desc
+
+        p_filout = self.pr_out + "desc_OPERA.csv"
+        if path.exists(p_filout):
+            self.p_descOPERA = p_filout
+            return p_filout
+
+        # define LDESCOPERA
+        L_OPERA_DESC = CompDesc.CompDesc("", "").getLdesc("OPERA")
+
+        # write list of SMILES for OPERA
+        pr_OPERA = pathFolder.createFolder(self.pr_desc + "OPERA/", clean=1)
+        p_lSMI = pr_OPERA + "listChem.smi"
+        flSMI = open(p_lSMI, "w")
+        l_w = []
+        for CASRN in self.d_dataset.keys():
+            SMILES =  self.d_dataset[CASRN]["SMILES"]
+            l_w.append(SMILES)
+        
+        flSMI.write("\n".join(l_w))
+        flSMI.close()
+
+        p_desc_opera = pr_OPERA + "desc_opera_run.csv"
+        cCompDesc = CompDesc.CompDesc(p_lSMI, pr_OPERA, update=1)
+        cCompDesc.computeOperaFromListSMI(p_desc_opera)
+
         l_chem = list(self.d_dataset.keys())
-        shuffle(l_chem)
-        for chem in l_chem:
-            try: CASRN = self.d_dataset[chem]["CASRN"]
-            except: CASRN = self.d_dataset[chem]["INPUT"]# case where there is no CASRN
-            SMILES = self.d_dataset[chem]["SMILES"]
+        l_ddesc_run = toolbox.loadMatrixToList(p_desc_opera, sep = ",")
 
-            cChem = CompDesc.CompDesc(SMILES, self.pr_desc, p_salts=path.abspath("./Salts.txt"))
-            cChem.prepChem() # prep
-            # case error cleaning
-            if cChem.err == 1:
-                continue
-            else:
-                l_smi.append(cChem.smi)
+        fopera = open(p_filout, "w")
+        fopera.write("CASRN,%s\n"%(",".join(L_OPERA_DESC)))
 
-            cChem.computeAll2D() # compute
-            cChem.writeMatrix("2D") # write by chem to save time in case of rerun	            cChem.writeMatrix("2D") # write by chem to save time in case of rerun
-            if cChem.err == 1:
-                continue
-            else:
-                # write direcly descriptor	     
-                filout.write("%s\t%s\t%s\n"%(CASRN, cChem.smi, "\t".join([str(cChem.all2D[desc]) for desc in l_desc])))
+        i = 0
+        imax = len(l_chem) 
+        while i < imax:
+            CASRN = l_chem[i]
+            for ddesc_run in l_ddesc_run:
+                if ddesc_run["MoleculeID"] == "Molecule_%i"%(i+1):
+                    fopera.write("%s,%s\n"%(CASRN, ",".join(ddesc_run[desc] for desc in L_OPERA_DESC)))
+                    break
+            i = i + 1
+        fopera.close()
 
-            # run OPERA
-            try:
-                cChem.computeOPERAFromChem()
-                filout_opera.write("%s\t%s\t%s\n"%(CASRN, cChem.smi, "\t".join([str(cChem.allOPERA[desc]) for desc in l_desc_OPERA])))
-            except:
-                continue
-        
-        filout.close()
-        filout_opera.close()
-        self.p_desc_2D = p_filout_1D2D
-        self.p_desc_opera = p_filout_OPERA
-
-        # do with KNIME descriptor
-        cChem.convertDesc2DtoKnimeDesc()
-        
-        cChem.writeMatrix()
-
-        return [self.p_desc_2D, self.p_desc_opera]
+        self.p_desc_opera = p_filout
 
     def combineDesc(self):
 
         p_global = self.pr_out + 'desc_global.csv'
         if not path.exists(p_global):
-            runExternal.combineAndPredDesc(self.p_desc_2D, self.p_desc_opera, self.pr_out)
+            runExternal.combineAndPredDesc(self.p_desc1D2D, self.p_desc_opera, self.pr_out)
         self.p_desc = p_global
 
     def setAff(self, allAff=0):
