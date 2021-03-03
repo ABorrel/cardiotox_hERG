@@ -39,18 +39,16 @@ rownames(din) = din[,1]
 if(ML == "RFclass"){
   lpred = predict(model, din)
   dout = cbind(rownames(din), lpred)
-
+}else if(ML == "SVMclass"){
+  lpred = predict(model, din)
+  dout = cbind(rownames(din), as.vector(lpred))
+}else if(ML == "LDAclass"){
+  lpred = predict(model, din)
+  dout = cbind(rownames(din), as.vector(lpred$class))
 # to update  
 }else if (ML == "CARTclass"){
   lpred = predict(model, din)
   dout = cbind(lpred[,2], din$Aff)
-}else if(ML == "LDAclass"){
-  lpred = predict(model, din)
-  dout = cbind(lpred$posterior[,2], din$Aff)
-}else if(ML == "SVMclass"){
-  lpred = predict(model, din)
-  lpred = as.vector(lpred)
-  dout = cbind(lpred, din$Aff)
 }
 
 

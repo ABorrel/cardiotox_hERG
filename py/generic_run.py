@@ -114,6 +114,8 @@ class generic_run:
                 
                 self.cQSAR.pr_RF_models = self.cQSAR.extractModels("%sRF_models/"%(pr_out), "RF")
                 self.cQSAR.pr_LDA_models = self.cQSAR.extractModels("%sLDA_models/"%(pr_out), "LDA")
+                self.cQSAR.pr_SVMradial_models = self.cQSAR.extractModels("%sSVM-radial_models/"%(pr_out), "SVM-radial")
+                sss
 
         elif self.rate_active == 0:
             pr_out = pathFolder.createFolder(self.c_analysis.pr_out + "noSampling/")

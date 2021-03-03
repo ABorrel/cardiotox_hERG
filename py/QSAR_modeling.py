@@ -470,7 +470,10 @@ class QSAR_modeling:
             if search("Merge", pr_run) or search("AD", pr_run) or search("Cleaned", pr_run) or search("desc_global.csv", pr_run):
                 continue
 
-            p_model = "%s%s/%sclass/model.RData"%(self.pr_out, pr_run, ML)
+            if search("SVM", ML):
+                p_model = "%s%s/SVMclass_%s/model.RData"%(self.pr_out, pr_run, ML.split("-")[-1])
+            else:
+                p_model = "%s%s/%sclass/model.RData"%(self.pr_out, pr_run, ML)
             if path.exists(p_model) and not path.exists(pr_out + pr_run + ".RData"):
                 copyfile(p_model, pr_out + pr_run + ".RData")
         

@@ -80,24 +80,23 @@ AD = d_ad$Zscore
 
 # prediction
 load(p_model)
+print(ls())
 model = outmodel$model
 
 print(attributes(model))
 
-if(ML == "PLS" || ML == "PCR"){
+if(ML == "PLSreg" || ML == "PCRreg"){
   lpred = predict(model, din, ncomp = model$ncomp)
-  dout = cbind(lpred, d_aff$LogAC50)
-}else if(ML == "NN") {
+  print(lpred)
+}else if(ML == "NNreg") {
   din = na.omit(din)
   lpred = predict(model, din)
   lpred = lpred[,1]
-  dout = cbind(lpred, d_aff$LogAC50[rownames(din)])
 }else{
   lpred = predict(model, din)
-  dout = cbind(lpred, d_aff$LogAC50)
 }
 
-dout = cbind(lpred, d_aff$LogAC50)
+dout = cbind(lpred, abs(d_aff$LogAC50))
 
 colnames(dout) = c("Pred", "Real")
 dout = as.data.frame(dout)
