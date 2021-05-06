@@ -82,6 +82,13 @@ class analysis:
             return 
         runExternal.PCA(self.p_desc_cleaned, self.p_AC50_cleaned, pr_out)
 
+    def PCA_NCATS_CHEMBL_plot(self):
+        pr_out = pathFolder.createFolder(self.pr_out + "PCA_NCATS_CHEMBL/")
+        l_files = listdir(pr_out)
+        if len(l_files) != 0:
+            return 
+        runExternal.PCA_NCATS_CHEMBL(self.p_desc_cleaned, self.p_AC50_cleaned, pr_out)
+
     def signifDescActInact(self):
 
         pr_out = pathFolder.createFolder(self.pr_out + "SignifDesc/")

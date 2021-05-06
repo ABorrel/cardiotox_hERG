@@ -22,10 +22,10 @@ class CHEMBL_set:
         # MERGE dataset CHEMBL + NCAST
         ##############
 
-        p_NCAST_aff = self.pr_results + "dataset_NCAST/dataset_prep.csv"
-        p_NCAST_desc = self.pr_results + "dataset_NCAST/desc_1D2D.csv"
+        p_NCAST_aff = self.pr_results + "NCAST/dataset_NCAST/dataset_prep.csv"
+        p_NCAST_desc = self.pr_results + "NCAST/dataset_NCAST/desc_1D2D.csv"
         self.merge_dataset(p_NCAST_aff, p_NCAST_desc, "NCAST_CHEMBL")
-        #self.correlation_dataset(p_NCAST_aff)
+        self.correlation_dataset(p_NCAST_aff)
 
 
     def prep_dataset(self, l_standard_type, l_standard_relation):
@@ -39,7 +39,7 @@ class CHEMBL_set:
 
         self.cCHEMBL.computeDesc(self.pr_desc)
         self.cCHEMBL.computeOPERADesc(self.pr_desc)
-        p_aff_ChEMBL = self.cCHEMBL.prep_aff(typeAff="", cutoff_uM=[1,10])
+        p_aff_ChEMBL = self.cCHEMBL.prep_aff(typeAff="", cutoff_uM=1)
 
         return 
 

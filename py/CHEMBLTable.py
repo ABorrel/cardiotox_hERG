@@ -62,7 +62,7 @@ class CHEMBLTable:
             self.l_work = toolbox.loadMatrixToList(p_filout, sep="\t")
             self.p_dataset_cleaned = p_filout
         else:
-            if not "l_work" in __dict__(self):
+            if not "l_work" in self.__dict__:
                 self.parseCHEMBLFile()
 
             self.get_standard_type(l_standard_type)
@@ -321,7 +321,7 @@ class CHEMBLTable:
 
         # extract descriptor 2D
         if not path.exists(p_filout_RDKIT):
-            cChem = CompDesc.CompDesc("", pr_desc)
+            cChem = CompDesc.CompDesc("", self.pr_desc)
             l_desc = cChem.getLdesc("1D2D")
 
             # open filout
@@ -333,7 +333,7 @@ class CHEMBLTable:
             for row in self.l_work:
                 SMILES = row["Smiles"]
                 CHEMBL_ID = row["Molecule ChEMBL ID"]
-                cChem = CompDesc.CompDesc(SMILES, pr_desc)
+                cChem = CompDesc.CompDesc(SMILES, self.pr_desc)
                 cChem.prepChem() # prep
                 # case error cleaning
                 if cChem.err == 1:
@@ -362,7 +362,7 @@ class CHEMBLTable:
             return p_filout
 
         # write list of SMILES for OPERA
-        pr_OPERA = pathFolder.createFolder(self.pr_desc + "OPERA/")
+        pr_OPERA = pathFolder.createFolder(self.pr_desc + "OPERA/", clean=1)
         p_lSMI = pr_OPERA + "listChem.smi"
         flSMI = open(p_lSMI, "w")
         l_w = []
@@ -494,34 +494,34 @@ class CHEMBLTable:
         l_smi_inter = list(set.intersection(set(l_smiles_chembl), set(l_smiles_to_compare)))
 
         p_fcor = pr_comparison + "comparison"
-        fcor = open(p_fcor, "w")
-        fcor.write("CASRN\tCHEMBL\tAff_CHEMBL\tAff_NCAST\tAssay_CHEMBL\n")
-        for smi_inter in l_smi_inter:
-            for chem_CHEMBL in d_chem_chembl.keys():
-                if d_chem_chembl[chem_CHEMBL]["SMILES_CLEAN"] == smi_inter:
-                    CHEMBLID = d_chem_chembl[chem_CHEMBL]["Molecule ChEMBL ID"]
-                    aff_chembl = d_chem_chembl[chem_CHEMBL]["pChEMBL Value"]
-                    assays =  d_chem_chembl[chem_CHEMBL]["Assay Description"]
-                    break
+        if not path.exists(p_fcor):
+            fcor = open(p_fcor, "w")
+            fcor.write("CASRN\tCHEMBL\tAff_CHEMBL\tAff_NCAST\tAssay_CHEMBL\n")
+            for smi_inter in l_smi_inter:
+                for chem_CHEMBL in d_chem_chembl.keys():
+                    if d_chem_chembl[chem_CHEMBL]["SMILES_CLEAN"] == smi_inter:
+                        CHEMBLID = d_chem_chembl[chem_CHEMBL]["Molecule ChEMBL ID"]
+                        aff_chembl = d_chem_chembl[chem_CHEMBL]["pChEMBL Value"]
+                        assays =  d_chem_chembl[chem_CHEMBL]["Assay Description"]
+                        break
+                
+                for chem_to_compare in d_chem_dataset_to_compare.keys():
+                    if d_chem_dataset_to_compare[chem_to_compare]["SMILES_CLEAN"] == smi_inter:
+                        CASRN = d_chem_dataset_to_compare[chem_to_compare]["CASRN"]
+                        aff_NCAST = d_chem_dataset_to_compare[chem_to_compare]["-log10(AC50)"]
+                        break
+                
+                if search("patch clamp", assays):
+                    fcor.write("%s\t%s\t%s\t%s\tPatch clamp\n"%(CASRN, CHEMBLID, aff_chembl, aff_NCAST))
+                else:
+                    fcor.write("%s\t%s\t%s\t%s\tOther\n"%(CASRN, CHEMBLID, aff_chembl, aff_NCAST))
+            fcor.close()
             
-            for chem_to_compare in d_chem_dataset_to_compare.keys():
-                if d_chem_dataset_to_compare[chem_to_compare]["SMILES_CLEAN"] == smi_inter:
-                    CASRN = d_chem_dataset_to_compare[chem_to_compare]["CASRN"]
-                    aff_NCAST = d_chem_dataset_to_compare[chem_to_compare]["-log10(AC50)"]
-                    break
-            
-            if search("patch clamp", assays):
-                fcor.write("%s\t%s\t%s\t%s\tPatch clamp\n"%(CASRN, CHEMBLID, aff_chembl, aff_NCAST))
-            else:
-                fcor.write("%s\t%s\t%s\t%s\tOther\n"%(CASRN, CHEMBLID, aff_chembl, aff_NCAST))
-        fcor.close()
-        
-        runExternal.corplotAff(p_fcor)
+            runExternal.corplotAff(p_fcor)
 
 
-        return 
     
-    def mergeDataset(self, p_aff_to_merge, p_desc_to_merge, pr_out):
+    def mergeDataset(self, p_aff_to_merge, p_desc_to_merge, pr_out, rm_inact=1):
         
         p_filout = pr_out + "aff_merged.csv"
         if path.exists(p_filout):
@@ -550,6 +550,8 @@ class CHEMBLTable:
         
         for chem_chembl in d_chembl_aff.keys():
             SMILES = d_chembl_desc[chem_chembl]["SMILES"]
+            if rm_inact == 1 and d_chembl_aff[chem_chembl]["Aff"] == "0":
+                continue
             if not SMILES in list(d_out.keys()):
                 d_out[SMILES] = {}
                 d_out[SMILES]["CASRN"] = "-"

@@ -91,19 +91,20 @@ var_cap = generatePCAcoords(ddesc1)[[2]]
 add_coord = predict(res.pca, newdata = ddesc2)
 
 vcolor = rep(addTrans("#595959", 60), dim(ddesc1)[1])
-vcolor[which(!is.na(daff1$Aff))] = addTrans("#00008B", 100)
+vcolor[which(!is.na(daff1$Aff))] = "#191997"
 
 vcolor_add = rep("#90EE90", dim(ddesc2)[1])
-
+vcolor_add[union(which(daff2$Aff == 0), which(is.na(daff2$Aff)))] = "#2c7825"
+vshape = rep(18, dim(ddesc2)[1])
+#vshape[union(which(daff2$Aff == 0), which(is.na(daff2$Aff)))] = 8
 
 png(paste(prout, "PCA_color.png", sep = ""), 1700, 1500)
 par(mar=c(8,8,8,8))
-plot(rbind(add_coord[,1],res.pca$x[,1]) ,rbind(add_coord[,2],res.pca$x[,2]) , pch=19, col = "white", xlab = paste("CP1: ", round (var_cap[1], 2), "%", sep = ""), ylab = paste("CP2: ", round(var_cap[2], 2), "%", sep = ""), cex.lab = 4, cex.main = 4, cex.axis = 1.75, cex = 2.5)
+plot(rbind(add_coord[,1],res.pca$x[,1]) ,rbind(add_coord[,2],res.pca$x[,2]) , pch=19, col = "white", xlab = paste("PC1: ", round (var_cap[1], 2), "%", sep = ""), ylab = paste("PC2: ", round(var_cap[2], 2), "%", sep = ""), cex.lab = 4, cex.main = 4, cex.axis = 1.75, cex = 2.5)
 points(res.pca$x[,1], res.pca$x[,2], pch=19, col = vcolor, cex = 2.5)
 #points(res.pca$x[which(vcolor != "darkgray"),1], res.pca$x[which(vcolor != "darkgray"),2], pch=19, col = vcolor[which(vcolor != "darkgray")], cex = 2.5)
-points(add_coord[,1], add_coord[,2], col = vcolor_add, pch = 19, cex = 2.5)
 points(res.pca$x[which(vcolor != "#5959593C"),1], res.pca$x[which(vcolor != "#5959593C"),2], pch=19, col = vcolor[which(vcolor != "#5959593C")], cex = 2.5)
-
+points(add_coord[,1], add_coord[,2], col = vcolor_add, pch = vshape, cex = 3)
 abline(h=0,v=0)
 warnings ()
 dev.off()

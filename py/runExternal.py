@@ -95,6 +95,12 @@ def PCA(p_desc_cleaned, p_AC50, pr_out):
     cmd = "./PCA_chem.R %s %s %s"%(p_desc_cleaned, p_AC50, pr_out)
     runRCMD(cmd)
 
+def PCA_NCATS_CHEMBL(p_desc_cleaned, p_AC50, pr_out):
+
+    cmd = "./PCA_NCATS_CHEMBL.R %s %s %s"%(p_desc_cleaned, p_AC50, pr_out)
+    print(cmd)
+    runRCMD(cmd)   
+
 
 def SOM(p_desc_cleaned, p_AC50_cleaned, pr_out, grid_size):
 
@@ -171,6 +177,11 @@ def computePerf(p_filin):
 
 def corplotAff(p_filin):
     cmd = "./corplot.R %s"%(p_filin)
+    runRCMD(cmd)
+
+
+def plotPerfCor(p_filin):
+    cmd = "./corperf.R %s"%(p_filin)
     runRCMD(cmd)
 
 ############

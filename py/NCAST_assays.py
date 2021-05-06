@@ -2,7 +2,8 @@ import pathFolder
 import generic_run
 import DNN
 import hergml
-
+import runExternal
+from os import path
 
 class NCAST_assays:
     def __init__(self, p_smi, p_aff_origin, p_classification, cutoff_aff, pr_root, pr_data, pr_results):
@@ -50,13 +51,19 @@ class NCAST_assays:
         #rate_active = 0
         #self.DNN_builder(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
 
-        
+        rate_active = 0.3
+        #self.DNN_builder(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
+
+        # QSAR - DNN - regression
+        ###########################
+        #self.DNN_builder_reg(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
+
+
         #comparison - herg-ML
         ########################
         #p_pred_herg_ml = PR_ROOT + "comparison_study/pred/list_chemicals-2020-06-09-09-11-41_pred.csv"
         #p_test_set = PR_RESULTS + "QSARclass/1/test.csv"
         #cNCAST.comparison_hergml(p_pred_herg_ml, p_test_set)
-
 
     def prep_dataset(self):
         self.cMain = generic_run.generic_run(self.pr_root, self.pr_data, "NCAST", self.pr_results)
@@ -93,19 +100,69 @@ class NCAST_assays:
 
         # prep as classiq ML
         self.cMain.prep_QSARClass(cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active)
-        pr_DNN = pathFolder.createFolder(self.cMain.c_analysis.pr_out + "DNN_model/")
-        for i in range(0,nb_repetition):
-            pr_DNN = pathFolder.createFolder(self.cMain.c_analysis.pr_out + "DNN_model/" + str(i+1) + "/")
-            if path.exists(pr_DNN + "combined_perf.csv"):
-                continue
-            self.c_DNN = DNN.DNN(pr_DNN, self.cMain.c_analysis.p_desc, self.cMain.c_analysis.p_AC50, self.cMain.c_analysis.p_desc_cleaned, self.cMain.c_analysis.p_AC50_cleaned, nb_repetition, n_foldCV, rate_active, rate_split)
-            self.c_DNN.prepDataset()
 
-            self.c_DNN.GridOptimizeDNN("MCC_train")
+        # case of no undersampleing
+        if rate_split == 0:
+            for i in range(0,nb_repetition):
+                pr_DNN = pathFolder.createFolder(self.cMain.c_analysis.pr_out + "DNN_model/" + str(i+1) + "/")
+                if path.exists(pr_DNN + "combined_perf.csv"):
+                    continue
+                self.c_DNN = DNN.DNN(pr_DNN, self.cMain.c_analysis.p_desc, self.cMain.c_analysis.p_AC50, self.cMain.c_analysis.p_desc_cleaned, self.cMain.c_analysis.p_AC50_cleaned, nb_repetition, n_foldCV, rate_active, rate_split, "classification")
+                self.c_DNN.prepDataset()
+
+                self.c_DNN.GridOptimizeDNN("MCC_train")
+                self.c_DNN.evaluateModel()
+                self.c_DNN.CrossValidation(n_foldCV)
+                self.c_DNN.combineResults()
+        
+        # already existing undersampling
+        else:
+            print(self.cMain.c_analysis.pr_out)
+            pr_sampling = self.cMain.c_analysis.pr_out + "sampleTraningSet/"
+            for i in range(1, nb_repetition + 1):
+                pr_rep = pr_sampling + str(i) + "/"
+                for i in range(1, nb_repetition + 1):
+                    pr_out = pr_rep + str(i) + "/"
+                    pr_DNN = pathFolder.createFolder(pr_out + "DNNclass/")
+                    self.c_DNN = DNN.DNN(pr_DNN, self.cMain.c_analysis.p_desc, self.cMain.c_analysis.p_AC50, self.cMain.c_analysis.p_desc_cleaned, self.cMain.c_analysis.p_AC50_cleaned, nb_repetition, n_foldCV, rate_active, rate_split, "classification")
+                    
+                    # only work in case of undersampling on the test set
+                    p_train = pr_out + "train.csv"
+                    p_test = pr_rep + "test.csv"
+
+                    self.c_DNN.prepDataset(p_train, p_test)
+                    self.c_DNN.GridOptimizeDNN("MCC_train")
+                    self.c_DNN.evaluateModel()
+                    self.c_DNN.CrossValidation(n_foldCV)
+                    self.c_DNN.combineResults()
+
+                self.c_DNN.mergeUndersampling(pr_rep)
+
+    def DNN_builder_reg(self, cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active):
+
+        # prep as classiq ML
+        self.cMain.prep_QSARClass(cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active)
+
+        # case of no undersampleing
+        for i in range(0,nb_repetition):
+            pr_DNN = pathFolder.createFolder(self.pr_results + "DNN_model_reg/" + str(i+1) + "/")
+            #if path.exists(pr_DNN + "combined_perf.csv"):
+            #    continue
+                
+            # prep data for regression
+            p_train = pr_DNN + "trainSet.csv"
+            p_test = pr_DNN + "testSet.csv"
+            if not path.exists(p_train) or not path.exists(p_test):
+                runExternal.prepDataQSARReg(self.cMain.c_analysis.p_desc, self.cMain.c_analysis.p_AC50, pr_DNN, cor_desc, quantile_desc, rate_split,  typeAff="All", logaff=0, nbNA = 10)
+
+            self.c_DNN = DNN.DNN(pr_DNN, "", "", "", "", "", "", "", "", "regression")
+            self.c_DNN.prepDataset(p_train, p_test)
+
+            self.c_DNN.GridOptimizeDNN("MSE")
             self.c_DNN.evaluateModel()
             self.c_DNN.CrossValidation(n_foldCV)
             self.c_DNN.combineResults()
-
+        
     def comparison_hergml(self, p_pred_herg_ml, p_test_set):
         
         pr_comparison_hergml = pathFolder.createFolder(self.pr_results + "comparison_hergml_" + self.name_dataset + "/")

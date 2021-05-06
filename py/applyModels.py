@@ -27,38 +27,49 @@ class applyModel:
         ##
 
         ## apply model - NCAST RF undersampling
-        pr_models = self.pr_results + "NCAST/QSAR_NCAST__0.9-90-5-10-0.15-0.3/sampleTraningSet/1/RF_models/QSARs_models/RF/"
+        pr_models = self.pr_results + "NCAST/QSAR_NCAST__0.9-90-5-10-0.15-0.3/sampleTraningSet/4/models_out/RF_models/"
         self.predictClassif(pr_models, "NCAST_classif_undersampling", "RF")
         self.mergePredictionClass()
 
         ## apply model - NCAST LDA undersampling
-        pr_models = self.pr_results + "NCAST/QSAR_NCAST__0.9-90-5-10-0.15-0.3/sampleTraningSet/1/LDA_models/QSARs_models/LDA/"
+        pr_models = self.pr_results + "NCAST/QSAR_NCAST__0.9-90-5-10-0.15-0.3/sampleTraningSet/4/models_out/LDA_models/"
         self.predictClassif(pr_models, "NCAST_classif_undersampling", "LDA")
         self.mergePredictionClass()
 
         ## apply model - NCAST SVM-radial undersampling
-        pr_models = self.pr_results + "NCAST/QSAR_NCAST__0.9-90-5-10-0.15-0.3/sampleTraningSet/1/SVM-radial_models/QSARs_models/SVM-radial/"
+        pr_models = self.pr_results + "NCAST/QSAR_NCAST__0.9-90-5-10-0.15-0.3/sampleTraningSet/4/models_out/SVM-radial_models/"
         self.predictClassif(pr_models, "NCAST_classif_undersampling", "SVM-radial")
         self.mergePredictionClass()
+
+        ## apply model - NCAST SVM-linear undersampling
+        pr_models = self.pr_results + "NCAST/QSAR_NCAST__0.9-90-5-10-0.15-0.3/sampleTraningSet/4/models_out/SVM-linear_models/"
+        self.predictClassif(pr_models, "NCAST_classif_undersampling", "SVM-linear")
+        self.mergePredictionClass()
+
+        ## apply model - NCAST DNN undersampling
+        pr_models = self.pr_results + "NCAST/QSAR_NCAST__0.9-90-5-10-0.15-0.3/sampleTraningSet/4/"
+        self.predictClassif(pr_models, "NCAST_classif_undersampling", "DNN")
+        self.mergePredictionClass()
+
 
         ##############################
         ### NCAST classif - nosampling
         ##
 
         ## apply model - NCAST-CHEMBL RF nosampling
-        pr_models = self.pr_results + "NCAST/QSAR_NCAST__0.9-90-5-10-0.15-0/noSampling/2/RFclass/"
-        self.predictClassif(pr_models, "NCAST_classif_nosampling", "RF")
-        self.mergePredictionClass()
+        #pr_models = self.pr_results + "NCAST/QSAR_NCAST__0.9-90-5-10-0.15-0/noSampling/2/RFclass/"
+        #self.predictClassif(pr_models, "NCAST_classif_nosampling", "RF")
+        #self.mergePredictionClass()
 
         ## apply model - NCAST-CHEMBL LDA nosampling
-        pr_models = self.pr_results + "NCAST/QSAR_NCAST__0.9-90-5-10-0.15-0/noSampling/2/LDAclass/"
-        self.predictClassif(pr_models, "NCAST_classif_nosampling", "LDA")
-        self.mergePredictionClass()
+        #pr_models = self.pr_results + "NCAST/QSAR_NCAST__0.9-90-5-10-0.15-0/noSampling/2/LDAclass/"
+        #self.predictClassif(pr_models, "NCAST_classif_nosampling", "LDA")
+        #self.mergePredictionClass()
 
         ## apply model - NCAST-CHEMBL SVM-radial nosampling
-        pr_models = self.pr_results + "NCAST/QSAR_NCAST__0.9-90-5-10-0.15-0/noSampling/2/SVMclass_radial/"
-        self.predictClassif(pr_models, "NCAST_classif_nosampling", "SVM-radial")
-        self.mergePredictionClass()
+        #pr_models = self.pr_results + "NCAST/QSAR_NCAST__0.9-90-5-10-0.15-0/noSampling/2/SVMclass_radial/"
+        #self.predictClassif(pr_models, "NCAST_classif_nosampling", "SVM-radial")
+        #self.mergePredictionClass()
 
 
         ##############################
@@ -66,63 +77,87 @@ class applyModel:
         ##
 
         ## apply model - NCAST-CHEMBL RF nosampling
-        pr_models = self.pr_results + "NCAST_CHEMBL/QSAR_NCAST_CHEMBL__0.9-90-5-10-0.15-0/noSampling/5/RFclass/"
+        pr_models = self.pr_results + "NCAST_CHEMBL/QSAR_NCAST_CHEMBL__0.9-90-5-10-0.15-0/noSampling/2/RFclass/"
         self.predictClassif(pr_models, "NCAST_CHEMBL_classif_nosampling", "RF")
         self.mergePredictionClass()
 
         ## apply model - NCAST-CHEMBL RF nosampling
-        pr_models = self.pr_results + "NCAST_CHEMBL/QSAR_NCAST_CHEMBL__0.9-90-5-10-0.15-0/noSampling/5/SVMclass_radial/"
+        pr_models = self.pr_results + "NCAST_CHEMBL/QSAR_NCAST_CHEMBL__0.9-90-5-10-0.15-0/noSampling/2/SVMclass_radial/"
         self.predictClassif(pr_models, "NCAST_CHEMBL_classif_nosampling", "SVM-radial")
         self.mergePredictionClass()
 
+        ## apply model - NCAST-CHEMBL RF nosampling
+        pr_models = self.pr_results + "NCAST_CHEMBL/QSAR_NCAST_CHEMBL__0.9-90-5-10-0.15-0/noSampling/2/SVMclass_linear/"
+        self.predictClassif(pr_models, "NCAST_CHEMBL_classif_nosampling", "SVM-linear")
+        self.mergePredictionClass()
+
 
 
         ##################################
         ### NCAST DNN class - nosampling
         ##
-
-        pr_models = self.pr_results + "NCAST/QSAR_NCAST__0.9-90-5-10-0.15-0/DNN_model/2/"
-        self.predictDNN(pr_models, "NCAST_DNN")
-        self.mergePredictionClass()
+        #pr_models = self.pr_results + "NCAST/QSAR_NCAST__0.9-90-5-10-0.15-0/DNN_model/2/"
+        #self.predictDNN(pr_models, "NCAST_DNN")
+        #self.mergePredictionClass()
 
         ##################################
-        ### NCAST DNN class - nosampling
+        ### NCAST - CHEMBL DNN class - nosampling
         ##
 
-        pr_models = self.pr_results + "NCAST_CHEMBL/QSAR_NCAST_CHEMBL__0.9-90-5-10-0.15-0/DNN_model/3/"
-        self.predictDNN(pr_models, "NCAST_CHEMBL_DNN")
+        pr_models = self.pr_results + "NCAST_CHEMBL/QSAR_NCAST_CHEMBL__0.9-90-5-10-0.15-0/DNN_model/2/"
+        self.predictDNN(pr_models, "NCAST_CHEMBL_classif_nosampling")
         self.mergePredictionClass()
-
-
-
 
     def  predict_AllRegModels(self):
 
         ##############################
         ### NCAST reg - nosampling
         ##
-        pr_models = self.pr_results + "NCAST/QSARReg_NCAST__0.9-90-5-10-0.15-0/1/RFreg/"
-        self.predictReg(pr_models, "NCAST_reg", "RF")
+        #pr_models = self.pr_results + "NCAST/QSARReg_NCAST__0.9-90-5-10-0.15-0/1/RFreg/"
+        #self.predictReg(pr_models, "NCAST_reg", "RF")
 
-        pr_models = self.pr_results + "NCAST/QSARReg_NCAST__0.9-90-5-10-0.15-0/1/PCRreg/"
-        self.predictReg(pr_models, "NCAST_reg", "PCR")
+        #pr_models = self.pr_results + "NCAST/QSARReg_NCAST__0.9-90-5-10-0.15-0/1/PCRreg/"
+        #self.predictReg(pr_models, "NCAST_reg", "PCR")
 
-        pr_models = self.pr_results + "NCAST/QSARReg_NCAST__0.9-90-5-10-0.15-0/1/PLSreg/"
-        self.predictReg(pr_models, "NCAST_reg", "PLS")
+        #pr_models = self.pr_results + "NCAST/QSARReg_NCAST__0.9-90-5-10-0.15-0/1/PLSreg/"
+        #self.predictReg(pr_models, "NCAST_reg", "PLS")
 
         ##################################
         ### NCAST-CHEMBL reg - nosampling
         ##
-        pr_models = self.pr_results + "NCAST_CHEMBL/QSARReg_NCAST_CHEMBL__0.9-90-5-10-0.15-0/5/RFreg/"
-        self.predictReg(pr_models, "NCAST_CHEMBL_reg", "RF")
+        #pr_models = self.pr_results + "NCAST_CHEMBL/QSARReg_NCAST_CHEMBL__0.9-90-5-10-0.15-0/5/RFreg/"
+        #self.predictReg(pr_models, "NCAST_CHEMBL_reg", "RF")
 
-        pr_models = self.pr_results + "NCAST_CHEMBL/QSARReg_NCAST_CHEMBL__0.9-90-5-10-0.15-0/5/PCRreg/"
-        self.predictReg(pr_models, "NCAST_CHEMBL_reg", "PCR")
+        #pr_models = self.pr_results + "NCAST_CHEMBL/QSARReg_NCAST_CHEMBL__0.9-90-5-10-0.15-0/5/PCRreg/"
+        #self.predictReg(pr_models, "NCAST_CHEMBL_reg", "PCR")
 
-        pr_models = self.pr_results + "NCAST_CHEMBL/QSARReg_NCAST_CHEMBL__0.9-90-5-10-0.15-0/5/PLSreg/"
-        self.predictReg(pr_models, "NCAST_CHEMBL_reg", "PLS")
+        #pr_models = self.pr_results + "NCAST_CHEMBL/QSARReg_NCAST_CHEMBL__0.9-90-5-10-0.15-0/5/PLSreg/"
+        #self.predictReg(pr_models, "NCAST_CHEMBL_reg", "PLS")
+
+        ##################################
+        ### NCAST-CHEMBL - only active reg - nosampling
+        ##
+        #pr_models = self.pr_results + "NCAST_CHEMBL/QSARReg_NCAST_CHEMBL__0.9-90-5-10-0.15-0/2/RFreg/"
+        #self.predictReg(pr_models, "NCAST_CHEMBL_active_reg", "RF")
+
+        #pr_models = self.pr_results + "NCAST_CHEMBL/QSARReg_NCAST_CHEMBL__0.9-90-5-10-0.15-0/2/PCRreg/"
+        #self.predictReg(pr_models, "NCAST_CHEMBL_active_reg", "PCR")
+
+        #pr_models = self.pr_results + "NCAST_CHEMBL/QSARReg_NCAST_CHEMBL__0.9-90-5-10-0.15-0/2/PLSreg/"
+        #self.predictReg(pr_models, "NCAST_CHEMBL_active_reg", "PLS")
 
 
+        ##################################
+        ### NCAST DNN class - nosampling
+        ##
+        pr_models = self.pr_results + "NCAST/DNN_model_reg/4/"
+        self.predictDNNreg(pr_models, "NCAST_DNN_reg")
+
+        ##################################
+        ### NCAST DNN class - nosampling
+        ##
+        pr_models = self.pr_results + "NCAST_CHEMBL/DNN_model_reg/5/"
+        self.predictDNNreg(pr_models, "NCAST_CHEMBL_DNN_reg")   
 
     def PCACombine(self):
         pr_out = pathFolder.createFolder(self.pr_out + "PCA_vs/")
@@ -132,20 +167,26 @@ class applyModel:
         pr_out = pathFolder.createFolder(self.pr_out + "predict_model_" + name_model + "/" + ML + "/")
 
         l_models = listdir(pr_models)
-        print(l_models)
         for model in l_models:
             if search("RData", model) and not search("CV", model):
                 if search("SVM", ML):
                     runExternal.predictDataset(self.p_desc_test, pr_models + model, "SVMclass", pr_out)
                 else:    
                     runExternal.predictDataset(self.p_desc_test, pr_models + model, ML + "class", pr_out)
+            
+        # case of DNN
+        if ML == "DNN": 
+            self.predictDNN(pr_models, name_model)
+        
         self.pr_allPredict = pr_out
-
+        
     def predictDNN(self, pr_models, name_model):
-        pr_out = pathFolder.createFolder(self.pr_out + "predict_model_" + name_model + "/")
+        pr_out = pathFolder.createFolder(self.pr_out + "predict_model_" + name_model + "/DNN/")
         
         # prep TEST set with only descriptor from TRAIN
-        d_train = toolbox.loadMatrix(pr_models + "train.csv", sep = ",")
+        try:d_train = toolbox.loadMatrix(pr_models + "train.csv", sep = ",")
+        except:d_train = toolbox.loadMatrix(pr_models + "trainGlobal.csv", sep = ",")
+
         d_test = toolbox.loadMatrix(self.p_desc_test)
         d_test_aff = toolbox.loadMatrix(self.p_aff_test, sep = ",")
 
@@ -154,7 +195,7 @@ class applyModel:
         f_test = open(p_test, "w")
         f_test.write(",".join(l_desc) + "\n")
         for chem in d_test.keys():
-            l_val = [d_test[chem][desc] for desc in l_desc[1:-2]]
+            l_val = [d_test[chem][desc] for desc in l_desc[1:-1]]
             if "NA" in l_val:
                 continue
             else:
@@ -164,9 +205,10 @@ class applyModel:
         d_test = toolbox.loadMatrix(p_test, sep = ",")
 
         l_models = listdir(pr_models)
+        flag = 0
         for model in l_models:
             if search("h5$", model) :
-                c_DNN = DNN.DNN(pr_out, "", "", "", "", "", "", "", "" )
+                c_DNN = DNN.DNN(pr_out, "", "", "", "", "", "", "", "", "classification")
                 l_pred = c_DNN.predictDNN(pr_models + model, p_test)
                 p_pred = pr_out + "pred_model"
                 f_pred = open(p_pred, "w")
@@ -176,6 +218,65 @@ class applyModel:
                     f_pred.write("\"%s\",\"%s\",\"%s\"\n"%(chem, chem, l_pred[i][0]))
                     i = i + 1 
                 f_pred.close()
+                flag=1
+        
+        if flag == 0:
+            pr_models = pr_models + "models_out/DNN_models/"
+            l_models = listdir(pr_models)
+            for model in l_models:
+                if search("h5$", model) :
+                    c_DNN = DNN.DNN(pr_out, "", "", "", "", "", "", "", "", "classification")
+                    l_pred = c_DNN.predictDNN(pr_models + model, p_test)
+                    p_pred = pr_out + "pred_model"
+                    f_pred = open(p_pred, "w")
+                    f_pred.write("\"\",\"ID\",\"Pred\"\n")
+                    i = 0
+                    for chem in d_test.keys():
+                        f_pred.write("\"%s\",\"%s\",\"%s\"\n"%(chem, chem, l_pred[i][0]))
+                        i = i + 1 
+                    f_pred.close()
+        self.pr_allPredict = pr_out
+
+    def predictDNNreg(self, pr_models, name_model):
+        pr_out = pathFolder.createFolder(self.pr_out + "predict_model_" + name_model + "/")
+        
+        # prep TEST set with only descriptor from TRAIN
+        d_train = toolbox.loadMatrix(pr_models + "trainSet.csv", sep = ",")
+        d_test = toolbox.loadMatrix(self.p_desc_test)
+        d_test_aff = toolbox.loadMatrix(self.p_aff_test, sep = ",")
+
+        l_desc = list(d_train[list(d_train.keys())[0]].keys())
+        p_test = pr_out + "test_cleaned.csv"
+        f_test = open(p_test, "w")
+        f_test.write(",".join(l_desc) + "\n")
+        for chem in d_test.keys():
+            l_val = [d_test[chem][desc] for desc in l_desc[1:-1]]
+            if "NA" in l_val:
+                continue
+            elif d_test_aff[chem]["LogAC50"] == 'NA':
+                continue
+            else:
+                f_test.write("%s,%s,%s\n"%(chem, ",".join(l_val), -float(d_test_aff[chem]["LogAC50"])))
+        f_test.close()
+
+        d_test = toolbox.loadMatrix(p_test, sep = ",")
+
+        l_models = listdir(pr_models)
+        for model in l_models:
+            if search("h5$", model) :
+                c_DNN = DNN.DNN(pr_out, "", "", "", "", "", "", "", "", "regression")
+                l_pred = c_DNN.predictDNN(pr_models + model, p_test)
+                l_pred = [pred[0] for pred in l_pred]
+
+                p_pred = pr_out + "pred_model"
+                f_pred = open(p_pred, "w")
+                f_pred.write("\tReal\tPred\n")
+                i = 0
+                for chem in d_test.keys():
+                    f_pred.write("%s\t%s\t%s\n"%(chem, d_test[chem]["Aff"], l_pred[i]))
+                    i = i + 1 
+                f_pred.close()
+                runExternal.plotPerfCor(p_pred)
         self.pr_allPredict = pr_out
 
     def predictReg(self,pr_models, name_model, ML):
@@ -194,8 +295,10 @@ class applyModel:
     def mergePredictionClass(self):
 
         p_filout = self.pr_allPredict + "Merge_pred.csv"
+        print(p_filout)
         if path.exists(p_filout) and path.getsize(p_filout) > 25:
             self.p_pred = p_filout
+            runExternal.plotAC50VSProb(p_filout)
             return
         
         d_out = {}
@@ -435,3 +538,30 @@ class applyModel:
                         f_desc_out.write("%s\t%s\n"%(chem, "\t".join([d_desc[chem][h] for h in l_h])))
             f_desc_out.close()
             self.p_desc_test = p_desc_out
+
+
+    def concensus(self, name_model, l_ML):
+
+        pr_pred = pathFolder.createFolder(self.pr_out + "predict_model_" + name_model + "/")
+        pr_out = pathFolder.createFolder(pr_pred + "-".join(l_ML) + "/")
+
+
+        d_pred = {}
+        for ML in l_ML:
+            p_pred = pr_pred + ML + "/Merge_pred.csv" 
+            d_pred_ML = toolbox.loadMatrix(p_pred)
+            for chem in d_pred_ML.keys():
+                if not chem in list(d_pred.keys()):
+                    d_pred[chem] = {}
+                    d_pred[chem]["pred"] = []
+                    d_pred[chem]["Real"] = d_pred_ML[chem]["Real"]
+                d_pred[chem]["pred"].append(float(d_pred_ML[chem]["Mpred"]))
+        
+        print(d_pred)
+        p_filout = pr_out + "Merge_pred.csv"
+        filout = open(p_filout, "w")
+        filout.write("ID\tMpred\tSDpred\tReal\n")
+        for chem in d_pred.keys():
+            filout.write("%s\t%s\t%s\t%s\n"%(chem, mean(d_pred[chem]["pred"]), std(d_pred[chem]["pred"]), d_pred[chem]["Real"]))
+        filout.close()
+        self.pr_allPredict = pr_out

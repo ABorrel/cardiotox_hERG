@@ -53,6 +53,10 @@ class generic_run:
     def run_structural_PCA(self):
         self.c_analysis.PCA_plot()
 
+
+    def run_structural_PCA_NCATS_CHEMBL(self):
+        self.c_analysis.PCA_NCATS_CHEMBL_plot()
+
     def run_structural_SOM(self, SOM_size):
         self.c_analysis.generate_SOM(SOM_size)
         self.c_analysis.signifDescBySOMCluster()
@@ -112,10 +116,11 @@ class generic_run:
                 self.cQSAR = QSAR_modeling.QSAR_modeling(self.c_analysis.p_desc_cleaned, self.l_p_desc[0], self.c_analysis.p_AC50_cleaned, self.p_AC50, pr_out, self.nb_repetition, self.n_foldCV, self.rate_active, self.rate_split)
                 self.cQSAR.runQSARClassUnderSamplingTrain()
                 
-                self.cQSAR.pr_RF_models = self.cQSAR.extractModels("%sRF_models/"%(pr_out), "RF")
-                self.cQSAR.pr_LDA_models = self.cQSAR.extractModels("%sLDA_models/"%(pr_out), "LDA")
-                self.cQSAR.pr_SVMradial_models = self.cQSAR.extractModels("%sSVM-radial_models/"%(pr_out), "SVM-radial")
-                sss
+                self.cQSAR.pr_RF_models = self.cQSAR.extractModels("%smodels_out/RF_models/"%(pr_out), "RF")
+                self.cQSAR.pr_LDA_models = self.cQSAR.extractModels("%smodels_out/LDA_models/"%(pr_out), "LDA")
+                self.cQSAR.pr_SVMradial_models = self.cQSAR.extractModels("%smodels_out/SVM-radial_models/"%(pr_out), "SVM-radial")
+                self.cQSAR.pr_SVMlinear_models = self.cQSAR.extractModels("%smodels_out/SVM-linear_models/"%(pr_out), "SVM-linear")
+                self.cQSAR.pr_DNN_models = self.cQSAR.extractModels("%smodels_out/DNN_models/"%(pr_out), "DNN")
 
         elif self.rate_active == 0:
             pr_out = pathFolder.createFolder(self.c_analysis.pr_out + "noSampling/")

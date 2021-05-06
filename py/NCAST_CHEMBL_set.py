@@ -2,7 +2,9 @@ from os import path
 
 import generic_run
 import toolbox
-
+import pathFolder
+import DNN
+import runExternal
 
 
 class NCAST_CHEMBL_set:
@@ -11,15 +13,15 @@ class NCAST_CHEMBL_set:
         self.pr_root = pr_root
         self.pr_results = pr_results
 
-    
+
     def main(self, c_CHEMBL_set, cNCAST):
-        
+
         # general val
         COR_VAL = 0.90
         MAX_QUANTILE = 90
         SOM_size = 15
         cutoff_aff = 30 #uM
-        
+
         # QSAR values
         nb_repetition = 5
         n_foldCV = 10
@@ -27,12 +29,12 @@ class NCAST_CHEMBL_set:
         rate_active = 0
 
         self.set_up_for_analysis([c_CHEMBL_set.cCHEMBL.p_desc1D2D, cNCAST.cMain.l_p_desc[0]], [c_CHEMBL_set.cCHEMBL.p_descOPERA, cNCAST.cMain.l_p_desc[1]])
-        self.analyseDataset(COR_VAL, MAX_QUANTILE, SOM_size)
+        #self.analyseDataset(COR_VAL, MAX_QUANTILE, SOM_size)
         #self.QSARClassif_builder(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
         #self.QSARReg_builder(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
-        #self.c_NCAST_CHEMBL_set.QSARClassif_DNN(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
-    
-    
+        #self.QSARClassif_DNN(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
+        #self.QSARReg_DNN(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
+
     def set_up_for_analysis(self, l_pdesc1D2D, l_pdescOPERA):
 
         p_desc1D2D_out = self.pr_results + "desc1D2D.csv"
@@ -57,7 +59,7 @@ class NCAST_CHEMBL_set:
                 ID = d_chem_dataset[chem]["CASRN"]
             else:
                 ID = d_chem_dataset[chem]["CHEMBLID"]
-            
+
             if d_chem_dataset[chem]["Aff"] == "0":
                 aff = "NA"
             else:
@@ -73,7 +75,7 @@ class NCAST_CHEMBL_set:
         for p_descOPERA in l_pdescOPERA:
             d_temp = toolbox.loadMatrix(p_descOPERA, sep = ",")
             d_opera.update(d_temp)
-        
+
         l_header_opera = list(d_opera[list(d_opera.keys())[0]].keys())
         try:l_header_opera.remove("CASRN")
         except:pass
@@ -122,7 +124,7 @@ class NCAST_CHEMBL_set:
                 continue
             except:
                 pass
-        
+
         f_desc1D2D.close()
 
         self.p_desc1D2D = p_desc1D2D_out
@@ -137,10 +139,10 @@ class NCAST_CHEMBL_set:
     def analyseDataset(self, cor_desc, quantile_desc, som_size):
 
         self.cMain.setup_descAnalysis(cor_desc, quantile_desc)
-        
         self.cMain.run_structural_PCA()
         self.cMain.run_structural_Hclust()
         self.cMain.run_structural_SOM(som_size)
+        self.cMain.run_structural_PCA_NCATS_CHEMBL()
 
     def QSARClassif_builder(self, cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active):
 
@@ -148,7 +150,7 @@ class NCAST_CHEMBL_set:
         self.cMain.run_QSARClassif("training")
 
     def QSARClassif_DNN(self, cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active):
-        
+
         # prep as classiq ML
         self.cMain.prep_QSARClass(cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active)
         for i in range(0,nb_repetition):
@@ -156,13 +158,37 @@ class NCAST_CHEMBL_set:
             if path.exists(pr_DNN + "combined_perf.csv"):
                 continue
 
-            self.c_DNN = DNN.DNN(pr_DNN, self.cMain.c_analysis.p_desc, self.cMain.c_analysis.p_AC50, self.cMain.c_analysis.p_desc_cleaned, self.cMain.c_analysis.p_AC50_cleaned, nb_repetition, n_foldCV, rate_active, rate_split)
+            self.c_DNN = DNN.DNN(pr_DNN, self.cMain.c_analysis.p_desc, self.cMain.c_analysis.p_AC50, self.cMain.c_analysis.p_desc_cleaned, self.cMain.c_analysis.p_AC50_cleaned, nb_repetition, n_foldCV, rate_active, rate_split, "classification")
             self.c_DNN.prepDataset()
 
             self.c_DNN.GridOptimizeDNN("MCC_train")
             self.c_DNN.evaluateModel()
             self.c_DNN.CrossValidation(n_foldCV)
             self.c_DNN.combineResults()
+
+    def QSARReg_DNN(self, cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active):
+
+        # prep as classiq ML
+        self.cMain.prep_QSARClass(cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active)
+        for i in range(0,nb_repetition):
+            pr_DNN = pathFolder.createFolder(self.pr_results + "DNN_model_reg/" + str(i+1) + "/")
+            #if path.exists(pr_DNN + "combined_perf.csv"):
+            #    continue
+
+            # prep data for regression
+            p_train = pr_DNN + "trainSet.csv"
+            p_test = pr_DNN + "testSet.csv"
+            if not path.exists(p_train) or not path.exists(p_test):
+                runExternal.prepDataQSARReg(self.cMain.c_analysis.p_desc, self.cMain.c_analysis.p_AC50, pr_DNN, cor_desc, quantile_desc, rate_split,  typeAff="All", logaff=0, nbNA = 10)
+
+            self.c_DNN = DNN.DNN(pr_DNN, "", "", "", "", "", "", "", "", "regression")
+            self.c_DNN.prepDataset(p_train, p_test)
+
+            self.c_DNN.GridOptimizeDNN("MSE")
+            self.c_DNN.evaluateModel()
+            self.c_DNN.CrossValidation(n_foldCV)
+            self.c_DNN.combineResults()
+
 
     def QSARReg_builder(self, cor_desc, quantile_desc, nb_repetition, n_foldCV, rate_split, rate_active):
 

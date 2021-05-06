@@ -55,14 +55,18 @@ ML = args[5]
 pr_out = args[6]
 
 
-#p_desc = "/mnt/c/Users/Aborrel/research/ILS/HERG/results/AID_588834/QSARReg/desc_active_cleaned.csv"
-#p_aff = "/mnt/c/Users/Aborrel/research/ILS/HERG/results/AID_588834/QSARReg/aff_active_cleaned.csv"
-#p_model = "/mnt/c/Users/Aborrel/research/ILS/HERG/results/QSARreg/7/RFreg/model.RData"
-#pr_out = "/mnt/c/Users/Aborrel/research/ILS/HERG/results/AID_588834/QSARReg/predict_Reg_model_RF/"
-#p_AD = "/mnt/c/Users/Aborrel/research/ILS/HERG/results/AID_588834/QSARReg/AD/AD_Test_zscore.csv"
+
+#p_desc = "c://Users/aborr/research/ILS/HERG/results/AID588834_filtered/desc_global.csv"
+#p_aff = "c://Users/aborr/research/ILS/HERG/results/AID588834_filtered/aff_formated.csv"
+#p_model = "c://Users/aborr/research/ILS/HERG/results/NCAST_CHEMBL/QSARReg_NCAST_CHEMBL__0.9-90-5-10-0.15-0/2/RFreg/model.RData"
+#pr_out = "c://Users/aborr/research/ILS/HERG/results/AID588834_filtered/predict_model_NCAST_CHEMBL_active_reg/PCR/"
+#p_AD = "c://Users/aborr/research/ILS/HERG/results/AID588834_filtered/AD/AD_Test_zscore.csv"
+#ML = "RFreg"
 
 # open file
 d_aff = read.csv(p_aff, sep = ",", row.names=1)
+d_aff = na.omit(d_aff)
+d_aff = d_aff[-which(d_aff$Aff == 0),]
 din = read.csv(p_desc, sep = "\t", header = TRUE, row.names = 1)
 l_chem = intersect(rownames(d_aff), rownames(din))
 din = din[l_chem,]

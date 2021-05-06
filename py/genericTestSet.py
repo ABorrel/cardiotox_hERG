@@ -223,13 +223,31 @@ class genericTestSet:
                 else:
                     filout.write("\"%s\",\"NA\",\"%s\"\n"%(self.d_dataset[chem]["CASRN"], aff))
             filout.close()
-        else:
+        elif type(allAff) == int:
             filout = open(p_aff, "w")
             filout.write("\"\",\"ID\",\"Aff\"\n")
             for chem in d_desc.keys():
                 filout.write("\"%s\",\"%s\",%s\n"%(chem, chem, allAff))
             filout.close()
 
+        else:
+            print(allAff)
+            d_dataset = allAff
+            filout = open(p_aff, "w")
+            filout.write("\"ID\",\"LogAC50\",\"Aff\"\n")
+            for chem in d_dataset.keys():
+                if not "CASRN" in list(d_dataset[chem].keys()):
+                    continue
+                if d_dataset[chem]["Aff"] == "1":
+                    aff = 1
+                else:
+                    aff = 0
+                AC50 = d_dataset[chem]["-log10(AC50)"]
+                if AC50 != "":
+                    filout.write("\"%s\",\"%s\",\"%s\"\n"%(d_dataset[chem]["CASRN"], d_dataset[chem]["-log10(AC50)"], aff))
+                else:
+                    filout.write("\"%s\",\"NA\",\"%s\"\n"%(d_dataset[chem]["CASRN"], aff))
+            filout.close()
         self.p_aff = p_aff
 
     def computeDescForNNComparison(self, pr_desc, pr_out):

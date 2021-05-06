@@ -333,14 +333,13 @@ class QSAR_modeling:
         d_AC50 = toolbox.loadMatrix(p_AC50)
 
         for pr_run in l_pr_run:
-            if search("Merge", pr_run) or search("AD", pr_run) or search("Cleaned", pr_run) or search("desc_global.csv", pr_run) or search(".csv", pr_run):
+            if search("Merge", pr_run) or search("AD", pr_run) or search("Cleaned", pr_run) or search("desc_global.csv", pr_run) or search(".csv", pr_run) or search("merge", pr_run) :
                 continue
 
             d_prob[pr_run] = {}
 
             # CV
             p_CV = self.pr_out + pr_run + "/RFclass/PerfRFClassCV10.txt"
-            print(p_CV)
             d_CV = toolbox.loadMatrix(p_CV, sep = "\t")
             d_prob[pr_run]["CV"] = d_CV
 
@@ -361,14 +360,15 @@ class QSAR_modeling:
         d_av["test"] = {}
 
         for run in l_pr_run:
-            if search("Merge", run) or search("AD", run) or search("Cleaned", run) or search("desc", run) or search("csv", run):
+            if search("Merge", run) or search("AD", run) or search("Cleaned", run) or search("desc", run) or search("csv", run) or search("merge", run):
                 continue
 
             # CV
             for chem in d_prob[run]["CV"].keys():
                 if not chem in list(d_av["CV"].keys()):
                     d_av["CV"][chem] = {}
-                    d_av["CV"][chem]["LogAC50"] = d_AC50[chem]["LogAC50"] 
+                    try: d_av["CV"][chem]["LogAC50"] = d_AC50[chem]["LogAC50"] 
+                    except: d_av["CV"][chem]["LogAC50"] = d_AC50[chem]["Aff"] 
                     d_av["CV"][chem]["predicted"] = []
                 d_av["CV"][chem]["predicted"].append(float(d_prob[run]["CV"][chem]["Predict"]))
             
@@ -376,7 +376,8 @@ class QSAR_modeling:
             for chem in d_prob[run]["train"].keys():
                 if not chem in list(d_av["train"].keys()):
                     d_av["train"][chem] = {}
-                    d_av["train"][chem]["LogAC50"] = d_AC50[chem]["LogAC50"] 
+                    try: d_av["train"][chem]["LogAC50"] = d_AC50[chem]["LogAC50"] 
+                    except: d_av["train"][chem]["LogAC50"] = d_AC50[chem]["Aff"]
                     d_av["train"][chem]["predicted"] = []
                 d_av["train"][chem]["predicted"].append(float(d_prob[run]["train"][chem]["x"]))
 
@@ -384,7 +385,8 @@ class QSAR_modeling:
             for chem in d_prob[run]["test"].keys():
                 if not chem in list(d_av["test"].keys()):
                     d_av["test"][chem] = {}
-                    d_av["test"][chem]["LogAC50"] = d_AC50[chem]["LogAC50"] 
+                    try:d_av["test"][chem]["LogAC50"] = d_AC50[chem]["LogAC50"] 
+                    except:d_av["test"][chem]["LogAC50"] = d_AC50[chem]["Aff"]
                     d_av["test"][chem]["predicted"] = []
                 d_av["test"][chem]["predicted"].append(float(d_prob[run]["test"][chem]["x"]))
 
@@ -430,13 +432,14 @@ class QSAR_modeling:
 
         l_pr_run = listdir(self.pr_out)
         for run in l_pr_run:
-            if search("Merge", run) or search("AD", run) or search("Cleaned", run) or search("desc", run) or search("csv", run):
+            if search("Merge", run) or search("AD", run) or search("Cleaned", run) or search("desc", run) or search("csv", run) or search("models", run) or search("mergeDNN", run):
                 continue
 
             if not run in list(d_importance.keys()):
                 d_importance[run] = {}
 
                 p_desc_involved = self.pr_out + run + "/" + str(ML) + "class/ImportanceDesc"
+                print(p_desc_involved)
                 d_desc_involved = toolbox.loadMatrix(p_desc_involved , sep="\t")
                 d_importance[run] = d_desc_involved
 
@@ -449,7 +452,7 @@ class QSAR_modeling:
         
         for desc in l_desc:
             for run in l_pr_run:
-                if search("Merge", run) or search("AD", run) or search("Cleaned", run) or search("desc_global.csv", run):
+                if search("Merge", run) or search("AD", run) or search("Cleaned", run) or search("desc_global.csv", run) or search("desc", run) or search("csv", run) or search("models", run) or search("mergeDNN", run):
                     continue
                 try: f_desc_importance.write(desc + "\t" + str(run) + "\t" + str(d_importance[run][desc]["x"]) + "\n")
                 except: f_desc_importance.write(desc + "\t" + str(run) + "\t0.0\n")
@@ -459,7 +462,7 @@ class QSAR_modeling:
 
     def extractModels(self, pr_results, ML):
 
-        pr_out = pathFolder.createFolder(pr_results + "QSARs_models/" + ML + "/")
+        pr_out = pathFolder.createFolder(pr_results)
 
         l_pr_run = listdir(self.pr_out)
         l_model = listdir(pr_out)
@@ -467,15 +470,25 @@ class QSAR_modeling:
             return pr_out
 
         for pr_run in l_pr_run:
-            if search("Merge", pr_run) or search("AD", pr_run) or search("Cleaned", pr_run) or search("desc_global.csv", pr_run):
+            if search("Merge", pr_run) or search("AD", pr_run) or search("Cleaned", pr_run) or search("desc", pr_run) or search("csv", pr_run) or search("models", pr_run) or search("mergeDNN", pr_run):
                 continue
 
             if search("SVM", ML):
                 p_model = "%s%s/SVMclass_%s/model.RData"%(self.pr_out, pr_run, ML.split("-")[-1])
+            elif search("DNN", ML):
+                l_DNNfile = listdir("%s%s/DNNclass/"%(self.pr_out, pr_run))
+                p_model = "out"
+                for DNNfile in l_DNNfile:
+                    if search(".h5", DNNfile):
+                        p_model = "%s%s/DNNclass/%s"%(self.pr_out, pr_run, DNNfile)
+                        break
             else:
                 p_model = "%s%s/%sclass/model.RData"%(self.pr_out, pr_run, ML)
             if path.exists(p_model) and not path.exists(pr_out + pr_run + ".RData"):
-                copyfile(p_model, pr_out + pr_run + ".RData")
+                if p_model[-5:] == "RData":
+                    copyfile(p_model, pr_out + pr_run + ".RData")
+                else:
+                    copyfile(p_model, pr_out + pr_run + ".h5")
         
         return pr_out
         
