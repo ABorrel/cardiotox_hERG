@@ -213,7 +213,7 @@ class genericTestSet:
             for chem in self.d_dataset.keys():
                 if not "CASRN" in list(self.d_dataset[chem].keys()):
                     continue
-                if self.d_dataset[chem][allAff] == "Active":
+                if self.d_dataset[chem][allAff] == "Active" or self.d_dataset[chem][allAff] == "1":
                     aff = 1
                 else:
                     aff = 0

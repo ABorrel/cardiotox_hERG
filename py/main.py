@@ -36,7 +36,7 @@ cNCAST = NCAST_assays.NCAST_assays(p_smi_NCAST, p_AC50_NCAST, p_classification_i
 cNCAST.main()
 
 
-# comparison with herg-ml for NCAST model
+# comparison with herg-ml for NCATS model
 #########################
 #pr_comparison = pathFolder.createFolder(cNCAST.pr_results + "pred_herg-ml/")
 #c_genericSet = genericTestSet.genericTestSet(p_smi_NCAST, pr_comparison, PR_RESULTS)
@@ -151,16 +151,16 @@ c_NCAST_CHEMBL_set.main(c_CHEMBL_set, cNCAST)
 ## 10. Shagun test set -> AID588834 no overlap => including 1014 chem
 #######################################################################
 
-p_dataset = PR_DATA + "Ext_Test_Set_Final_1014Chem.csv"
-p_SMILESComptox = PR_DATA + "CompToxChemicalsDashboard-SMILES.csv"
-pr_TestSet = pathFolder.createFolder(PR_RESULTS + "AID588834_filtered/")
+#p_dataset = PR_DATA + "Ext_Test_Set_Final_1014Chem.csv"
+#p_SMILESComptox = PR_DATA + "CompToxChemicalsDashboard-SMILES.csv"
+#pr_TestSet = pathFolder.createFolder(PR_RESULTS + "AID588834_filtered/")
 
-c_genericSet = genericTestSet.genericTestSet(p_dataset, pr_TestSet, PR_RESULTS)
-c_genericSet.loadDataset(loadDb=p_SMILESComptox)
-c_genericSet.main(allAff="PUBCHEM_ACTIVITY_OUTCOME")
+#c_genericSet = genericTestSet.genericTestSet(p_dataset, pr_TestSet, PR_RESULTS)
+#c_genericSet.loadDataset(loadDb=p_SMILESComptox)
+#c_genericSet.main(allAff="PUBCHEM_ACTIVITY_OUTCOME")
 
-cApplyModel = applyModels.applyModel(cNCAST.cMain.c_analysis.p_desc_cleaned, cNCAST.cMain.c_analysis.p_desc, cNCAST.cMain.c_analysis.p_AC50_cleaned, cNCAST.cMain.c_analysis.p_AC50, c_genericSet.p_desc, c_genericSet.p_aff, pr_TestSet, PR_RESULTS)
-cApplyModel.PCACombine()
+#cApplyModel = applyModels.applyModel(cNCAST.cMain.c_analysis.p_desc_cleaned, cNCAST.cMain.c_analysis.p_desc, cNCAST.cMain.c_analysis.p_AC50_cleaned, cNCAST.cMain.c_analysis.p_AC50, c_genericSet.p_desc, c_genericSet.p_aff, pr_TestSet, PR_RESULTS)
+#cApplyModel.PCACombine()
 #cApplyModel.computeAD()
 #cApplyModel.overlapSetWithID(rm_overlap=1)
 
@@ -186,13 +186,46 @@ cApplyModel.PCACombine()
 ## 11. Shagun test set => including 408 chem extracted from the litterature
 #######################################
 
-p_dataset = PR_DATA + "Ext_Testset_hERG_review_14Oct.csv"
+#p_dataset = PR_DATA + "Ext_Testset_hERG_review_14Oct.csv"
+#p_SMILESComptox = PR_DATA + "CompToxChemicalsDashboard-SMILES.csv"
+#pr_TestSet = pathFolder.createFolder(PR_RESULTS + "Ext_Test_Set_Final_Litt_408Chem/")
+
+#c_genericSet = genericTestSet.genericTestSet(p_dataset, pr_TestSet, PR_RESULTS)
+#c_genericSet.loadDataset(loadDb=p_SMILESComptox)
+#c_genericSet.main(allAff=1)
+
+#cApplyModel = applyModels.applyModel(cNCAST.cMain.c_analysis.p_desc_cleaned, cNCAST.cMain.c_analysis.p_desc, cNCAST.cMain.c_analysis.p_AC50_cleaned, cNCAST.cMain.c_analysis.p_AC50, c_genericSet.p_desc, c_genericSet.p_aff, pr_TestSet, PR_RESULTS)
+#cApplyModel.PCACombine()
+#cApplyModel.computeAD()
+
+# prediction classif model
+#cApplyModel.predict_AllClassifModels()
+#cApplyModel.concensus("NCAST_classif_undersampling", ["DNN", "RF"])
+#cApplyModel.mergePredictionClass()
+#cApplyModel.concensus("NCAST_CHEMBL_classif_nosampling", ["DNN", "RF"])
+#cApplyModel.mergePredictionClass()
+
+
+# comparison with herg-ml
+#########################
+#p_desc = c_genericSet.computeDescForNNComparison("", pr_TestSet) ## need to execute the py report
+#pr_comparison = pathFolder.createFolder(pr_TestSet + "pred_herg-ml/")
+#p_pred_herg_ml = pr_TestSet + "pred_herg-ml/chemicals_knime_desc_408Chem_set_pred.csv"
+#c_comparison = hergml.hergml(c_genericSet.d_dataset, p_pred_herg_ml, "1", pr_comparison)
+#c_comparison.computePerfAllSet()
+
+
+
+## 12. external test set from Johnattam llnl
+#######################################
+
+p_dataset = PR_DATA + "external_llnl/kcnh2_chembl_testset_base_smiles_union.csv"
 p_SMILESComptox = PR_DATA + "CompToxChemicalsDashboard-SMILES.csv"
-pr_TestSet = pathFolder.createFolder(PR_RESULTS + "Ext_Test_Set_Final_Litt_408Chem/")
+pr_TestSet = pathFolder.createFolder(PR_RESULTS + "Ext_Test_Set_llnl_chembl_test/")
 
 c_genericSet = genericTestSet.genericTestSet(p_dataset, pr_TestSet, PR_RESULTS)
 c_genericSet.loadDataset(loadDb=p_SMILESComptox)
-c_genericSet.main(allAff=1)
+c_genericSet.main(allAff="PUBCHEM_ACTIVITY_OUTCOME")
 
 cApplyModel = applyModels.applyModel(cNCAST.cMain.c_analysis.p_desc_cleaned, cNCAST.cMain.c_analysis.p_desc, cNCAST.cMain.c_analysis.p_AC50_cleaned, cNCAST.cMain.c_analysis.p_AC50, c_genericSet.p_desc, c_genericSet.p_aff, pr_TestSet, PR_RESULTS)
 cApplyModel.PCACombine()
@@ -206,10 +239,5 @@ cApplyModel.concensus("NCAST_CHEMBL_classif_nosampling", ["DNN", "RF"])
 cApplyModel.mergePredictionClass()
 main169
 
-# comparison with herg-ml
-#########################
-#p_desc = c_genericSet.computeDescForNNComparison("", pr_TestSet) ## need to execute the py report
-#pr_comparison = pathFolder.createFolder(pr_TestSet + "pred_herg-ml/")
-#p_pred_herg_ml = pr_TestSet + "pred_herg-ml/chemicals_knime_desc_408Chem_set_pred.csv"
-#c_comparison = hergml.hergml(c_genericSet.d_dataset, p_pred_herg_ml, "1", pr_comparison)
-#c_comparison.computePerfAllSet()
+
+
