@@ -10,15 +10,24 @@ import DNN
 import CompDesc
 
 class applyModel:
-    def __init__(self, p_desc_model, p_desc_global, p_aff_model, p_aff_origin, p_desc_test, p_aff_test, pr_out, pr_results):
-        self.p_desc_model = p_desc_model
-        self.p_desc_model_all = p_desc_global
-        self.p_desc_test = p_desc_test
-        self.p_aff_model = p_aff_model
-        self.p_aff_origin = p_aff_origin
-        self.p_aff_test = p_aff_test
+    def __init__(self, c_NCATS, c_NCATS_enriched, c_totest, pr_out, pr_results):
+
+        # load diretly the classes model here
+        self.c_NCATS_modeling = c_NCATS
+        self.c_NCATSenriched_modeling = c_NCATS_enriched
+        self.c_totest = c_totest
         self.pr_out = pr_out
         self.pr_results = pr_results
+
+        
+        ## previous version
+        #self.p_desc_model = p_desc_model
+        #self.p_desc_model_all = p_desc_global
+        #self.p_desc_test = p_desc_test
+        #self.p_aff_model = p_aff_model
+        #self.p_aff_origin = p_aff_origin
+        #self.p_aff_test = p_aff_test
+
 
     def predict_AllClassifModels(self):
 
@@ -81,17 +90,20 @@ class applyModel:
         self.predictClassif(pr_models, "NCAST_CHEMBL_classif_nosampling", "RF")
         self.mergePredictionClass()
 
-        ## apply model - NCAST-CHEMBL RF nosampling
+        ## apply model - NCAST-CHEMBL SVM nosampling
         pr_models = self.pr_results + "NCAST_CHEMBL/QSAR_NCAST_CHEMBL__0.9-90-5-10-0.15-0/noSampling/2/SVMclass_radial/"
         self.predictClassif(pr_models, "NCAST_CHEMBL_classif_nosampling", "SVM-radial")
         self.mergePredictionClass()
 
-        ## apply model - NCAST-CHEMBL RF nosampling
+        ## apply model - NCAST-CHEMBL SVM nosampling
         pr_models = self.pr_results + "NCAST_CHEMBL/QSAR_NCAST_CHEMBL__0.9-90-5-10-0.15-0/noSampling/2/SVMclass_linear/"
         self.predictClassif(pr_models, "NCAST_CHEMBL_classif_nosampling", "SVM-linear")
         self.mergePredictionClass()
 
-
+        ## apply model - NCAST-CHEMBL LDA nosampling
+        pr_models = self.pr_results + "NCAST_CHEMBL/QSAR_NCAST_CHEMBL__0.9-90-5-10-0.15-0/noSampling/2/LDAclass/"
+        self.predictClassif(pr_models, "NCAST_CHEMBL_classif_nosampling", "LDA")
+        self.mergePredictionClass()
 
         ##################################
         ### NCAST DNN class - nosampling
@@ -113,39 +125,38 @@ class applyModel:
         ##############################
         ### NCAST reg - nosampling
         ##
-        #pr_models = self.pr_results + "NCAST/QSARReg_NCAST__0.9-90-5-10-0.15-0/1/RFreg/"
-        #self.predictReg(pr_models, "NCAST_reg", "RF")
+        pr_models = self.pr_results + "NCAST/QSARReg_NCAST__0.9-90-5-10-0.15-0/1/RFreg/"
+        self.predictReg(pr_models, "NCAST_reg", "RF")
 
-        #pr_models = self.pr_results + "NCAST/QSARReg_NCAST__0.9-90-5-10-0.15-0/1/PCRreg/"
-        #self.predictReg(pr_models, "NCAST_reg", "PCR")
+        pr_models = self.pr_results + "NCAST/QSARReg_NCAST__0.9-90-5-10-0.15-0/1/PCRreg/"
+        self.predictReg(pr_models, "NCAST_reg", "PCR")
 
-        #pr_models = self.pr_results + "NCAST/QSARReg_NCAST__0.9-90-5-10-0.15-0/1/PLSreg/"
-        #self.predictReg(pr_models, "NCAST_reg", "PLS")
+        pr_models = self.pr_results + "NCAST/QSARReg_NCAST__0.9-90-5-10-0.15-0/1/PLSreg/"
+        self.predictReg(pr_models, "NCAST_reg", "PLS")
 
         ##################################
         ### NCAST-CHEMBL reg - nosampling
         ##
-        #pr_models = self.pr_results + "NCAST_CHEMBL/QSARReg_NCAST_CHEMBL__0.9-90-5-10-0.15-0/5/RFreg/"
-        #self.predictReg(pr_models, "NCAST_CHEMBL_reg", "RF")
+        pr_models = self.pr_results + "NCAST_CHEMBL/QSARReg_NCAST_CHEMBL__0.9-90-5-10-0.15-0/5/RFreg/"
+        self.predictReg(pr_models, "NCAST_CHEMBL_reg", "RF")
 
-        #pr_models = self.pr_results + "NCAST_CHEMBL/QSARReg_NCAST_CHEMBL__0.9-90-5-10-0.15-0/5/PCRreg/"
-        #self.predictReg(pr_models, "NCAST_CHEMBL_reg", "PCR")
+        pr_models = self.pr_results + "NCAST_CHEMBL/QSARReg_NCAST_CHEMBL__0.9-90-5-10-0.15-0/5/PCRreg/"
+        self.predictReg(pr_models, "NCAST_CHEMBL_reg", "PCR")
 
-        #pr_models = self.pr_results + "NCAST_CHEMBL/QSARReg_NCAST_CHEMBL__0.9-90-5-10-0.15-0/5/PLSreg/"
-        #self.predictReg(pr_models, "NCAST_CHEMBL_reg", "PLS")
+        pr_models = self.pr_results + "NCAST_CHEMBL/QSARReg_NCAST_CHEMBL__0.9-90-5-10-0.15-0/5/PLSreg/"
+        self.predictReg(pr_models, "NCAST_CHEMBL_reg", "PLS")
 
         ##################################
         ### NCAST-CHEMBL - only active reg - nosampling
         ##
-        #pr_models = self.pr_results + "NCAST_CHEMBL/QSARReg_NCAST_CHEMBL__0.9-90-5-10-0.15-0/2/RFreg/"
-        #self.predictReg(pr_models, "NCAST_CHEMBL_active_reg", "RF")
+        pr_models = self.pr_results + "NCAST_CHEMBL/QSARReg_NCAST_CHEMBL__0.9-90-5-10-0.15-0/2/RFreg/"
+        self.predictReg(pr_models, "NCAST_CHEMBL_active_reg", "RF")
 
-        #pr_models = self.pr_results + "NCAST_CHEMBL/QSARReg_NCAST_CHEMBL__0.9-90-5-10-0.15-0/2/PCRreg/"
-        #self.predictReg(pr_models, "NCAST_CHEMBL_active_reg", "PCR")
+        pr_models = self.pr_results + "NCAST_CHEMBL/QSARReg_NCAST_CHEMBL__0.9-90-5-10-0.15-0/2/PCRreg/"
+        self.predictReg(pr_models, "NCAST_CHEMBL_active_reg", "PCR")
 
-        #pr_models = self.pr_results + "NCAST_CHEMBL/QSARReg_NCAST_CHEMBL__0.9-90-5-10-0.15-0/2/PLSreg/"
-        #self.predictReg(pr_models, "NCAST_CHEMBL_active_reg", "PLS")
-
+        pr_models = self.pr_results + "NCAST_CHEMBL/QSARReg_NCAST_CHEMBL__0.9-90-5-10-0.15-0/2/PLSreg/"
+        self.predictReg(pr_models, "NCAST_CHEMBL_active_reg", "PLS")
 
         ##################################
         ### NCAST DNN class - nosampling
@@ -160,8 +171,16 @@ class applyModel:
         self.predictDNNreg(pr_models, "NCAST_CHEMBL_DNN_reg")   
 
     def PCACombine(self):
-        pr_out = pathFolder.createFolder(self.pr_out + "PCA_vs/")
-        runExternal.PCAvs(self.p_desc_model, self.p_aff_model, self.p_desc_test, self.p_aff_test, pr_out)
+        """
+        Combine PCA with training set i.e. NCATS based model and the NCATS enriched
+        """
+        # with the NCATS
+        pr_out = pathFolder.createFolder(self.pr_out + "PCAvs_NCATS/")
+        runExternal.PCAvs(self.c_NCATS_modeling.cMain.c_analysis.p_desc_cleaned , self.c_NCATS_modeling.cMain.c_analysis.p_AC50_cleaned, self.c_totest.p_desc, self.c_totest.p_aff, pr_out)
+
+        # NCATS enriched
+        pr_out = pathFolder.createFolder(self.pr_out + "PCAvs_NCATSenriched/")
+        runExternal.PCAvs(self.c_NCATSenriched_modeling.cMain.c_analysis.p_desc_cleaned , self.c_NCATSenriched_modeling.cMain.c_analysis.p_AC50_cleaned, self.c_totest.p_desc, self.c_totest.p_aff, pr_out)
 
     def predictClassif(self, pr_models, name_model, ML):
         pr_out = pathFolder.createFolder(self.pr_out + "predict_model_" + name_model + "/" + ML + "/")
@@ -170,9 +189,9 @@ class applyModel:
         for model in l_models:
             if search("RData", model) and not search("CV", model):
                 if search("SVM", ML):
-                    runExternal.predictDataset(self.p_desc_test, pr_models + model, "SVMclass", pr_out)
+                    runExternal.predictDataset(self.c_totest.p_desc, pr_models + model, "SVMclass", pr_out)
                 else:    
-                    runExternal.predictDataset(self.p_desc_test, pr_models + model, ML + "class", pr_out)
+                    runExternal.predictDataset(self.c_totest.p_desc, pr_models + model, ML + "class", pr_out)
             
         # case of DNN
         if ML == "DNN": 
@@ -187,8 +206,8 @@ class applyModel:
         try:d_train = toolbox.loadMatrix(pr_models + "train.csv", sep = ",")
         except:d_train = toolbox.loadMatrix(pr_models + "trainGlobal.csv", sep = ",")
 
-        d_test = toolbox.loadMatrix(self.p_desc_test)
-        d_test_aff = toolbox.loadMatrix(self.p_aff_test, sep = ",")
+        d_test = toolbox.loadMatrix(self.c_totest.p_desc)
+        d_test_aff = toolbox.loadMatrix(self.c_totest.p_aff, sep = ",")
 
         l_desc = list(d_train[list(d_train.keys())[0]].keys())
         p_test = pr_out + "test_cleaned.csv"
@@ -242,8 +261,8 @@ class applyModel:
         
         # prep TEST set with only descriptor from TRAIN
         d_train = toolbox.loadMatrix(pr_models + "trainSet.csv", sep = ",")
-        d_test = toolbox.loadMatrix(self.p_desc_test)
-        d_test_aff = toolbox.loadMatrix(self.p_aff_test, sep = ",")
+        d_test = toolbox.loadMatrix(self.c_totest.p_desc)
+        d_test_aff = toolbox.loadMatrix(self.c_totest.p_aff, sep = ",")
 
         l_desc = list(d_train[list(d_train.keys())[0]].keys())
         p_test = pr_out + "test_cleaned.csv"
@@ -256,7 +275,7 @@ class applyModel:
             elif d_test_aff[chem]["LogAC50"] == 'NA':
                 continue
             else:
-                f_test.write("%s,%s,%s\n"%(chem, ",".join(l_val), -float(d_test_aff[chem]["LogAC50"])))
+                f_test.write("%s,%s,%s\n"%(chem, ",".join(l_val), float(d_test_aff[chem]["LogAC50"])))
         f_test.close()
 
         d_test = toolbox.loadMatrix(p_test, sep = ",")
@@ -281,15 +300,19 @@ class applyModel:
 
     def predictReg(self,pr_models, name_model, ML):
         pr_out = pathFolder.createFolder(self.pr_out + "predict_model_" + name_model + "/" + ML + "/")
+        if search("NCAST_CHEMBL", name_model):
+            p_AD = self.p_AD_NCATS_enriched
+        else:
+            p_AD = self.p_AD_NCATS
         
         l_models = listdir(pr_models)
         print(l_models)
         for model in l_models:
             if search("RData", model) and not search("CV", model):
                 if search("SVM", ML):
-                    runExternal.predictRegDataset(self.p_desc_test, self.p_aff_test, self.p_AD, pr_models + model, "SVMreg", pr_out) 
+                    runExternal.predictRegDataset(self.c_totest.p_desc, self.c_totest.p_aff,p_AD, pr_models + model, "SVMreg", pr_out) 
                 else:   
-                    runExternal.predictRegDataset(self.p_desc_test, self.p_aff_test, self.p_AD, pr_models + model, ML + "reg", pr_out) 
+                    runExternal.predictRegDataset(self.c_totest.p_desc, self.c_totest.p_aff, p_AD, pr_models + model, ML + "reg", pr_out) 
         self.pr_allPredict = pr_out
         
     def mergePredictionClass(self):
@@ -317,7 +340,7 @@ class applyModel:
                 try:d_out[chemblID].append(float(dpred[chemblID]["Pred"]))
                 except:pass
         
-        d_aff = toolbox.loadMatrix(self.p_aff_test, sep = ",")
+        d_aff = toolbox.loadMatrix(self.c_totest.p_aff, sep = ",")
 
         filout = open(p_filout, "w")
         filout.write("ID\tMpred\tSDpred\tReal\n")
@@ -334,120 +357,55 @@ class applyModel:
     def applySOM(self, p_SOMmodel):
 
         pr_out = pathFolder.createFolder(self.pr_out + "SOM/")
-        runExternal.applySOM(self.p_desc_test, p_SOMmodel, pr_out)
+        runExternal.applySOM(self.c_totest.p_desc, p_SOMmodel, pr_out)
 
     def computeAD(self):
 
         pr_out = pathFolder.createFolder(self.pr_out + "AD/")
         
-        p_out = pr_out + "AD_Test_zscore.csv"
-        if path.exists(p_out):
-            self.p_AD = p_out
-
+        # NCATS
+        pr_out_NCATS = pathFolder.createFolder(pr_out + "NCATSset/")
+        if path.exists(pr_out_NCATS + "AD_Test_zscore.csv"):
+            self.p_AD_NCATS = pr_out_NCATS + "AD_Test_zscore.csv"
         else:
-            runExternal.AD(self.p_desc_model, self.p_desc_test, pr_out)
-            self.p_AD = p_out  
+            runExternal.AD(self.c_NCATS_modeling.cMain.c_analysis.p_desc_cleaned, self.c_totest.p_desc, pr_out_NCATS)
+            self.p_AD_NCATS = pr_out_NCATS + "AD_Test_zscore.csv"  
+
+
+        # NCATS-enriched
+        pr_out_NCATS_enriched = pathFolder.createFolder(pr_out + "NCATS_enrichedset/")
+        if path.exists(pr_out_NCATS_enriched + "AD_Test_zscore.csv"):
+            self.p_AD_NCATS_enriched = pr_out_NCATS_enriched + "AD_Test_zscore.csv"
+        else:
+            runExternal.AD(self.c_NCATSenriched_modeling.cMain.c_analysis.p_desc_cleaned, self.c_totest.p_desc, pr_out_NCATS_enriched)
+            self.p_AD_NCATS_enriched = pr_out_NCATS_enriched + "AD_Test_zscore.csv"  
 
     def applyAD(self):
         
         pr_out = pathFolder.createFolder(self.pr_out + "predict_AD/")
         runExternal.applyAD(self.p_pred, self.p_AD, pr_out)
 
-    def overlapSetWithInchikey(self):
-
-        pr_out = pathFolder.createFolder(self.pr_out + "OverlapModel/")
-
-        # compare SMILES with a inchkey transformation
-        
-        # prepre train set #
-        ####################
-        d_desc_model = toolbox.loadMatrix(self.p_desc_model_all, sep = "\t")
-
-        # prep descriptor for test set
-        for chem in d_desc_model.keys():
-            if "CASRN" in list(d_desc_model[chem].keys()):
-                d_desc_model[chem]["ID"] = d_desc_model[chem]["CASRN"]
-
-            elif "CHEMBLID" in list(d_desc_model[chem].keys()):
-                d_desc_model[chem]["ID"] = d_desc_model[chem]["CHEMBLID"]
-
-        # load AC50
-        d_AC50_model = toolbox.loadMatrix(self.p_aff_model, sep = "\t")
-        # transform -log10 to AC50
-        for chem in d_AC50_model.keys():
-            if d_AC50_model[chem]["LogAC50"]!= "NA":
-                d_AC50_model[chem]["aff"] = 10**(-float(d_AC50_model[chem]["LogAC50"])) * 1000000
-            else:
-                d_AC50_model[chem]["aff"] = "NA"
-
-
-        # Add inchkey in dictionarry model
-        d_inch_model = {}
-        for chem in d_desc_model.keys():
-            SMILES = d_desc_model[chem]["SMILES"]
-            cChem = CompDesc.CompDesc(SMILES, "", p_salts="./Salts.txt")
-            inch = cChem.generateInchiKey()
-            if not inch in list(d_inch_model.keys()):
-                d_inch_model[inch] = d_desc_model[chem]
-
-
-
-        # prep test set #
-        ##################
-        d_desc_test = toolbox.loadMatrix(self.p_desc_test, sep = "\t")
-
-        # prep descriptor for test set
-        for chem in d_desc_test.keys():
-            if "CASRN" in list(d_desc_test[chem].keys()):
-                d_desc_test[chem]["ID"] = d_desc_test[chem]["CASRN"]
-
-            elif "CHEMBLID" in list(d_desc_test[chem].keys()):
-                d_desc_test[chem]["ID"] = d_desc_test[chem]["CHEMBLID"]
-
-        # test set
-        d_AC50_test = toolbox.loadMatrix(self.p_aff_test, sep = ",")
-
-        # Test set 
-        d_inch_test = {}
-        for chem in d_desc_test.keys():
-            SMILES = d_desc_test[chem]["SMILES"]
-            cChem = CompDesc.CompDesc(SMILES, "", p_salts="./Salts.txt")
-            inch = cChem.generateInchiKey()
-            if not inch in list(d_inch_test.keys()):
-                d_inch_test[inch] = d_desc_test[chem]
-
-        ###################################3
-
-
-        # path filout
-        p_filout = pr_out + "overlap_train_test"
-        filout = open(p_filout, "w")
-        filout.write("ID\tSMILES\tAC50 model\tAC50 test\tInclude\n")
-
-        for inchTest in d_inch_test.keys():
-            if inchTest in list(d_inch_model.keys()):
-                filout.write("%s\t%s\t%s\t%s\t1\n"%(d_inch_test[inchTest]["ID"],d_inch_test[inchTest]["SMILES"] ,d_AC50_model[d_inch_model[inchTest]["ID"]]["aff"], d_AC50_test[d_inch_test[inchTest]["ID"]]["AC50-uM"]))
-            else:
-                filout.write("%s\t%s\tNA\t%s\t0\n"%(d_inch_test[inchTest]["ID"],d_inch_test[inchTest]["SMILES"] , d_AC50_test[d_inch_test[inchTest]["ID"]]["AC50-uM"]))
-        filout.close()
 
     def overlapSetWithID(self, rm_overlap=0, rm_inactive=0):
+        """
+        Need to rewrite to change output
+        """
 
         pr_out = pathFolder.createFolder(self.pr_out + "OverlapModel/")
         p_filout = pr_out + "overlap_train_test"
 
         print(self.p_desc_model)
-        print(self.p_desc_test)
+        print(self.self.c_totest.p_desc)
         print(self.p_aff_model)
         print(self.p_aff_test)
 
         # desc
         d_desc_model = toolbox.loadMatrix(self.p_desc_model, sep = ",")
-        d_desc_test = toolbox.loadMatrix(self.p_desc_test, sep = "\t")
+        d_desc_test = toolbox.loadMatrix(self.self.c_totest.p_desc, sep = "\t")
 
         # AC50
         d_AC50_model = toolbox.loadMatrix(self.p_aff_model, sep = ",")
-        d_AC50_test = toolbox.loadMatrix(self.p_aff_test, sep = ",")
+        d_AC50_test = toolbox.loadMatrix(self.c_totest.p_aff, sep = ",")
 
 
         # convert in -log
@@ -488,7 +446,7 @@ class applyModel:
             # rm overlap in the desc set
             p_desc_out = pr_out + "desc_cleaned.csv"
 
-            d_desc = toolbox.loadMatrix(self.p_desc_test, sep ="\t")
+            d_desc = toolbox.loadMatrix(self.c_totest.p_desc, sep ="\t")
             l_h = list(d_desc_test[list(d_desc_test.keys())[0]].keys())
             try:l_h.remove("SMILES")
             except: pass
@@ -538,6 +496,106 @@ class applyModel:
                         f_desc_out.write("%s\t%s\n"%(chem, "\t".join([d_desc[chem][h] for h in l_h])))
             f_desc_out.close()
             self.p_desc_test = p_desc_out
+
+    def SummarizeSet(self):
+        """
+        Analyse set intra and compute the overlap between set -> merge with overlapSetWithInchikey old function
+        """
+
+        pr_out = pathFolder.createFolder(self.pr_out + "SummarizeSet/")
+        p_filout = pr_out + "summary_set.txt"
+        if path.exists(p_filout):
+            return
+
+        # analyse set intra
+        d_desc_test_rdkit = toolbox.loadMatrix(self.c_totest.p_desc1D2D)
+        d_aff_test = toolbox.loadMatrix(self.c_totest.p_aff, sep = ",")
+        d_dataset = toolbox.loadMatrix(self.c_totest.p_dataset, sep = ",")
+
+        #print(self.c_totest.p_desc1D2D)
+        #print(self.c_totest.p_aff)
+        #print(self.c_totest.p_dataset)
+
+        d_out = {}
+        # Summarize the dataset
+        d_out["Nb chemicals before descriptor computation"] = len(list(d_dataset.keys()))
+        d_out["Nb chemicals after descriptor computation"] = len(list(d_desc_test_rdkit.keys()))
+        
+        # check duplicate intraset
+        d_out["Duplicate structure after SMILES preparation"] = 0
+        d_smi = {}
+        l_id = list(list(d_dataset.keys()))
+        
+        l_out = []
+        for chem in d_desc_test_rdkit.keys():
+            smi = d_desc_test_rdkit[chem]["SMILES"]
+            if not smi in list(d_smi.keys()):
+                d_smi[smi] = chem
+            else:
+                d_out["Duplicate structure after SMILES preparation"] = d_out["Duplicate structure after SMILES preparation"] + 1  
+                l_out.append("%s\t%s"%(chem, smi))
+        if l_out != []:
+            p_f_duplicate = pr_out + "internal_duplicate.txt"
+            f_duplicate = open(p_f_duplicate, "w")
+            f_duplicate("ID\tSMILES\n%s"%("\n".join(l_out)))
+            f_duplicate.close()
+
+
+        # nb active and inactive
+        d_out["NB active"] = 0
+        d_out["NB inactive"] = 0
+        for chem in d_aff_test.keys():
+            if d_aff_test[chem]["Aff"] == "1":
+                d_out["NB active"] = d_out["NB active"] + 1
+            else:
+                d_out["NB inactive"] = d_out["NB inactive"] + 1
+
+
+        # overlap with the NCATS set
+        d_NCATS_desc = toolbox.loadMatrix(self.c_NCATS_modeling.cMain.l_p_desc[0])
+
+        d_out["In NCATS set"] = 0
+        l_out = []
+        # overlap with the NCATS enriched
+        for chem_NCATS in d_NCATS_desc.keys():
+            smi = d_NCATS_desc[chem_NCATS]["SMILES"]
+            if smi in list(d_smi.keys()):
+                d_out["In NCATS set"] = d_out["In NCATS set"] + 1
+                l_out.append("%s\t%s\t%s"%(d_smi[smi], chem_NCATS, smi))
+
+        if l_out != []:
+            p_f_duplicate = pr_out + "duplicate_NCATS.txt"
+            f_duplicate = open(p_f_duplicate, "w")
+            f_duplicate.write("ID_test\tID_NCATS\tSMILES\n%s"%("\n".join(l_out)))
+            f_duplicate.close()
+        
+        # overlap with the NCATS enriched
+        d_NCATS_enriched_desc = toolbox.loadMatrix(self.c_NCATSenriched_modeling.cMain.l_p_desc[0])
+
+        d_out["In NCATS enriched set"] = 0
+        l_out = []
+        # overlap with the NCATS enriched
+        for chem_NCATS_enriched in d_NCATS_enriched_desc.keys():
+            #print(chem_NCATS_enriched)
+            smi = d_NCATS_enriched_desc[chem_NCATS_enriched]["SMILES"]
+            if chem_NCATS_enriched in l_id:
+                d_out["In NCATS enriched set"] =  d_out["In NCATS enriched set"] + 1
+                l_out.append("%s\t%s\t%s"%(d_smi[smi], chem_NCATS_enriched, smi))
+                continue
+            if smi in list(d_smi.keys()):
+                d_out["In NCATS enriched set"] =  d_out["In NCATS enriched set"] + 1
+                l_out.append("%s\t%s\t%s"%(d_smi[smi], chem_NCATS_enriched, smi))
+
+        if l_out != []:
+            p_f_duplicate = pr_out + "duplicate_NCATS_enriched.txt"
+            f_duplicate = open(p_f_duplicate, "w")
+            f_duplicate.write("ID_test\tID_NCATS-enriched\tSMILES\n%s"%("\n".join(l_out)))
+            f_duplicate.close()
+
+        filout = open(p_filout, "w")
+        for k in d_out.keys():
+            filout.write("%s: %s\n"%(k, d_out[k]))
+        filout.close()
 
 
     def concensus(self, name_model, l_ML):

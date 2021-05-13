@@ -29,7 +29,7 @@ class NCAST_CHEMBL_set:
         rate_active = 0
 
         self.set_up_for_analysis([c_CHEMBL_set.cCHEMBL.p_desc1D2D, cNCAST.cMain.l_p_desc[0]], [c_CHEMBL_set.cCHEMBL.p_descOPERA, cNCAST.cMain.l_p_desc[1]])
-        #self.analyseDataset(COR_VAL, MAX_QUANTILE, SOM_size)
+        self.analyseDataset(COR_VAL, MAX_QUANTILE, SOM_size)
         #self.QSARClassif_builder(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
         #self.QSARReg_builder(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
         #self.QSARClassif_DNN(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)

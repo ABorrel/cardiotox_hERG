@@ -82,6 +82,6 @@ ddesc = ddesc[lID,]
 dAC50 = dAC50[lID,]
 
 vcolor = rep("gray90", dim(ddesc)[1])
-vcolor[which(!is.na(dAC50$Aff))] = "blue"
+vcolor[which(!is.na(dAC50$Aff))] = "lightblue"
 
 PCAplot(ddesc, vcolor, pr_out)

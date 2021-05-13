@@ -167,6 +167,8 @@ class dataset:
         else:
             self.p_desc_opera = p_filout_OPERA
 
+        return [self.p_desc1D2D,  self.p_desc_opera]
+
     def computeDescOPERA(self, pr_desc):
 
         if not "pr_desc" in self.__dict__:

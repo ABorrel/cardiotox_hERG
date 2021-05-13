@@ -107,6 +107,9 @@ points(res.pca$x[which(vcolor != "#5959593C"),1], res.pca$x[which(vcolor != "#59
 points(add_coord[,1], add_coord[,2], col = vcolor_add, pch = vshape, cex = 3)
 abline(h=0,v=0)
 warnings ()
+legend(min(res.pca$x[,1]), max(res.pca$x[,2]), legend=c("Train set - active", "Train set - inactive", "Test set - active", "Test set - inactive"),
+       col=c("#191997", "#595959", "#2c7825", "#90EE90"),pch = 19, cex=2)
+
 dev.off()
 
 #points(data_plot[which(vcolor != "gray90"),1], data_plot[which(vcolor != "gray90"),2], pch=20, col = vcolor[which(vcolor != "gray90")], cex = 4)

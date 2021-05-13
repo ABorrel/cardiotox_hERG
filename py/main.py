@@ -70,7 +70,7 @@ cNCAST.main()
 ############################
 p_CHEMBL_raw = PR_DATA + "chembl27/CHEMBL240.csv"
 
-c_CHEMBL_set = CHEMBL_set.CHEMBL_set(p_CHEMBL_raw, "CHEMBL27", PR_RESULTS)
+c_CHEMBL_set = CHEMBL_set.CHEMBL_set(p_CHEMBL_raw, "CHEMBL27", PR_RESULTS, PR_ROOT, PR_DATA)
 c_CHEMBL_set.main()
 
 
@@ -227,17 +227,52 @@ c_genericSet = genericTestSet.genericTestSet(p_dataset, pr_TestSet, PR_RESULTS)
 c_genericSet.loadDataset(loadDb=p_SMILESComptox)
 c_genericSet.main(allAff="PUBCHEM_ACTIVITY_OUTCOME")
 
-cApplyModel = applyModels.applyModel(cNCAST.cMain.c_analysis.p_desc_cleaned, cNCAST.cMain.c_analysis.p_desc, cNCAST.cMain.c_analysis.p_AC50_cleaned, cNCAST.cMain.c_analysis.p_AC50, c_genericSet.p_desc, c_genericSet.p_aff, pr_TestSet, PR_RESULTS)
+cApplyModel = applyModels.applyModel(cNCAST, c_NCAST_CHEMBL_set, c_genericSet, pr_TestSet, PR_RESULTS)
+cApplyModel.SummarizeSet()
 cApplyModel.PCACombine()
 cApplyModel.computeAD()
 
-# prediction classif model
+
+# prediction classif model #
+############################
 cApplyModel.predict_AllClassifModels()
-cApplyModel.concensus("NCAST_classif_undersampling", ["DNN", "RF"])
+cApplyModel.concensus("NCAST_classif_undersampling", ["DNN", "RF", "LDA"])
 cApplyModel.mergePredictionClass()
-cApplyModel.concensus("NCAST_CHEMBL_classif_nosampling", ["DNN", "RF"])
+cApplyModel.concensus("NCAST_CHEMBL_classif_nosampling", ["DNN", "RF", "LDA"])
 cApplyModel.mergePredictionClass()
-main169
+
+# prediction REG model #
+########################
+cApplyModel.predict_AllRegModels()
 
 
+
+
+## 12. external test set from llnl 2
+#######################################
+p_dataset = PR_DATA + "external_llnl/kcnh2_dtc_testset_base_smiles_union.csv"
+p_SMILESComptox = PR_DATA + "CompToxChemicalsDashboard-SMILES.csv"
+pr_TestSet = pathFolder.createFolder(PR_RESULTS + "Ext_Test_Set_llnl_kcnh2_dtc_testset_base/")
+
+c_genericSet = genericTestSet.genericTestSet(p_dataset, pr_TestSet, PR_RESULTS)
+c_genericSet.loadDataset(loadDb=p_SMILESComptox)
+c_genericSet.main(allAff="PUBCHEM_ACTIVITY_OUTCOME")
+
+cApplyModel = applyModels.applyModel(cNCAST, c_NCAST_CHEMBL_set, c_genericSet, pr_TestSet, PR_RESULTS)
+cApplyModel.SummarizeSet()
+cApplyModel.PCACombine()
+cApplyModel.computeAD()
+
+
+# prediction classif model #
+############################
+cApplyModel.predict_AllClassifModels()
+cApplyModel.concensus("NCAST_classif_undersampling", ["DNN", "RF", "LDA"])
+cApplyModel.mergePredictionClass()
+cApplyModel.concensus("NCAST_CHEMBL_classif_nosampling", ["DNN", "RF", "LDA"])
+cApplyModel.mergePredictionClass()
+
+# prediction REG model #
+########################
+#cApplyModel.predict_AllRegModels()
 

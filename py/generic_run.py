@@ -18,6 +18,13 @@ class generic_run:
         self.pr_dataset = pathFolder.createFolder(self.pr_results + "dataset_" + self.name_dataset + "/")
         self.p_class_chemical = p_class_chemical
 
+    def setup_ChEMBL(self, p_rdkit_desc, p_opera_desc, p_aff, pr_dataset):
+
+        # defint p_l_desc
+        self.l_p_desc = [p_rdkit_desc, p_opera_desc]
+        self.p_AC50 = p_aff
+        self.pr_dataset = pr_dataset
+
 
     def load_datasetNCAST(self, cutoff_aff = 30):
         """

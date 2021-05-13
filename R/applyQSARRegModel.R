@@ -3,7 +3,7 @@ library (randomForest)
 library(pls)
 library(nnet)
 library(ggplot2)
-source("../../../../development/QSAR-QSPR/performance.R")
+source("../../../../development/QSAR-QSPR/performance.R") # need to change that
 
 calR2 = function(dreal, dpredict){
   
@@ -66,7 +66,7 @@ pr_out = args[6]
 # open file
 d_aff = read.csv(p_aff, sep = ",", row.names=1)
 d_aff = na.omit(d_aff)
-d_aff = d_aff[-which(d_aff$Aff == 0),]
+d_aff = d_aff[-which(d_aff$Aff == 0),] # remove not active chemicals
 din = read.csv(p_desc, sep = "\t", header = TRUE, row.names = 1)
 l_chem = intersect(rownames(d_aff), rownames(din))
 din = din[l_chem,]
@@ -107,6 +107,7 @@ dout = as.data.frame(dout)
 dout$Pred = as.double(as.character(dout$Pred))
 dout$Real = as.double(as.character(dout$Real))
 dout = cbind(dout, AD)
+rownames(dout) = rownames(d_aff)
 dout = na.omit(dout)
 
 #dout = dout[which(dout$AD < 1), ]

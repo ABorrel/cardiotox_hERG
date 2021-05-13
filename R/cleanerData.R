@@ -14,9 +14,9 @@ valcor = args[4]
 maxquantile = as.double(args[5])
 act = as.integer(args[6])
 
-#pdesc = "../../results/DESC/desc_1D2D.csv"
-#pdata = "../../data/AC50_7403.txt"
-#prout = "../../results/Cleaned_Data/"
+#pdesc = "../../results/CHEMBL27/analysis_ChEMBL_27/desc_global.csv"
+#pdata = "../../results/CHEMBL27/dataset_CHEMBL27/aff__1.csv"
+#prout = "../../results/CHEMBL27/analysis_ChEMBL_27/"
 #valcor = 0.9
 #maxquantile = 90
 
@@ -51,13 +51,21 @@ print(paste("Data after filtering: dim = ", dim(dglobal)[1], dim(dglobal)[2], se
 #######################
 # Opening
 daffinity = read.csv(pdata, sep = "\t", header = TRUE)
+if(dim(daffinity)[2] == 1){
+    daffinity = read.csv(pdata, sep = ",", header = TRUE)
+    
+    if ("Aff.uM" %in% colnames(daffinity) == TRUE){
+        daffinity = subset (daffinity, select = -Aff.uM) 
+        daffinity[which(daffinity$Aff == 1), "Aff"] = daffinity[which(daffinity$Aff == 1), "pAff"]
+        daffinity[which(daffinity$Aff == 0), "Aff"] = NA
+    }
+}
 rownames(daffinity) = daffinity[,1]
 colnames(daffinity)[2] = "Aff"
 # only extract active
 if(act == 1){
     daffinity = na.omit(daffinity)
 }
-
 # control same chemicals
 linter = intersect(rownames(dglobal), rownames(daffinity))
 
