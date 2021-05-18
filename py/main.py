@@ -236,14 +236,15 @@ cApplyModel.computeAD()
 # prediction classif model #
 ############################
 cApplyModel.predict_AllClassifModels()
-cApplyModel.concensus("NCAST_classif_undersampling", ["DNN", "RF", "LDA"])
-cApplyModel.mergePredictionClass()
-cApplyModel.concensus("NCAST_CHEMBL_classif_nosampling", ["DNN", "RF", "LDA"])
-cApplyModel.mergePredictionClass()
+stop239
+#cApplyModel.concensus("NCAST_classif_undersampling", ["DNN", "RF", "LDA"])
+#cApplyModel.mergePredictionClass()
+#cApplyModel.concensus("NCAST_CHEMBL_classif_nosampling", ["DNN", "RF", "LDA"])
+#cApplyModel.mergePredictionClass()
 
 # prediction REG model #
 ########################
-cApplyModel.predict_AllRegModels()
+#cApplyModel.predict_AllRegModels()
 
 
 
@@ -259,8 +260,8 @@ c_genericSet.loadDataset(loadDb=p_SMILESComptox)
 c_genericSet.main(allAff="PUBCHEM_ACTIVITY_OUTCOME")
 
 cApplyModel = applyModels.applyModel(cNCAST, c_NCAST_CHEMBL_set, c_genericSet, pr_TestSet, PR_RESULTS)
-cApplyModel.SummarizeSet()
-cApplyModel.PCACombine()
+#cApplyModel.SummarizeSet()
+#cApplyModel.PCACombine()
 cApplyModel.computeAD()
 
 

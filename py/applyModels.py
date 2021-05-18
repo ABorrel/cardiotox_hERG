@@ -31,6 +31,14 @@ class applyModel:
 
     def predict_AllClassifModels(self):
 
+        
+        ###############################
+        #### CHEMBL
+        pr_models = self.pr_results + "CHEMBL27/QSAR_ChEMBL_27__0.9-90-5-10-0.15-0/noSampling/1/RFclass/"
+        self.predictClassif(pr_models, "CHEMBL27_classif_nosampling", "RF")
+        self.mergePredictionClass()
+
+        
         ##############################
         ### NCAST classif - undersampling
         ##

@@ -2,6 +2,9 @@ import pathFolder
 import CHEMBLTable
 import analysis
 import generic_run
+import runExternal
+import DNN
+from os import path
 
 class CHEMBL_set:
     def __init__(self, p_chembl_results, name_dataset, pr_results, pr_root, pr_data):
@@ -35,14 +38,17 @@ class CHEMBL_set:
         n_foldCV = 10
         rate_split = 0.15
 
-        self.analysis_nopred(COR_VAL, MAX_QUANTILE, SOM_size)
+        #self.analysis_nopred(COR_VAL, MAX_QUANTILE, SOM_size)
 
         ###
-        # DO QSAR
-        rate_active = 0# no undersampling
-        self.QSARClassif_builder(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
+        # DO QSAR classification
+        #rate_active = 0# no undersampling
+        #self.QSARClassif_builder(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
 
-
+        ##
+        # QSAR regression
+        #rate_active = 0
+        #self.QSARReg_builder(COR_VAL, MAX_QUANTILE, nb_repetition, n_foldCV, rate_split, rate_active)
 
         ######
         # MERGE dataset CHEMBL + NCAST

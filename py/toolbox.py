@@ -54,6 +54,9 @@ def loadMatrix(pmatrixIn, sep = "\t"):
     line0 = formatLine(llinesMat[0])
     line1 = formatLine(llinesMat[1])
     lheaders = line0.split(sep)
+    if len(lheaders) == 1:
+        lheaders = line0.split(",")
+        sep = ","
     lval1 = line1.split(sep)
 
     # case where R written
