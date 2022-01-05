@@ -443,10 +443,10 @@ class CHEMBLTable:
                 
                 if type(cutoff_uM) == list:
                     if val_converted <= cutoff_uM[0]:
-                        f_aff_cleaned.write("\"%s\",\"%s\",0,%s\n"%(ChEMBL_ID, val_converted, pAff))
+                        f_aff_cleaned.write("\"%s\",\"%s\",1,%s\n"%(ChEMBL_ID, val_converted, pAff))
                         n_act = n_act + 1
                     elif val_converted >= cutoff_uM[1]:
-                        f_aff_cleaned.write("\"%s\",\"%s\",1,%s\n"%(ChEMBL_ID, val_converted, pAff))
+                        f_aff_cleaned.write("\"%s\",\"%s\",0,%s\n"%(ChEMBL_ID, val_converted, pAff))
                         n_inact = n_inact + 1
                     else:
                         nb_remove = nb_remove + 1

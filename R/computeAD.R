@@ -197,7 +197,7 @@ vcolor_add = rep("#90EE90", dim(ddesc2)[1])
 
 png(paste(pr_out, "PCA_color.png", sep = ""), 1700, 1500)
 par(mar=c(8,8,8,8))
-plot(rbind(add_coord[,1],res.pca$x[,1]) ,rbind(add_coord[,2],res.pca$x[,2]) , pch=19, col = "white", xlab = paste("CP1: ", round (var_cap[1], 2), "%", sep = ""), ylab = paste("CP2: ", round(var_cap[2], 2), "%", sep = ""), cex.lab = 4, cex.main = 4, cex.axis = 1.75, cex = 2.5)
+plot(rbind(add_coord[,1],res.pca$x[,1]) ,rbind(add_coord[,2],res.pca$x[,2]) , pch=19, col = "white", xlab = paste("PC1: ", round (var_cap[1], 2), "%", sep = ""), ylab = paste("PC2: ", round(var_cap[2], 2), "%", sep = ""), cex.lab = 4, cex.main = 4, cex.axis = 1.75, cex = 2.5)
 points(res.pca$x[,1], res.pca$x[,2], pch=19, col = vcolor, cex = 2.5)
 #points(res.pca$x[which(vcolor != "darkgray"),1], res.pca$x[which(vcolor != "darkgray"),2], pch=19, col = vcolor[which(vcolor != "darkgray")], cex = 2.5)
 points(add_coord[,1], add_coord[,2], col = vcolor_add, pch = 19, cex = 2.5)
